@@ -1,0 +1,1085 @@
+<!DOCTYPE html>
+<html><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="631ae82c-6477-4195-9de3-1afb10ac94ea"></script>
+</head>
+<body>
+<x-dc>
+
+<helmet>
+<meta name="design_doc_mode" content="canvas">
+
+<style>
+  body{margin:0;background:#0e0f18;font-family:-apple-system,'Segoe UI',system-ui,sans-serif}
+  ::selection{background:rgba(145,132,217,.35)}
+  @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(145,132,217,.55)}70%{box-shadow:0 0 0 10px rgba(145,132,217,0)}100%{box-shadow:0 0 0 0 rgba(145,132,217,0)}}
+</style>
+</helmet>
+
+<div style="position:absolute;left:40px;top:24px;font:600 13px system-ui,sans-serif;color:#9aa0c9">Portfolio tracker — Nocturne, carried forward</div>
+
+<!-- ============ ANCHOR: NOCTURNE DETAIL ============ -->
+<div data-screen-label="Nocturne Detail" style="position:absolute;left:40px;top:66px;width:390px">
+  <div style="display:inline-block;padding:5px 12px;background:#161826;color:#e9e9ed;font:500 11px -apple-system,sans-serif;letter-spacing:.08em;text-transform:uppercase;margin-bottom:14px;border:1px solid #9184d9">Nocturne — Detail</div>
+  <div style="width:390px;background:#161826;color:#e9e9ed;font-family:-apple-system,sans-serif;box-shadow:0 16px 40px rgba(0,0,0,.5);padding-bottom:24px;border-radius:20px 20px 0 0;overflow:hidden">
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:20px 18px 0">
+      <div>
+        <div style="font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#9184d9;font-weight:500">Portfolio</div>
+        <div style="display:flex;align-items:center;gap:6px;margin-top:3px">
+          <span style="font:500 19px -apple-system,sans-serif">Core Growth</span>
+          <svg width="12" height="12" sc-camel-view-box="0 0 12 12"><polyline points="2,4 6,8 10,4" fill="none" stroke="#e9e9ed" stroke-width="1.5"></polyline></svg>
+        </div>
+      </div>
+      <button style="width:32px;height:32px;border-radius:8px;background:#232532;border:none;display:flex;align-items:center;justify-content:center;cursor:pointer">
+        <svg width="14" height="3.5" sc-camel-view-box="0 0 14 3.5"><circle cx="1.75" cy="1.75" r="1.4" fill="#e9e9ed"></circle><circle cx="7" cy="1.75" r="1.4" fill="#e9e9ed"></circle><circle cx="12.25" cy="1.75" r="1.4" fill="#e9e9ed"></circle></svg>
+      </button>
+    </div>
+    <div style="padding:14px 18px 0">
+      <div style="font:500 42px -apple-system,sans-serif;line-height:1;color:#e9e9ed">{{ det.prStr }}</div>
+      <div style="font-size:12px;color:#9397ab;margin-top:8px">vs Benchmark 90/10 <span style="color:#d2cefd">{{ det.brStr }}</span> · {{ det.period }}</div>
+    </div>
+    <div style="display:flex;gap:6px;overflow-x:auto;padding:14px 18px 0">
+      <sc-for list="{{ det.periodBtns }}" as="pb" hint-placeholder-count="8">
+        <button sc-camel-on-click="{{ pb.onClick }}" style="flex:none;padding:6px 12px;border-radius:8px;font:500 12px -apple-system,sans-serif;border:1px solid {{ pb.border }};background:{{ pb.bg }};color:{{ pb.color }};cursor:pointer">{{ pb.label }}</button>
+      </sc-for>
+    </div>
+    <div style="margin:16px 18px 0;background:#1c1e2c;border-radius:14px;padding:14px 10px 4px;position:relative">
+      <svg width="100%" height="140" sc-camel-view-box="0 0 358 140" sc-camel-preserve-aspect-ratio="none">
+        <defs><linearGradient id="ng0" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#9184d9" stop-opacity="0.35"></stop><stop offset="100%" stop-color="#9184d9" stop-opacity="0"></stop></linearGradient></defs>
+        <line x1="0" y1="20" x2="330" y2="20" stroke="#2a2d3d" stroke-width="1"></line>
+        <line x1="0" y1="70" x2="330" y2="70" stroke="#2a2d3d" stroke-width="1"></line>
+        <line x1="0" y1="120" x2="330" y2="120" stroke="#2a2d3d" stroke-width="1"></line>
+        <sc-if value="{{ det.showP }}"><path d="{{ det.pArea }}" fill="url(#ng0)"></path></sc-if>
+        <sc-if value="{{ det.showB }}"><path d="{{ det.bLine }}" fill="none" stroke="#595d6c" stroke-width="1.5" stroke-dasharray="3,3"></path></sc-if>
+        <sc-if value="{{ det.showP }}"><path d="{{ det.pLine }}" fill="none" stroke="#9184d9" stroke-width="2"></path></sc-if>
+        <sc-if value="{{ det.showP }}"><line x1="{{ det.endX }}" y1="0" x2="{{ det.endX }}" y2="140" stroke="#4c5397" stroke-width="1" stroke-dasharray="2,2"></line></sc-if>
+        <sc-if value="{{ det.showP }}"><circle cx="{{ det.endX }}" cy="{{ det.endY }}" r="4" fill="#9184d9" style="animation:pulse 2s infinite"></circle></sc-if>
+        <text x="332" y="24" fill="#75798c" font-size="9" font-family="-apple-system,sans-serif">{{ det.gridHigh }}</text>
+        <text x="332" y="124" fill="#75798c" font-size="9" font-family="-apple-system,sans-serif">{{ det.gridLow }}</text>
+      </svg>
+      <sc-if value="{{ det.showP }}"><div style="position:absolute;top:14px;left:{{ det.pillLeft }}px;transform:translateX(-50%);background:#9184d9;color:#161826;font:600 11px -apple-system,sans-serif;padding:3px 8px;border-radius:6px;white-space:nowrap">{{ det.prStr }}</div></sc-if>
+      <div style="display:flex;gap:8px;margin-top:6px;padding-bottom:10px">
+        <button sc-camel-on-click="{{ det.togP }}" style="display:flex;align-items:center;gap:6px;padding:4px 10px;border-radius:20px;border:1px solid #9184d9;background:transparent;cursor:pointer;opacity:{{ det.pOpacity }}">
+          <span style="width:8px;height:8px;border-radius:50%;background:#9184d9;display:inline-block"></span><span style="font-size:11px;font-weight:500;color:#e9e9ed">Core Growth</span>
+        </button>
+        <button sc-camel-on-click="{{ det.togB }}" style="display:flex;align-items:center;gap:6px;padding:4px 10px;border-radius:20px;border:1px solid #595d6c;background:transparent;cursor:pointer;opacity:{{ det.bOpacity }}">
+          <span style="width:8px;height:1.5px;background:#9397ab;display:inline-block"></span><span style="font-size:11px;font-weight:500;color:#e9e9ed">Benchmark 90/10</span>
+        </button>
+      </div>
+    </div>
+    <div style="padding:22px 18px 0">
+      <div style="font:500 13px -apple-system,sans-serif;letter-spacing:.02em;margin-bottom:10px;color:#9397ab">Statistics</div>
+      <sc-raw-table style="width:100%;border-collapse:collapse;font-size:13px">
+        <sc-raw-thead><sc-raw-tr>
+          <sc-raw-th style="text-align:left;font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:#75798c;padding:6px 0;border-bottom:1px solid #2c2f40">Metric</sc-raw-th>
+          <sc-raw-th style="text-align:right;font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:#75798c;padding:6px 0;border-bottom:1px solid #2c2f40">Portfolio</sc-raw-th>
+          <sc-raw-th style="text-align:right;font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:#75798c;padding:6px 0;border-bottom:1px solid #2c2f40">Bench.</sc-raw-th>
+        </sc-raw-tr></sc-raw-thead>
+        <sc-raw-tbody>
+        <sc-for list="{{ det.statsRows }}" as="srow" hint-placeholder-count="6">
+          <sc-raw-tr>
+            <sc-raw-td style="padding:8px 0;border-bottom:1px solid #21232f;color:#9397ab">{{ srow.label }}</sc-raw-td>
+            <sc-raw-td style="padding:8px 0;border-bottom:1px solid #21232f;text-align:right;font-weight:600;color:#e9e9ed">{{ srow.p }}</sc-raw-td>
+            <sc-raw-td style="padding:8px 0;border-bottom:1px solid #21232f;text-align:right;color:#75798c">{{ srow.b }}</sc-raw-td>
+          </sc-raw-tr>
+        </sc-for>
+        </sc-raw-tbody>
+      </sc-raw-table>
+    </div>
+    <div style="padding:22px 18px 0">
+      <div style="font:500 13px -apple-system,sans-serif;letter-spacing:.02em;margin-bottom:10px;color:#9397ab">Holdings</div>
+      <div style="display:flex;flex-direction:column;gap:12px">
+        <sc-for list="{{ holdings }}" as="h" hint-placeholder-count="5">
+          <div style="display:flex;align-items:center;gap:12px">
+            <div style="width:42px;height:26px;flex:none;background:#232532;border-radius:6px;display:flex;align-items:center;justify-content:center;font:500 10.5px -apple-system,sans-serif;color:#d2cefd">{{ h.t }}</div>
+            <div style="flex:1;min-width:0">
+              <div style="font-size:13px;font-weight:400;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ h.n }}</div>
+              <div style="height:3px;background:#232532;border-radius:2px;margin-top:6px;position:relative"><div style="position:absolute;left:0;top:0;bottom:0;border-radius:2px;width:{{ h.w }}%;background:#9184d9"></div></div>
+            </div>
+            <div style="font:500 13px -apple-system,sans-serif;flex:none;color:#e9e9ed">{{ h.w }}%</div>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ ANCHOR: NOCTURNE COMPARE ============ -->
+<div data-screen-label="Nocturne Compare" style="position:absolute;left:470px;top:66px;width:390px">
+  <div style="display:inline-block;padding:5px 12px;background:#161826;color:#e9e9ed;font:500 11px -apple-system,sans-serif;letter-spacing:.08em;text-transform:uppercase;margin-bottom:14px;border:1px solid #9184d9">Nocturne — Compare</div>
+  <div style="width:390px;background:#161826;color:#e9e9ed;font-family:-apple-system,sans-serif;box-shadow:0 16px 40px rgba(0,0,0,.5);padding-bottom:24px;border-radius:20px 20px 0 0;overflow:hidden">
+    <div style="padding:20px 18px 0">
+      <div style="font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#9184d9;font-weight:500">Compare</div>
+      <div style="font:500 20px -apple-system,sans-serif;margin-top:3px">4 selected</div>
+    </div>
+    <div style="display:flex;gap:6px;overflow-x:auto;padding:14px 18px 0">
+      <sc-for list="{{ cmp.periodBtns }}" as="pb" hint-placeholder-count="8">
+        <button sc-camel-on-click="{{ pb.onClick }}" style="flex:none;padding:6px 12px;border-radius:8px;font:500 12px -apple-system,sans-serif;border:1px solid {{ pb.border }};background:{{ pb.bg }};color:{{ pb.color }};cursor:pointer">{{ pb.label }}</button>
+      </sc-for>
+    </div>
+    <div style="margin:16px 18px 0;background:#1c1e2c;border-radius:14px;padding:14px 10px 4px">
+      <svg width="100%" height="150" sc-camel-view-box="0 0 358 150" sc-camel-preserve-aspect-ratio="none">
+        <sc-for list="{{ cmp.rows }}" as="row" hint-placeholder-count="4">
+          <sc-if value="{{ row.on }}"><path d="{{ row.line }}" fill="none" stroke="{{ row.swatch }}" stroke-width="{{ row.strokeW }}" stroke-dasharray="{{ row.dash }}"></path></sc-if>
+        </sc-for>
+      </svg>
+      <div style="height:14px"></div>
+    </div>
+    <div style="padding:22px 18px 0">
+      <div style="font:500 13px -apple-system,sans-serif;letter-spacing:.02em;margin-bottom:6px;color:#9397ab">Portfolios &amp; Benchmarks</div>
+      <div style="display:flex;flex-direction:column">
+        <sc-for list="{{ cmp.rows }}" as="row" hint-placeholder-count="4">
+          <button sc-camel-on-click="{{ row.toggle }}" style="display:flex;align-items:center;gap:12px;padding:12px 0;border:none;border-bottom:1px solid #232532;background:transparent;cursor:pointer;text-align:left;width:100%;opacity:{{ row.opacity }}">
+            <span style="width:10px;height:10px;border-radius:50%;flex:none;background:{{ row.swatch }}"></span>
+            <span style="flex:1;min-width:0">
+              <span style="display:block;font-size:14px;font-weight:500;color:#e9e9ed">{{ row.name }}</span>
+              <span style="display:block;font-size:11px;color:#75798c;margin-top:2px">{{ row.sub }}</span>
+              <span style="display:block;font-size:11px;color:#75798c;margin-top:4px">{{ row.statLine }}</span>
+            </span>
+            <span style="font:500 16px -apple-system,sans-serif;flex:none;color:#e9e9ed">{{ row.retStr }}</span>
+          </button>
+        </sc-for>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ NOCTURNE TAB SHELL ============ -->
+<div data-screen-label="Nocturne Tab Shell" style="position:absolute;left:900px;top:66px;width:390px">
+  <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+    <div style="display:inline-block;padding:5px 12px;background:#161826;color:#e9e9ed;font:500 11px -apple-system,sans-serif;letter-spacing:.08em;text-transform:uppercase;border:1px solid #9184d9">Nocturne — 4-Tab Shell</div>
+    <button sc-camel-on-click="{{ tabs.toggleHasPortfolios }}" style="font:500 11px -apple-system,sans-serif;color:#75798c;background:transparent;border:1px solid #2c2f40;border-radius:6px;padding:5px 10px;cursor:pointer">Demo: toggle empty state</button>
+  </div>
+  <div style="width:390px;height:812px;display:flex;flex-direction:column;background:#161826;color:#e9e9ed;font-family:-apple-system,sans-serif;box-shadow:0 16px 40px rgba(0,0,0,.5);border-radius:24px;overflow:hidden;position:relative">
+    <div style="flex:1;overflow-y:auto">
+
+      <sc-if value="{{ tabs.isOverview }}" hint-placeholder-val="{{ true }}">
+      <sc-if value="{{ tabs.showAddScreen }}">
+        <div style="padding-bottom:24px">
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:20px 18px 0">
+            <button sc-camel-on-click="{{ tabs.closeAdd }}" style="border:none;background:transparent;cursor:pointer;padding:4px">
+              <svg width="9" height="16" sc-camel-view-box="0 0 9 16"><polyline points="8,1 1,8 8,15" fill="none" stroke="#9397ab" stroke-width="1.5"></polyline></svg>
+            </button>
+            <span style="font:500 15px -apple-system,sans-serif">New Portfolio</span>
+            <span style="width:14px"></span>
+          </div>
+          <div style="padding:14px 18px 0">
+            <div style="font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:#75798c;margin-bottom:8px">Portfolio Name</div>
+            <input value="{{ setup.name }}" sc-camel-on-change="{{ setup.onName }}" placeholder="e.g. Core Growth" style="width:100%;box-sizing:border-box;background:#1c1e2c;border:1px solid #2c2f40;border-radius:8px;padding:12px 14px;color:#e9e9ed;font:500 15px -apple-system,sans-serif">
+          </div>
+          <div style="padding:14px 18px 0">
+            <div style="font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:#75798c;margin-bottom:8px">How would you like to enter holdings?</div>
+            <div style="display:flex;flex-wrap:wrap;gap:6px">
+              <sc-for list="{{ setup.modeBtns }}" as="mb" hint-placeholder-count="4">
+                <button sc-camel-on-click="{{ mb.onClick }}" style="flex:none;padding:8px 13px;border-radius:8px;font:500 12.5px -apple-system,sans-serif;border:1px solid {{ mb.border }};background:{{ mb.bg }};color:{{ mb.color }};cursor:pointer">{{ mb.label }}</button>
+              </sc-for>
+            </div>
+            <div style="font-size:12.5px;color:#75798c;margin-top:10px;line-height:1.45">{{ setup.hint }}</div>
+          </div>
+          <div style="padding:14px 18px 0">
+            <div style="display:flex;align-items:center;gap:10px;padding:0 0 8px;font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:#75798c">
+              <span style="width:72px">Ticker</span><span style="flex:1;text-align:right">{{ setup.unit }}</span><span style="width:50px;text-align:right">Alloc</span><span style="width:32px"></span>
+            </div>
+            <sc-for list="{{ setup.rows }}" as="arow" hint-placeholder-count="4">
+              <div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid #1e2030">
+                <input value="{{ arow.ticker }}" sc-camel-on-change="{{ arow.onTicker }}" placeholder="TICKER" style="width:72px;box-sizing:border-box;background:#1c1e2c;border:1px solid #2c2f40;border-radius:8px;padding:12px 10px;color:#e9e9ed;font:500 14px -apple-system,sans-serif;text-transform:uppercase">
+                <input value="{{ arow.val }}" sc-camel-on-change="{{ arow.onVal }}" type="number" placeholder="0" style="flex:1;min-width:0;box-sizing:border-box;background:#1c1e2c;border:1px solid #2c2f40;border-radius:8px;padding:12px 10px;color:#e9e9ed;font:500 14px -apple-system,sans-serif;text-align:right">
+                <span style="font-size:13px;color:#9397ab;width:50px;text-align:right">{{ arow.pct }}%</span>
+                <button sc-camel-on-click="{{ arow.remove }}" style="width:32px;height:32px;flex:none;border:none;background:transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;border-radius:6px">
+                  <svg width="12" height="12" sc-camel-view-box="0 0 12 12"><line x1="1" y1="1" x2="11" y2="11" stroke="#595d6c" stroke-width="1.5"></line><line x1="11" y1="1" x2="1" y2="11" stroke="#595d6c" stroke-width="1.5"></line></svg>
+                </button>
+              </div>
+            </sc-for>
+            <button sc-camel-on-click="{{ setup.addRow }}" style="width:100%;margin-top:10px;padding:10px 0;border:1px dashed #2c2f40;border-radius:8px;background:transparent;color:#9397ab;font:500 12.5px -apple-system,sans-serif;cursor:pointer">+ Add Holding</button>
+          </div>
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 18px 0">
+            <span style="font-size:13px;color:#75798c">Total</span>
+            <span style="font:500 15px -apple-system,sans-serif;color:#e9e9ed">{{ setup.totalStr }}</span>
+          </div>
+          <div style="padding:14px 18px 0">
+            <button sc-camel-on-click="{{ tabs.closeAdd }}" style="width:100%;padding:13px 0;border-radius:10px;border:1px solid #9184d9;background:transparent;color:#9184d9;font:600 13.5px -apple-system,sans-serif;cursor:pointer">Save Portfolio</button>
+          </div>
+        </div>
+      </sc-if>
+      <sc-if value="{{ tabs.showNormal }}">
+        <div style="padding-bottom:24px">
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:20px 18px 0">
+            <div>
+              <div style="font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#9184d9;font-weight:500">Portfolio</div>
+              <button sc-camel-on-click="{{ tabs.toggleSwitcher }}" style="display:flex;align-items:center;gap:6px;margin-top:3px;border:none;background:transparent;cursor:pointer;padding:0">
+                <span style="font:500 19px -apple-system,sans-serif;color:#e9e9ed">{{ tabs.activeName }}</span>
+                <svg width="12" height="12" sc-camel-view-box="0 0 12 12"><polyline points="2,4 6,8 10,4" fill="none" stroke="#e9e9ed" stroke-width="1.5"></polyline></svg>
+              </button>
+            </div>
+          </div>
+          <div style="padding:14px 18px 0">
+            <div style="font:500 42px -apple-system,sans-serif;line-height:1;color:#e9e9ed">{{ det.prStr }}</div>
+            <div style="font-size:12px;color:#9397ab;margin-top:8px">vs Benchmark 90/10 <span style="color:#d2cefd">{{ det.brStr }}</span> · {{ det.period }}</div>
+          </div>
+          <div style="display:flex;gap:6px;overflow-x:auto;padding:14px 18px 0">
+            <sc-for list="{{ det.periodBtns }}" as="pb" hint-placeholder-count="8">
+              <button sc-camel-on-click="{{ pb.onClick }}" style="flex:none;padding:6px 12px;border-radius:8px;font:500 12px -apple-system,sans-serif;border:1px solid {{ pb.border }};background:{{ pb.bg }};color:{{ pb.color }};cursor:pointer">{{ pb.label }}</button>
+            </sc-for>
+          </div>
+          <div style="margin:16px 18px 0;background:#1c1e2c;border-radius:14px;padding:14px 10px 4px;position:relative">
+            <svg width="100%" height="140" sc-camel-view-box="0 0 358 140" sc-camel-preserve-aspect-ratio="none">
+              <defs><linearGradient id="ngT" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#9184d9" stop-opacity="0.35"></stop><stop offset="100%" stop-color="#9184d9" stop-opacity="0"></stop></linearGradient></defs>
+              <line x1="0" y1="20" x2="330" y2="20" stroke="#2a2d3d" stroke-width="1"></line>
+              <line x1="0" y1="70" x2="330" y2="70" stroke="#2a2d3d" stroke-width="1"></line>
+              <line x1="0" y1="120" x2="330" y2="120" stroke="#2a2d3d" stroke-width="1"></line>
+              <sc-if value="{{ det.showP }}"><path d="{{ det.pArea }}" fill="url(#ngT)"></path></sc-if>
+              <sc-if value="{{ det.showB }}"><path d="{{ det.bLine }}" fill="none" stroke="#595d6c" stroke-width="1.5" stroke-dasharray="3,3"></path></sc-if>
+              <sc-if value="{{ det.showP }}"><path d="{{ det.pLine }}" fill="none" stroke="#9184d9" stroke-width="2"></path></sc-if>
+              <sc-if value="{{ det.showP }}"><line x1="{{ det.endX }}" y1="0" x2="{{ det.endX }}" y2="140" stroke="#4c5397" stroke-width="1" stroke-dasharray="2,2"></line></sc-if>
+              <sc-if value="{{ det.showP }}"><circle cx="{{ det.endX }}" cy="{{ det.endY }}" r="4" fill="#9184d9" style="animation:pulse 2s infinite"></circle></sc-if>
+              <text x="332" y="24" fill="#75798c" font-size="9" font-family="-apple-system,sans-serif">{{ det.gridHigh }}</text>
+              <text x="332" y="124" fill="#75798c" font-size="9" font-family="-apple-system,sans-serif">{{ det.gridLow }}</text>
+            </svg>
+            <sc-if value="{{ det.showP }}"><div style="position:absolute;top:14px;left:{{ det.pillLeft }}px;transform:translateX(-50%);background:#9184d9;color:#161826;font:600 11px -apple-system,sans-serif;padding:3px 8px;border-radius:6px;white-space:nowrap">{{ det.prStr }}</div></sc-if>
+            <div style="display:flex;gap:8px;margin-top:6px;padding-bottom:10px">
+              <button sc-camel-on-click="{{ det.togP }}" style="display:flex;align-items:center;gap:6px;padding:4px 10px;border-radius:20px;border:1px solid #9184d9;background:transparent;cursor:pointer;opacity:{{ det.pOpacity }}">
+                <span style="width:8px;height:8px;border-radius:50%;background:#9184d9;display:inline-block"></span><span style="font-size:11px;font-weight:500;color:#e9e9ed">Core Growth</span>
+              </button>
+              <button sc-camel-on-click="{{ det.togB }}" style="display:flex;align-items:center;gap:6px;padding:4px 10px;border-radius:20px;border:1px solid #595d6c;background:transparent;cursor:pointer;opacity:{{ det.bOpacity }}">
+                <span style="width:8px;height:1.5px;background:#9397ab;display:inline-block"></span><span style="font-size:11px;font-weight:500;color:#e9e9ed">Benchmark 90/10</span>
+              </button>
+            </div>
+          </div>
+          <div style="padding:22px 18px 0">
+            <div style="font:500 13px -apple-system,sans-serif;letter-spacing:.02em;margin-bottom:10px;color:#9397ab">Holdings</div>
+            <div style="display:flex;flex-direction:column;gap:12px">
+              <sc-for list="{{ holdings }}" as="h" hint-placeholder-count="5">
+                <div style="display:flex;align-items:center;gap:12px">
+                  <div style="width:42px;height:26px;flex:none;background:#232532;border-radius:6px;display:flex;align-items:center;justify-content:center;font:500 10.5px -apple-system,sans-serif;color:#d2cefd">{{ h.t }}</div>
+                  <div style="flex:1;min-width:0">
+                    <div style="font-size:13px;font-weight:400;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ h.n }}</div>
+                    <div style="height:3px;background:#232532;border-radius:2px;margin-top:6px;position:relative"><div style="position:absolute;left:0;top:0;bottom:0;border-radius:2px;width:{{ h.w }}%;background:#9184d9"></div></div>
+                  </div>
+                  <div style="font:500 13px -apple-system,sans-serif;flex:none;color:#e9e9ed">{{ h.w }}%</div>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+        </div>
+      </sc-if>
+      <sc-if value="{{ tabs.emptyState }}">
+        <div style="height:100%;min-height:600px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:0 36px">
+          <svg width="40" height="40" sc-camel-view-box="0 0 40 40" style="margin-bottom:18px"><circle cx="20" cy="20" r="18" fill="none" stroke="#2c2f40" stroke-width="1.5"></circle><path d="M20 12v16M12 20h16" stroke="#595d6c" stroke-width="1.5" stroke-linecap="round"></path></svg>
+          <div style="font:500 17px -apple-system,sans-serif;color:#e9e9ed;margin-bottom:8px">No portfolios yet</div>
+          <div style="font-size:13px;color:#75798c;line-height:1.5;margin-bottom:22px">Add your first portfolio to start tracking performance and holdings.</div>
+          <button sc-camel-on-click="{{ tabs.openAdd }}" style="padding:11px 22px;border-radius:10px;border:1px solid #9184d9;background:transparent;color:#9184d9;font:600 13.5px -apple-system,sans-serif;cursor:pointer">+ Add Portfolio</button>
+        </div>
+      </sc-if>
+      </sc-if>
+
+      <sc-if value="{{ tabs.isCompare }}">
+        <div style="padding-bottom:24px">
+          <div style="padding:20px 18px 0">
+            <div style="font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#9184d9;font-weight:500">Compare</div>
+            <div style="font:500 20px -apple-system,sans-serif;margin-top:3px">4 selected</div>
+          </div>
+          <div style="display:flex;gap:6px;overflow-x:auto;padding:14px 18px 0">
+            <sc-for list="{{ cmp.periodBtns }}" as="pb" hint-placeholder-count="8">
+              <button sc-camel-on-click="{{ pb.onClick }}" style="flex:none;padding:6px 12px;border-radius:8px;font:500 12px -apple-system,sans-serif;border:1px solid {{ pb.border }};background:{{ pb.bg }};color:{{ pb.color }};cursor:pointer">{{ pb.label }}</button>
+            </sc-for>
+          </div>
+          <div style="margin:16px 18px 0;background:#1c1e2c;border-radius:14px;padding:14px 10px 4px">
+            <svg width="100%" height="150" sc-camel-view-box="0 0 358 150" sc-camel-preserve-aspect-ratio="none">
+              <sc-for list="{{ cmp.rows }}" as="crow" hint-placeholder-count="4">
+                <sc-if value="{{ crow.on }}"><path d="{{ crow.line }}" fill="none" stroke="{{ crow.swatch }}" stroke-width="{{ crow.strokeW }}" stroke-dasharray="{{ crow.dash }}"></path></sc-if>
+              </sc-for>
+            </svg>
+            <div style="height:14px"></div>
+          </div>
+          <div style="padding:22px 18px 0">
+            <div style="font:500 13px -apple-system,sans-serif;letter-spacing:.02em;margin-bottom:6px;color:#9397ab">Portfolios &amp; Benchmarks</div>
+            <div style="display:flex;flex-direction:column">
+              <sc-for list="{{ cmp.rows }}" as="crow" hint-placeholder-count="4">
+                <button sc-camel-on-click="{{ crow.toggle }}" style="display:flex;align-items:center;gap:12px;padding:12px 0;border:none;border-bottom:1px solid #232532;background:transparent;cursor:pointer;text-align:left;width:100%;opacity:{{ crow.opacity }}">
+                  <span style="width:10px;height:10px;border-radius:50%;flex:none;background:{{ crow.swatch }}"></span>
+                  <span style="flex:1;min-width:0">
+                    <span style="display:block;font-size:14px;font-weight:500;color:#e9e9ed">{{ crow.name }}</span>
+                    <span style="display:block;font-size:11px;color:#75798c;margin-top:2px">{{ crow.sub }}</span>
+                    <span style="display:block;font-size:11px;color:#75798c;margin-top:4px">{{ crow.statLine }}</span>
+                  </span>
+                  <span style="font:500 16px -apple-system,sans-serif;flex:none;color:#e9e9ed">{{ crow.retStr }}</span>
+                </button>
+              </sc-for>
+            </div>
+          </div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ tabs.isWatchlist }}">
+        <div style="padding-bottom:24px">
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:20px 18px 0">
+            <div>
+              <div style="font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#9184d9;font-weight:500">Markets</div>
+              <div style="font:500 20px -apple-system,sans-serif;margin-top:3px">Watchlist</div>
+            </div>
+            <button style="width:32px;height:32px;border-radius:8px;background:#232532;border:none;display:flex;align-items:center;justify-content:center;cursor:pointer">
+              <svg width="14" height="14" sc-camel-view-box="0 0 14 14"><line x1="7" y1="1" x2="7" y2="13" stroke="#e9e9ed" stroke-width="1.5"></line><line x1="1" y1="7" x2="13" y2="7" stroke="#e9e9ed" stroke-width="1.5"></line></svg>
+            </button>
+          </div>
+          <div style="display:flex;gap:10px;overflow-x:auto;padding:18px 18px 0">
+            <sc-for list="{{ snapshot }}" as="s" hint-placeholder-count="4">
+              <div style="flex:none;width:104px;background:#1c1e2c;border-radius:12px;padding:10px 12px">
+                <div style="font-size:10px;color:#75798c;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ s.label }}</div>
+                <div style="font-size:14px;font-weight:500;color:#e9e9ed;margin-top:3px">{{ s.value }}</div>
+                <svg width="88" height="34" sc-camel-view-box="0 0 88 34" sc-camel-preserve-aspect-ratio="none" style="margin-top:4px">
+                  <path d="{{ s.spark }}" fill="none" stroke="{{ s.color }}" stroke-width="1.5"></path>
+                </svg>
+                <div style="font-size:11px;color:{{ s.color }};margin-top:2px">{{ s.chg }}</div>
+              </div>
+            </sc-for>
+          </div>
+          <div style="font:500 11px -apple-system,sans-serif;letter-spacing:.06em;text-transform:uppercase;color:#75798c;margin:20px 18px 0">Your Watchlist</div>
+          <div style="display:flex;gap:6px;overflow-x:auto;padding:10px 18px 0">
+            <sc-for list="{{ wl.periodBtns }}" as="pb" hint-placeholder-count="8">
+              <button sc-camel-on-click="{{ pb.onClick }}" style="flex:none;padding:6px 12px;border-radius:8px;font:500 12px -apple-system,sans-serif;border:1px solid {{ pb.border }};background:{{ pb.bg }};color:{{ pb.color }};cursor:pointer">{{ pb.label }}</button>
+            </sc-for>
+          </div>
+          <div style="margin-top:8px">
+            <sc-for list="{{ wl.rows }}" as="w" hint-placeholder-count="6">
+              <div style="border-bottom:1px solid #1e2030">
+                <button sc-camel-on-click="{{ w.toggle }}" style="display:flex;align-items:center;gap:12px;padding:12px 18px;width:100%;border:none;background:transparent;cursor:pointer;text-align:left">
+                  <div style="width:36px;height:36px;border-radius:8px;background:#232532;display:flex;align-items:center;justify-content:center;font:600 10px -apple-system,sans-serif;color:#d2cefd;flex:none">{{ w.t }}</div>
+                  <div style="flex:1;min-width:0">
+                    <div style="font-size:13px;color:#e9e9ed;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ w.n }}</div>
+                    <div style="font-size:11px;color:#75798c;margin-top:2px">{{ w.t }}</div>
+                  </div>
+                  <svg width="56" height="24" sc-camel-view-box="0 0 56 24" sc-camel-preserve-aspect-ratio="none" style="flex:none">
+                    <path d="{{ w.spark }}" fill="none" stroke="{{ w.color }}" stroke-width="1.5"></path>
+                  </svg>
+                  <div style="text-align:right;flex:none;width:66px">
+                    <div style="font-size:13px;font-weight:500;color:#e9e9ed">{{ w.price }}</div>
+                    <div style="font-size:11px;color:{{ w.color }}">{{ w.chg }}</div>
+                  </div>
+                </button>
+                <sc-if value="{{ w.isOpen }}">
+                  <div style="padding:0 18px 20px">
+                    <div style="background:#1c1e2c;border-radius:14px;padding:14px 10px 4px;position:relative">
+                      <svg width="100%" height="130" sc-camel-view-box="0 0 330 130" sc-camel-preserve-aspect-ratio="none">
+                        <defs><linearGradient id="wg-{{ w.t }}" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="{{ w.color }}" stop-opacity="0.35"></stop><stop offset="100%" stop-color="{{ w.color }}" stop-opacity="0"></stop></linearGradient></defs>
+                        <line x1="0" y1="18" x2="300" y2="18" stroke="#2a2d3d" stroke-width="1"></line>
+                        <line x1="0" y1="65" x2="300" y2="65" stroke="#2a2d3d" stroke-width="1"></line>
+                        <line x1="0" y1="112" x2="300" y2="112" stroke="#2a2d3d" stroke-width="1"></line>
+                        <path d="{{ w.detail.pArea }}" fill="url(#wg-{{ w.t }})"></path>
+                        <path d="{{ w.detail.bLine }}" fill="none" stroke="#595d6c" stroke-width="1.3" stroke-dasharray="3,3"></path>
+                        <path d="{{ w.detail.pLine }}" fill="none" stroke="{{ w.color }}" stroke-width="2"></path>
+                        <line x1="{{ w.detail.endX }}" y1="0" x2="{{ w.detail.endX }}" y2="130" stroke="#4c5397" stroke-width="1" stroke-dasharray="2,2"></line>
+                        <circle cx="{{ w.detail.endX }}" cy="{{ w.detail.endY }}" r="4" fill="{{ w.color }}" style="animation:pulse 2s infinite"></circle>
+                        <text x="302" y="22" fill="#75798c" font-size="9" font-family="-apple-system,sans-serif">{{ w.detail.gridHigh }}</text>
+                        <text x="302" y="116" fill="#75798c" font-size="9" font-family="-apple-system,sans-serif">{{ w.detail.gridLow }}</text>
+                      </svg>
+                      <div style="position:absolute;top:12px;left:{{ w.detail.pillLeft }}px;transform:translateX(-50%);background:{{ w.color }};color:#161826;font:600 11px -apple-system,sans-serif;padding:3px 8px;border-radius:6px;white-space:nowrap">{{ w.detail.retStr }}</div>
+                    </div>
+                    <div style="font-size:11px;color:#75798c;margin-top:6px">Dashed line: S&amp;P 500 · same period</div>
+                    <sc-raw-table style="width:100%;border-collapse:collapse;font-size:13px;margin-top:12px">
+                      <sc-raw-tbody>
+                      <sc-for list="{{ w.detail.statsRows }}" as="row" hint-placeholder-count="5">
+                        <sc-raw-tr>
+                          <sc-raw-td style="padding:7px 0;border-bottom:1px solid #21232f;color:#9397ab">{{ row.label }}</sc-raw-td>
+                          <sc-raw-td style="padding:7px 0;border-bottom:1px solid #21232f;text-align:right;font-weight:600;color:#e9e9ed">{{ row.v }}</sc-raw-td>
+                        </sc-raw-tr>
+                      </sc-for>
+                      </sc-raw-tbody>
+                    </sc-raw-table>
+                  </div>
+                </sc-if>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ tabs.isAccount }}">
+        <div style="padding-bottom:24px">
+          <div style="padding:24px 18px 0;display:flex;align-items:center;gap:14px">
+            <div style="width:56px;height:56px;border-radius:50%;background:#232532;display:flex;align-items:center;justify-content:center;font:500 18px -apple-system,sans-serif;color:#d2cefd;flex:none">JC</div>
+            <div>
+              <div style="font:500 17px -apple-system,sans-serif;color:#e9e9ed">Jordan Cole</div>
+              <div style="font-size:12px;color:#75798c;margin-top:2px">jordan.cole@email.com</div>
+            </div>
+          </div>
+          <div style="margin-top:26px;padding:0 18px">
+            <div style="font:500 11px -apple-system,sans-serif;letter-spacing:.06em;text-transform:uppercase;color:#75798c;margin-bottom:6px">Preferences</div>
+            <sc-for list="{{ acctRows }}" as="r" hint-placeholder-count="5">
+              <div style="display:flex;align-items:center;gap:12px;padding:13px 0;border-bottom:1px solid #1e2030">
+                <div style="width:28px;height:28px;border-radius:7px;background:#232532;display:flex;align-items:center;justify-content:center;flex:none">
+                  <svg width="14" height="14" sc-camel-view-box="0 0 14 14"><circle cx="7" cy="7" r="5" fill="none" stroke="#9184d9" stroke-width="1.5"></circle></svg>
+                </div>
+                <span style="flex:1;font-size:13.5px;color:#e9e9ed">{{ r.label }}</span>
+                <svg width="7" height="12" sc-camel-view-box="0 0 7 12"><polyline points="1,1 6,6 1,11" fill="none" stroke="#595d6c" stroke-width="1.5"></polyline></svg>
+              </div>
+            </sc-for>
+            <button style="width:100%;text-align:left;padding:13px 0;border:none;background:transparent;cursor:pointer;color:#e08787;font-size:13.5px">Log Out</button>
+          </div>
+        </div>
+      </sc-if>
+
+    </div>
+
+    <sc-if value="{{ tabs.showSwitcher }}">
+      <div sc-camel-on-click="{{ tabs.toggleSwitcher }}" style="position:absolute;inset:0;background:rgba(10,11,18,.55);z-index:5"></div>
+      <div style="position:absolute;left:0;right:0;bottom:0;background:#1c1e2c;border-radius:16px 16px 0 0;padding:8px 18px 18px;box-shadow:0 -12px 32px rgba(0,0,0,.4);z-index:6">
+        <div style="width:32px;height:3px;background:#2c2f40;border-radius:2px;margin:0 auto 14px"></div>
+        <div style="font:500 13px -apple-system,sans-serif;color:#9397ab;margin-bottom:10px">Your Portfolios</div>
+        <sc-for list="{{ tabs.portfolioRows }}" as="prow" hint-placeholder-count="2">
+          <button sc-camel-on-click="{{ prow.select }}" style="display:flex;align-items:center;gap:12px;padding:11px 0;border:none;border-bottom:1px solid #232532;background:transparent;cursor:pointer;text-align:left;width:100%">
+            <span style="width:16px;height:16px;border-radius:50%;flex:none;border:1.5px solid {{ prow.dotBorder }};display:flex;align-items:center;justify-content:center">
+              <sc-if value="{{ prow.isActive }}"><span style="width:8px;height:8px;border-radius:50%;background:#9184d9;display:block"></span></sc-if>
+            </span>
+            <span style="flex:1;min-width:0">
+              <span style="display:block;font-size:14px;font-weight:500;color:#e9e9ed">{{ prow.name }}</span>
+              <span style="display:block;font-size:11px;color:#75798c;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ prow.sub }}</span>
+            </span>
+          </button>
+        </sc-for>
+        <button sc-camel-on-click="{{ tabs.openAdd }}" style="width:100%;margin-top:12px;padding:11px 0;border-radius:10px;border:1px dashed #2c2f40;background:transparent;color:#9397ab;font:500 13px -apple-system,sans-serif;cursor:pointer">+ Add Portfolio</button>
+      </div>
+    </sc-if>
+
+    <div style="flex:none;display:flex;border-top:1px solid #232532;background:#161826">
+      <button sc-camel-on-click="{{ tabs.toOverview }}" style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 0 12px;border:none;background:transparent;cursor:pointer">
+        <svg width="19" height="19" sc-camel-view-box="0 0 19 19" fill="none"><path d="M3 8.5L9.5 3l6.5 5.5" stroke="{{ tabs.overviewColor }}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path><path d="M5 8v7h9V8" stroke="{{ tabs.overviewColor }}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+        <span style="font-size:10px;font-weight:500;color:{{ tabs.overviewColor }}">Overview</span>
+      </button>
+      <button sc-camel-on-click="{{ tabs.toCompare }}" style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 0 12px;border:none;background:transparent;cursor:pointer">
+        <svg width="19" height="19" sc-camel-view-box="0 0 19 19" fill="none"><path d="M2 15V9M7 15V5M12 15V10M17 15V3" stroke="{{ tabs.compareColor }}" stroke-width="1.5" stroke-linecap="round"></path></svg>
+        <span style="font-size:10px;font-weight:500;color:{{ tabs.compareColor }}">Compare</span>
+      </button>
+      <button sc-camel-on-click="{{ tabs.toWatchlist }}" style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 0 12px;border:none;background:transparent;cursor:pointer">
+        <svg width="19" height="19" sc-camel-view-box="0 0 19 19" fill="none"><path d="M9.5 2.5l2.1 4.4 4.8.6-3.5 3.4.9 4.8-4.3-2.3-4.3 2.3.9-4.8-3.5-3.4 4.8-.6z" stroke="{{ tabs.watchlistColor }}" stroke-width="1.4" stroke-linejoin="round"></path></svg>
+        <span style="font-size:10px;font-weight:500;color:{{ tabs.watchlistColor }}">Watchlist</span>
+      </button>
+      <button sc-camel-on-click="{{ tabs.toAccount }}" style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 0 12px;border:none;background:transparent;cursor:pointer">
+        <svg width="19" height="19" sc-camel-view-box="0 0 19 19" fill="none"><circle cx="9.5" cy="6.5" r="3.2" stroke="{{ tabs.accountColor }}" stroke-width="1.5"></circle><path d="M3 16.5c1.3-3.3 4-4.8 6.5-4.8s5.2 1.5 6.5 4.8" stroke="{{ tabs.accountColor }}" stroke-width="1.5" stroke-linecap="round"></path></svg>
+        <span style="font-size:10px;font-weight:500;color:{{ tabs.accountColor }}">Account</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ NOCTURNE ADD PORTFOLIO (MANUAL ENTRY) ============ -->
+<div data-screen-label="Nocturne Add Portfolio" style="position:absolute;left:1360px;top:66px;width:390px">
+  <div style="display:inline-block;padding:5px 12px;background:#161826;color:#e9e9ed;font:500 11px -apple-system,sans-serif;letter-spacing:.08em;text-transform:uppercase;margin-bottom:14px;border:1px solid #9184d9">Nocturne — Add Portfolio</div>
+  <div style="width:390px;background:#161826;color:#e9e9ed;font-family:-apple-system,sans-serif;box-shadow:0 16px 40px rgba(0,0,0,.5);padding-bottom:24px;border-radius:20px;overflow:hidden">
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:20px 18px 0">
+      <svg width="9" height="16" sc-camel-view-box="0 0 9 16"><polyline points="8,1 1,8 8,15" fill="none" stroke="#9397ab" stroke-width="1.5"></polyline></svg>
+      <span style="font:500 15px -apple-system,sans-serif">New Portfolio</span>
+      <svg width="14" height="14" sc-camel-view-box="0 0 14 14"><line x1="1" y1="1" x2="13" y2="13" stroke="#9397ab" stroke-width="1.5"></line><line x1="13" y1="1" x2="1" y2="13" stroke="#9397ab" stroke-width="1.5"></line></svg>
+    </div>
+
+    <div style="padding:14px 18px 0">
+      <div style="font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:#75798c;margin-bottom:8px">Portfolio Name</div>
+      <input value="{{ setup.name }}" sc-camel-on-change="{{ setup.onName }}" placeholder="e.g. Core Growth" style="width:100%;box-sizing:border-box;background:#1c1e2c;border:1px solid #2c2f40;border-radius:8px;padding:12px 14px;color:#e9e9ed;font:500 15px -apple-system,sans-serif">
+    </div>
+
+    <div style="padding:14px 18px 0">
+      <div style="font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:#75798c;margin-bottom:8px">How would you like to enter holdings?</div>
+      <div style="display:flex;flex-wrap:wrap;gap:6px">
+        <sc-for list="{{ setup.modeBtns }}" as="mb" hint-placeholder-count="4">
+          <button sc-camel-on-click="{{ mb.onClick }}" style="flex:none;padding:8px 13px;border-radius:8px;font:500 12.5px -apple-system,sans-serif;border:1px solid {{ mb.border }};background:{{ mb.bg }};color:{{ mb.color }};cursor:pointer">{{ mb.label }}</button>
+        </sc-for>
+      </div>
+      <div style="font-size:12.5px;color:#75798c;margin-top:10px;line-height:1.45">{{ setup.hint }}</div>
+    </div>
+
+    <div style="padding:14px 18px 0">
+      <div style="display:flex;align-items:center;gap:10px;padding:0 0 8px;font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:#75798c">
+        <span style="width:72px">Ticker</span><span style="flex:1;text-align:right">{{ setup.unit }}</span><span style="width:50px;text-align:right">Alloc</span><span style="width:32px"></span>
+      </div>
+      <sc-for list="{{ setup.rows }}" as="arow" hint-placeholder-count="4">
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid #1e2030">
+          <input value="{{ arow.ticker }}" sc-camel-on-change="{{ arow.onTicker }}" placeholder="TICKER" style="width:72px;box-sizing:border-box;background:#1c1e2c;border:1px solid #2c2f40;border-radius:8px;padding:12px 10px;color:#e9e9ed;font:500 14px -apple-system,sans-serif;text-transform:uppercase">
+          <input value="{{ arow.val }}" sc-camel-on-change="{{ arow.onVal }}" type="number" placeholder="0" style="flex:1;min-width:0;box-sizing:border-box;background:#1c1e2c;border:1px solid #2c2f40;border-radius:8px;padding:12px 10px;color:#e9e9ed;font:500 14px -apple-system,sans-serif;text-align:right">
+          <span style="font-size:13px;color:#9397ab;width:50px;text-align:right">{{ arow.pct }}%</span>
+          <button sc-camel-on-click="{{ arow.remove }}" style="width:32px;height:32px;flex:none;border:none;background:transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;border-radius:6px">
+            <svg width="12" height="12" sc-camel-view-box="0 0 12 12"><line x1="1" y1="1" x2="11" y2="11" stroke="#595d6c" stroke-width="1.5"></line><line x1="11" y1="1" x2="1" y2="11" stroke="#595d6c" stroke-width="1.5"></line></svg>
+          </button>
+        </div>
+      </sc-for>
+      <button sc-camel-on-click="{{ setup.addRow }}" style="width:100%;margin-top:10px;padding:10px 0;border:1px dashed #2c2f40;border-radius:8px;background:transparent;color:#9397ab;font:500 12.5px -apple-system,sans-serif;cursor:pointer">+ Add Holding</button>
+    </div>
+
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 18px 0">
+      <span style="font-size:13px;color:#75798c">Total</span>
+      <span style="font:500 15px -apple-system,sans-serif;color:#e9e9ed">{{ setup.totalStr }}</span>
+    </div>
+    <div style="padding:14px 18px 0">
+      <button style="width:100%;padding:13px 0;border-radius:10px;border:1px solid #9184d9;background:transparent;color:#9184d9;font:600 13.5px -apple-system,sans-serif;cursor:pointer">Save Portfolio</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ TURN 2: COMBINED GRAPH ============ -->
+<section style="position:absolute;left:40px;top:1150px;width:500px">
+  <div style="display:flex;align-items:baseline;gap:10px;margin-bottom:20px">
+    <a href="#2" style="font:600 10px ui-monospace,Menlo,monospace;padding:3px 7px;background:#9184d9;color:#161826;border-radius:4px;text-decoration:none">2</a>
+    <span style="font:600 13px -apple-system,sans-serif;color:#e9e9ed">Combining <a href="#1c" style="color:#d2cefd;text-decoration:none;font-weight:600">1c</a>'s crosshair with <a href="#1a" style="color:#d2cefd;text-decoration:none;font-weight:600">1a</a>'s glow</span>
+  </div>
+  <div style="display:flex;flex-wrap:wrap;gap:28px;align-items:flex-start">
+    <div id="opt-2a" style="display:flex;flex-direction:column;gap:9px">
+      <div style="display:flex;align-items:baseline;gap:8px;font:400 11px -apple-system,sans-serif;color:#9aa0c9">
+        <a href="#opt-2a" style="font:600 10.5px ui-monospace,Menlo,monospace;padding:3px 7px;background:rgba(145,132,217,.18);color:#d2cefd;border-radius:5px;text-decoration:none">2a</a>Glow + crosshair
+      </div>
+      <div style="width:340px;background:#161826;border-radius:16px;padding:18px;box-shadow:0 12px 32px rgba(0,0,0,.45)">
+        <div style="font:500 30px -apple-system,sans-serif;color:#e9e9ed">{{ cg.prStr }}</div>
+        <div style="font-size:11px;color:#9397ab;margin-top:4px">vs 90/10 Benchmark {{ cg.brStr }} · {{ cg.period }}</div>
+        <div style="display:flex;gap:5px;overflow-x:auto;margin-top:12px">
+          <sc-for list="{{ cg.periodBtns }}" as="pb" hint-placeholder-count="8">
+            <button sc-camel-on-click="{{ pb.onClick }}" style="flex:none;padding:5px 10px;border-radius:7px;font:500 11px -apple-system,sans-serif;border:1px solid {{ pb.border }};background:{{ pb.bg }};color:{{ pb.color }};cursor:pointer">{{ pb.label }}</button>
+          </sc-for>
+        </div>
+        <div style="margin-top:14px;background:#1c1e2c;border-radius:12px;padding:12px 8px;position:relative">
+          <svg width="100%" height="140" sc-camel-view-box="0 0 300 140" sc-camel-preserve-aspect-ratio="none">
+            <defs><linearGradient id="g2a" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#9184d9" stop-opacity="0.4"></stop><stop offset="100%" stop-color="#9184d9" stop-opacity="0"></stop></linearGradient></defs>
+            <line x1="0" y1="20" x2="270" y2="20" stroke="#2a2d3d" stroke-width="1"></line>
+            <line x1="0" y1="60" x2="270" y2="60" stroke="#2a2d3d" stroke-width="1"></line>
+            <line x1="0" y1="100" x2="270" y2="100" stroke="#2a2d3d" stroke-width="1"></line>
+            <path d="{{ cg.pArea }}" fill="url(#g2a)"></path>
+            <path d="{{ cg.bLine }}" fill="none" stroke="#595d6c" stroke-width="1.3" stroke-dasharray="3,3"></path>
+            <path d="{{ cg.pLine }}" fill="none" stroke="#9184d9" stroke-width="2.25"></path>
+            <line x1="{{ cg.endX }}" y1="0" x2="{{ cg.endX }}" y2="140" stroke="#4c5397" stroke-width="1" stroke-dasharray="2,2"></line>
+            <circle cx="{{ cg.endX }}" cy="{{ cg.endY }}" r="4" fill="#9184d9" style="animation:pulse 2s infinite"></circle>
+            <text x="272" y="24" fill="#75798c" font-size="9" font-family="-apple-system,sans-serif">{{ cg.gridHigh }}</text>
+            <text x="272" y="104" fill="#75798c" font-size="9" font-family="-apple-system,sans-serif">{{ cg.gridLow }}</text>
+          </svg>
+          <div style="position:absolute;top:12px;left:{{ cg.pillLeft }}px;transform:translateX(-50%);background:#9184d9;color:#161826;font:600 11px -apple-system,sans-serif;padding:3px 8px;border-radius:6px;white-space:nowrap">{{ cg.prStr }}</div>
+        </div>
+        <div style="display:flex;gap:8px;margin-top:10px">
+          <button sc-camel-on-click="{{ cg.togP }}" style="display:flex;align-items:center;gap:6px;padding:4px 10px;border-radius:20px;border:1px solid #9184d9;background:transparent;cursor:pointer;opacity:{{ cg.pOpacity }}">
+            <span style="width:8px;height:8px;border-radius:50%;background:#9184d9;display:inline-block"></span><span style="font-size:11px;font-weight:500;color:#e9e9ed">Core Growth</span>
+          </button>
+          <button sc-camel-on-click="{{ cg.togB }}" style="display:flex;align-items:center;gap:6px;padding:4px 10px;border-radius:20px;border:1px solid #595d6c;background:transparent;cursor:pointer;opacity:{{ cg.bOpacity }}">
+            <span style="width:8px;height:1.5px;background:#9397ab;display:inline-block"></span><span style="font-size:11px;font-weight:500;color:#e9e9ed">Benchmark 90/10</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <p style="margin:22px 0 0;font:12px/1.5 -apple-system,sans-serif;color:#75798c">This is now the default detail-screen chart (see <a href="#opt-2a" style="color:#d2cefd">2a</a> above and the Nocturne Detail card). Try next: "more graph directions" · "adjust the gridline density"</p>
+</section>
+
+<!-- ============ TURN 1: GRAPH STYLE OPTIONS ============ -->
+<section style="position:absolute;left:40px;top:1750px;width:1350px">
+  <div style="display:flex;align-items:baseline;gap:10px;margin-bottom:20px">
+    <a href="#1" style="font:600 10px ui-monospace,Menlo,monospace;padding:3px 7px;background:#9184d9;color:#161826;border-radius:4px;text-decoration:none">1</a>
+    <span style="font:600 13px -apple-system,sans-serif;color:#e9e9ed">Graph style options</span>
+  </div>
+  <div style="display:flex;flex-wrap:wrap;gap:28px;align-items:flex-start">
+
+    <!-- 1a Glow Area -->
+    <div id="opt-1a" style="display:flex;flex-direction:column;gap:9px">
+      <div style="display:flex;align-items:baseline;gap:8px;font:400 11px -apple-system,sans-serif;color:#9aa0c9">
+        <a href="#opt-1a" style="font:600 10.5px ui-monospace,Menlo,monospace;padding:3px 7px;background:rgba(145,132,217,.18);color:#d2cefd;border-radius:5px;text-decoration:none">1a</a>Glow area + pulse
+      </div>
+      <div style="width:340px;background:#161826;border-radius:16px;padding:18px;box-shadow:0 12px 32px rgba(0,0,0,.45)">
+        <div style="font:500 30px -apple-system,sans-serif;color:#e9e9ed">{{ ga.prStr }}</div>
+        <div style="font-size:11px;color:#9397ab;margin-top:4px">vs 90/10 Benchmark {{ ga.brStr }} · {{ ga.period }}</div>
+        <div style="display:flex;gap:5px;overflow-x:auto;margin-top:12px">
+          <sc-for list="{{ ga.periodBtns }}" as="pb" hint-placeholder-count="8">
+            <button sc-camel-on-click="{{ pb.onClick }}" style="flex:none;padding:5px 10px;border-radius:7px;font:500 11px -apple-system,sans-serif;border:1px solid {{ pb.border }};background:{{ pb.bg }};color:{{ pb.color }};cursor:pointer">{{ pb.label }}</button>
+          </sc-for>
+        </div>
+        <div style="margin-top:14px;background:#1c1e2c;border-radius:12px;padding:12px 8px">
+          <svg width="100%" height="130" sc-camel-view-box="0 0 300 130" sc-camel-preserve-aspect-ratio="none">
+            <defs><linearGradient id="g1a" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#9184d9" stop-opacity="0.4"></stop><stop offset="100%" stop-color="#9184d9" stop-opacity="0"></stop></linearGradient></defs>
+            <line x1="0" y1="32" x2="300" y2="32" stroke="#2a2d3d" stroke-width="1"></line>
+            <line x1="0" y1="65" x2="300" y2="65" stroke="#2a2d3d" stroke-width="1"></line>
+            <line x1="0" y1="98" x2="300" y2="98" stroke="#2a2d3d" stroke-width="1"></line>
+            <path d="{{ ga.pArea }}" fill="url(#g1a)"></path>
+            <path d="{{ ga.bLine }}" fill="none" stroke="#595d6c" stroke-width="1.3" stroke-dasharray="3,3"></path>
+            <path d="{{ ga.pLine }}" fill="none" stroke="#9184d9" stroke-width="2.25"></path>
+            <circle cx="{{ ga.endX }}" cy="{{ ga.endY }}" r="4" fill="#9184d9" style="animation:pulse 2s infinite"></circle>
+          </svg>
+        </div>
+      </div>
+    </div>
+
+    <!-- 1b Minimal Sparkline -->
+    <div id="opt-1b" style="display:flex;flex-direction:column;gap:9px">
+      <div style="display:flex;align-items:baseline;gap:8px;font:400 11px -apple-system,sans-serif;color:#9aa0c9">
+        <a href="#opt-1b" style="font:600 10.5px ui-monospace,Menlo,monospace;padding:3px 7px;background:rgba(145,132,217,.18);color:#d2cefd;border-radius:5px;text-decoration:none">1b</a>Minimal sparkline
+      </div>
+      <div style="width:340px;background:#161826;border-radius:16px;padding:18px;box-shadow:0 12px 32px rgba(0,0,0,.45)">
+        <div style="font:500 30px -apple-system,sans-serif;color:#e9e9ed">{{ sp.prStr }}</div>
+        <div style="font-size:11px;color:#9397ab;margin-top:4px">{{ sp.period }} return</div>
+        <div style="display:flex;gap:5px;overflow-x:auto;margin-top:12px">
+          <sc-for list="{{ sp.periodBtns }}" as="pb" hint-placeholder-count="8">
+            <button sc-camel-on-click="{{ pb.onClick }}" style="flex:none;padding:5px 10px;border-radius:7px;font:500 11px -apple-system,sans-serif;border:1px solid {{ pb.border }};background:{{ pb.bg }};color:{{ pb.color }};cursor:pointer">{{ pb.label }}</button>
+          </sc-for>
+        </div>
+        <div style="margin-top:22px">
+          <svg width="100%" height="110" sc-camel-view-box="0 0 300 110" sc-camel-preserve-aspect-ratio="none">
+            <path d="{{ sp.pLine }}" fill="none" stroke="#9184d9" stroke-width="1.75"></path>
+            <circle cx="{{ sp.endX }}" cy="{{ sp.endY }}" r="3" fill="#e9e9ed"></circle>
+          </svg>
+        </div>
+        <div style="display:flex;justify-content:space-between;margin-top:6px;font-size:10px;color:#595d6c">
+          <span>{{ sp.periodStart }}</span><span>Today</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 1c Gridded Axis + Crosshair -->
+    <div id="opt-1c" style="display:flex;flex-direction:column;gap:9px">
+      <div style="display:flex;align-items:baseline;gap:8px;font:400 11px -apple-system,sans-serif;color:#9aa0c9">
+        <a href="#opt-1c" style="font:600 10.5px ui-monospace,Menlo,monospace;padding:3px 7px;background:rgba(145,132,217,.18);color:#d2cefd;border-radius:5px;text-decoration:none">1c</a>Gridded axis + crosshair
+      </div>
+      <div style="width:340px;background:#161826;border-radius:16px;padding:18px;box-shadow:0 12px 32px rgba(0,0,0,.45)">
+        <div style="font:500 30px -apple-system,sans-serif;color:#e9e9ed">{{ ax.prStr }}</div>
+        <div style="font-size:11px;color:#9397ab;margin-top:4px">vs 90/10 Benchmark {{ ax.brStr }} · {{ ax.period }}</div>
+        <div style="display:flex;gap:5px;overflow-x:auto;margin-top:12px">
+          <sc-for list="{{ ax.periodBtns }}" as="pb" hint-placeholder-count="8">
+            <button sc-camel-on-click="{{ pb.onClick }}" style="flex:none;padding:5px 10px;border-radius:7px;font:500 11px -apple-system,sans-serif;border:1px solid {{ pb.border }};background:{{ pb.bg }};color:{{ pb.color }};cursor:pointer">{{ pb.label }}</button>
+          </sc-for>
+        </div>
+        <div style="margin-top:14px;position:relative">
+          <svg width="100%" height="140" sc-camel-view-box="0 0 300 140" sc-camel-preserve-aspect-ratio="none">
+            <line x1="0" y1="20" x2="270" y2="20" stroke="#2a2d3d" stroke-width="1"></line>
+            <line x1="0" y1="60" x2="270" y2="60" stroke="#2a2d3d" stroke-width="1"></line>
+            <line x1="0" y1="100" x2="270" y2="100" stroke="#2a2d3d" stroke-width="1"></line>
+            <path d="{{ ax.bLine }}" fill="none" stroke="#595d6c" stroke-width="1.3" stroke-dasharray="3,3"></path>
+            <path d="{{ ax.pLine }}" fill="none" stroke="#9184d9" stroke-width="2"></path>
+            <line x1="{{ ax.endX }}" y1="0" x2="{{ ax.endX }}" y2="140" stroke="#4c5397" stroke-width="1" stroke-dasharray="2,2"></line>
+            <circle cx="{{ ax.endX }}" cy="{{ ax.endY }}" r="3.5" fill="#e9e9ed"></circle>
+            <text x="272" y="24" fill="#75798c" font-size="9" font-family="-apple-system,sans-serif">{{ ax.gridHigh }}</text>
+            <text x="272" y="104" fill="#75798c" font-size="9" font-family="-apple-system,sans-serif">{{ ax.gridLow }}</text>
+          </svg>
+          <div style="position:absolute;top:0;left:{{ ax.pillLeft }}px;transform:translateX(-50%);background:#9184d9;color:#161826;font:600 11px -apple-system,sans-serif;padding:3px 8px;border-radius:6px;white-space:nowrap">{{ ax.prStr }}</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 1d Period Bars -->
+    <div id="opt-1d" style="display:flex;flex-direction:column;gap:9px">
+      <div style="display:flex;align-items:baseline;gap:8px;font:400 11px -apple-system,sans-serif;color:#9aa0c9">
+        <a href="#opt-1d" style="font:600 10.5px ui-monospace,Menlo,monospace;padding:3px 7px;background:rgba(145,132,217,.18);color:#d2cefd;border-radius:5px;text-decoration:none">1d</a>Grouped period bars
+      </div>
+      <div style="width:340px;background:#161826;border-radius:16px;padding:18px;box-shadow:0 12px 32px rgba(0,0,0,.45)">
+        <div style="font:500 30px -apple-system,sans-serif;color:#e9e9ed">{{ bar.prStr }}</div>
+        <div style="font-size:11px;color:#9397ab;margin-top:4px">vs 90/10 Benchmark · {{ bar.period }}</div>
+        <div style="display:flex;gap:5px;overflow-x:auto;margin-top:12px">
+          <sc-for list="{{ bar.periodBtns }}" as="pb" hint-placeholder-count="8">
+            <button sc-camel-on-click="{{ pb.onClick }}" style="flex:none;padding:5px 10px;border-radius:7px;font:500 11px -apple-system,sans-serif;border:1px solid {{ pb.border }};background:{{ pb.bg }};color:{{ pb.color }};cursor:pointer">{{ pb.label }}</button>
+          </sc-for>
+        </div>
+        <div style="margin-top:14px;background:#1c1e2c;border-radius:12px;padding:12px 10px;display:flex;align-items:flex-end;gap:10px;height:130px">
+          <sc-for list="{{ bar.buckets }}" as="bk" hint-placeholder-count="6">
+            <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;height:100%;justify-content:flex-end">
+              <div style="width:100%;display:flex;align-items:flex-end;gap:3px;height:90px">
+                <div style="flex:1;background:#9184d9;border-radius:3px 3px 0 0;height:{{ bk.pH }}%"></div>
+                <div style="flex:1;background:#464a63;border-radius:3px 3px 0 0;height:{{ bk.bH }}%"></div>
+              </div>
+              <span style="font-size:9px;color:#595d6c">{{ bk.label }}</span>
+            </div>
+          </sc-for>
+        </div>
+        <div style="display:flex;gap:12px;margin-top:10px">
+          <div style="display:flex;align-items:center;gap:5px"><span style="width:8px;height:8px;background:#9184d9;border-radius:2px;display:inline-block"></span><span style="font-size:11px;color:#9397ab">Core Growth</span></div>
+          <div style="display:flex;align-items:center;gap:5px"><span style="width:8px;height:8px;background:#464a63;border-radius:2px;display:inline-block"></span><span style="font-size:11px;color:#9397ab">Benchmark</span></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+  <p style="margin:22px 0 0;font:12px/1.5 -apple-system,sans-serif;color:#75798c">Try next: "make <a href="#opt-1a" style="color:#d2cefd">1a</a> the default" · "combine <a href="#opt-1c" style="color:#d2cefd">1c</a>'s crosshair with <a href="#opt-1a" style="color:#d2cefd">1a</a>'s glow" · "more graph directions"</p>
+</section>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script="">
+const PERIODS = ['1D','7D','30D','3M','YTD','1Y','5Y','MAX'];
+const DEFAULT_PERIOD = '1Y';
+const DATA = {
+  '1D':  { pr:0.4,  br:0.3,  sharpeP:1.8,  sharpeB:1.5,  volP:6.2,  volB:7.0,  mddP:-0.6,  mddB:-0.8,  alpha:0.1, beta:0.92, corr:0.88, n:24, seedP:3,  seedB:7  },
+  '7D':  { pr:1.6,  br:1.1,  sharpeP:1.6,  sharpeB:1.3,  volP:7.4,  volB:8.1,  mddP:-1.8,  mddB:-2.3,  alpha:0.4, beta:0.90, corr:0.89, n:28, seedP:11, seedB:4  },
+  '30D': { pr:3.2,  br:2.1,  sharpeP:1.4,  sharpeB:1.1,  volP:8.9,  volB:9.8,  mddP:-3.4,  mddB:-4.4,  alpha:0.9, beta:0.91, corr:0.90, n:30, seedP:5,  seedB:9  },
+  '3M':  { pr:6.8,  br:5.0,  sharpeP:1.3,  sharpeB:1.05, volP:10.6, volB:11.9, mddP:-5.9,  mddB:-7.6,  alpha:1.6, beta:0.89, corr:0.91, n:36, seedP:2,  seedB:6  },
+  'YTD': { pr:9.4,  br:7.2,  sharpeP:1.2,  sharpeB:0.98, volP:11.8, volB:13.2, mddP:-7.1,  mddB:-9.3,  alpha:2.0, beta:0.88, corr:0.92, n:40, seedP:8,  seedB:3  },
+  '1Y':  { pr:14.8, br:11.2, sharpeP:1.15, sharpeB:0.92, volP:13.2, volB:14.9, mddP:-9.8,  mddB:-13.1, alpha:2.9, beta:0.87, corr:0.93, n:48, seedP:1,  seedB:10 },
+  '5Y':  { pr:68.5, br:54.3, sharpeP:0.98, sharpeB:0.81, volP:15.7, volB:17.4, mddP:-18.4, mddB:-24.6, alpha:3.4, beta:0.86, corr:0.94, n:60, seedP:6,  seedB:2  },
+  'MAX': { pr:112.3,br:89.1, sharpeP:0.91, sharpeB:0.76, volP:16.4, volB:18.2, mddP:-24.7, mddB:-31.5, alpha:3.8, beta:0.85, corr:0.94, n:72, seedP:9,  seedB:5  },
+};
+const HOLDINGS = [
+  { t:'VOO', n:'Vanguard S&P 500 ETF', w:40 },
+  { t:'VEA', n:'Vanguard FTSE Developed Mkts', w:20 },
+  { t:'VWO', n:'Vanguard FTSE Emerging Mkts', w:20 },
+  { t:'BND', n:'Vanguard Total Bond Market', w:10 },
+  { t:'GLD', n:'SPDR Gold Shares', w:10 },
+];
+const ENTITIES = [
+  { key:'core',   name:'Core Growth',        sub:'40 VOO · 20 VEA · 20 VWO · 10 BND · 10 GLD', mult:{ret:1,    vol:1,    mdd:1,    sharpe:1,    seed:0 } },
+  { key:'income', name:'Income & Stability', sub:'50 BND · 30 VOO · 20 GLD',                    mult:{ret:0.5,  vol:0.58, mdd:0.58, sharpe:1.1,  seed:4 } },
+  { key:'b9010',  name:'90/10 Benchmark',    sub:'90 SPY · 10 BND',                              mult:{ret:null, vol:null, mdd:null, sharpe:null, seed:0 } },
+  { key:'b6040',  name:'60/40 Classic',      sub:'60 SPY · 40 BND',                              mult:{ret:0.68, vol:0.72, mdd:0.72, sharpe:1.08, seed:12} },
+];
+const ENTITY_STYLES = {
+  core:{c:'#968ae0',w:2.5,dash:''}, income:{c:'#d2cefd',w:2,dash:''}, b9010:{c:'#595d6c',w:1.5,dash:'3,3'}, b6040:{c:'rgba(233,233,237,.3)',w:1.5,dash:'3,3'},
+};
+const ACCENT = '#9184d9', BG = '#161826', TEXT = '#e9e9ed', DIVIDER = 'rgba(233,233,237,.16)';
+const DEFAULT_SERIES = { p:true, b:true };
+const DEFAULT_COMPARE = { core:true, income:true, b9010:true, b6040:true };
+const MARKET_SNAPSHOT = [
+  { label:'S&P 500', value:'5,847', chg:0.6, seed:1 },
+  { label:'Nasdaq', value:'19,204', chg:1.1, seed:4 },
+  { label:'Gold', value:'$2,412', chg:-0.3, seed:9 },
+  { label:'10Y Yield', value:'4.18%', chg:-0.05, seed:6 },
+];
+const TAB_INACTIVE = '#75798c';
+const POS = '#7fbf98', NEG = '#e08787';
+const WATCHLIST = [
+  { t:'NVDA', n:'NVIDIA Corp',    price:'$142.08', seed:2,  mult:{ret:3.2, vol:2.4, mdd:2.6, sharpe:1.3,  beta:1.75, corr:0.72} },
+  { t:'AAPL', n:'Apple Inc',      price:'$211.34', seed:5,  mult:{ret:1.1, vol:0.9, mdd:0.85, sharpe:1.05, beta:1.05, corr:0.85} },
+  { t:'MSFT', n:'Microsoft Corp', price:'$468.92', seed:9,  mult:{ret:1.3, vol:0.85,mdd:0.8,  sharpe:1.2,  beta:0.95, corr:0.88} },
+  { t:'TSLA', n:'Tesla Inc',      price:'$318.55', seed:1,  mult:{ret:2.4, vol:3.0, mdd:3.4,  sharpe:0.72, beta:2.1,  corr:0.55} },
+  { t:'SPY',  n:'S&P 500 ETF',    price:'$589.11', seed:7,  mult:{ret:0.95,vol:1.05,mdd:1.05, sharpe:0.95, beta:1.0,  corr:1.0 } },
+  { t:'BTC',  n:'Bitcoin',        price:'$97,240', seed:4,  mult:{ret:5.5, vol:4.5, mdd:4.8,  sharpe:1.0,  beta:2.8,  corr:0.28} },
+];
+const ACCOUNT_ROWS = [
+  { key:'notif', label:'Notifications', icon:'bell' },
+  { key:'appear', label:'Appearance', icon:'moon' },
+  { key:'linked', label:'Linked Accounts', icon:'link' },
+  { key:'security', label:'Security & Privacy', icon:'lock' },
+  { key:'help', label:'Help & Support', icon:'help' },
+];
+const MOCK_PRICES = { VTI:265, VXUS:62, VOO:530, VEA:52, VWO:44, BND:72, GLD:245, AAPL:211, NVDA:142, MSFT:469, TSLA:319 };
+const PORTFOLIOS = [
+  { key:'core', name:'Core Growth', sub:'40 VOO · 20 VEA · 20 VWO · 10 BND · 10 GLD' },
+  { key:'income', name:'Income & Stability', sub:'50 BND · 30 VOO · 20 GLD' },
+];
+const SETUP_MODES = [
+  { key:'alloc',  label:'Allocation %', unit:'%',      hint:'Enter your target allocation for each holding.' },
+  { key:'weight', label:'Raw Weights',  unit:'wt',     hint:"Enter any relative numbers — we'll normalize them to 100%." },
+  { key:'shares', label:'Share Count',  unit:'shares', hint:"Enter shares owned — we'll price them and calculate allocation." },
+  { key:'dollar', label:'Dollar ($)',   unit:'$',      hint:"Enter the dollar amount invested — we'll calculate allocation." },
+];
+
+class Component extends DCLogic {
+  state = {
+    period: { det:DEFAULT_PERIOD, cmp:DEFAULT_PERIOD, ga:DEFAULT_PERIOD, sp:DEFAULT_PERIOD, ax:DEFAULT_PERIOD, bar:DEFAULT_PERIOD, cg:DEFAULT_PERIOD, watchlist:DEFAULT_PERIOD },
+    series: { det:{p:true,b:true}, ga:{p:true,b:true}, sp:{p:true,b:true}, ax:{p:true,b:true}, bar:{p:true,b:true}, cg:{p:true,b:true} },
+    compareSeries: { core:true, income:true, b9010:true, b6040:true },
+    expandedTicker: null,
+    activeTab: 'overview',
+    setup: {
+      mode: 'alloc', name: 'Core Growth',
+      rows: [{ ticker:'VTI', val:'80' }, { ticker:'VXUS', val:'20' }],
+    },
+    activePortfolio: 'core', showSwitcher: false, showAddScreen: false, hasPortfolios: true,
+  };
+
+  setTab(t) { this.setState({ activeTab: t }); }
+  toggleSwitcher() { this.setState(s => ({ showSwitcher: !s.showSwitcher })); }
+  selectPortfolio(key) { this.setState({ activePortfolio: key, showSwitcher: false }); }
+  openAdd() { this.setState({ showAddScreen: true, showSwitcher: false }); }
+  closeAdd() { this.setState({ showAddScreen: false }); }
+  toggleHasPortfolios() { this.setState(s => ({ hasPortfolios: !s.hasPortfolios, showAddScreen: false })); }
+
+  setSetupMode(m) { this.setState(s => ({ setup: Object.assign({}, s.setup, { mode: m }) })); }
+  setSetupName(v) { this.setState(s => ({ setup: Object.assign({}, s.setup, { name: v }) })); }
+  updateSetupRow(i, field, v) {
+    this.setState(s => {
+      const rows = s.setup.rows.slice();
+      rows[i] = Object.assign({}, rows[i], { [field]: v });
+      return { setup: Object.assign({}, s.setup, { rows }) };
+    });
+  }
+  addSetupRow() {
+    this.setState(s => ({ setup: Object.assign({}, s.setup, { rows: s.setup.rows.concat([{ ticker:'', val:'' }]) }) }));
+  }
+  removeSetupRow(i) {
+    this.setState(s => {
+      const rows = s.setup.rows.slice(); rows.splice(i, 1);
+      return { setup: Object.assign({}, s.setup, { rows }) };
+    });
+  }
+
+  genSeries(n, totalReturn, seed) {
+    n = n || 24; seed = seed || 0; totalReturn = totalReturn || 0;
+    const pts = [100];
+    const step = totalReturn / n;
+    for (let i = 1; i <= n; i++) {
+      const noise = Math.sin(i * 0.7 + seed) * (Math.abs(totalReturn) * 0.045) + Math.sin(i * 1.9 + seed * 2) * (Math.abs(totalReturn) * 0.02);
+      pts.push(100 * (1 + (step * i) / 100) + noise);
+    }
+    return pts;
+  }
+
+  pathFor(pts, w, h, padY) {
+    padY = padY || 8;
+    const min = Math.min.apply(null, pts), max = Math.max.apply(null, pts);
+    const range = (max - min) || 1;
+    const stepX = w / (pts.length - 1);
+    return pts.map((v, i) => {
+      const x = i * stepX;
+      const y = padY + (h - padY * 2) * (1 - (v - min) / range);
+      return (i === 0 ? 'M' : 'L') + x.toFixed(1) + ',' + y.toFixed(1);
+    }).join(' ');
+  }
+
+  lastPoint(pts, w, h, padY) {
+    padY = padY || 8;
+    const min = Math.min.apply(null, pts), max = Math.max.apply(null, pts);
+    const range = (max - min) || 1;
+    const v = pts[pts.length - 1];
+    return { x: w, y: padY + (h - padY * 2) * (1 - (v - min) / range) };
+  }
+
+  bucketReturns(pts, buckets) {
+    const idxs = [];
+    for (let i = 0; i <= buckets; i++) idxs.push(Math.round((pts.length - 1) * i / buckets));
+    const out = [];
+    for (let i = 1; i < idxs.length; i++) out.push((pts[idxs[i]] / pts[idxs[i - 1]] - 1) * 100);
+    return out;
+  }
+
+  setPeriod(frame, p) { this.setState(s => ({ period: Object.assign({}, s.period, { [frame]: p }) })); }
+  toggleSeries(frame, key) {
+    this.setState(s => {
+      const cur = (s.series && s.series[frame]) || DEFAULT_SERIES;
+      return { series: Object.assign({}, s.series, { [frame]: Object.assign({}, cur, { [key]: !cur[key] }) }) };
+    });
+  }
+  toggleEntity(key) {
+    this.setState(s => {
+      const cur = s.compareSeries || DEFAULT_COMPARE;
+      return { compareSeries: Object.assign({}, cur, { [key]: !cur[key] }) };
+    });
+  }
+
+  periodButtons(frame, period) {
+    return PERIODS.map(p => {
+      const active = p === period;
+      return { key: p, label: p, onClick: () => this.setPeriod(frame, p),
+        bg: 'transparent', color: active ? ACCENT : TEXT, border: active ? ACCENT : DIVIDER };
+    });
+  }
+
+  chartVals(frame, w, h) {
+    const period = (this.state.period && this.state.period[frame]) || DEFAULT_PERIOD;
+    const d = DATA[period] || DATA[DEFAULT_PERIOD];
+    const series = (this.state.series && this.state.series[frame]) || DEFAULT_SERIES;
+    const pPts = this.genSeries(d.n, d.pr, d.seedP);
+    const bPts = this.genSeries(d.n, d.br, d.seedB);
+    const pLine = this.pathFor(pPts, w, h);
+    const bLine = this.pathFor(bPts, w, h);
+    const pArea = pLine + ` L${w},${h} L0,${h} Z`;
+    const last = this.lastPoint(pPts, w, h);
+    const min = Math.min.apply(null, pPts), max = Math.max.apply(null, pPts);
+    return {
+      period, pLine, bLine, pArea, endX: last.x.toFixed(1), endY: last.y.toFixed(1),
+      showP: series.p, showB: series.b,
+      pOpacity: series.p ? 1 : 0.35, bOpacity: series.b ? 1 : 0.35,
+      togP: () => this.toggleSeries(frame, 'p'), togB: () => this.toggleSeries(frame, 'b'),
+      periodBtns: this.periodButtons(frame, period),
+      prStr: (d.pr >= 0 ? '+' : '') + d.pr.toFixed(1) + '%',
+      brStr: (d.br >= 0 ? '+' : '') + d.br.toFixed(1) + '%',
+      gridHigh: max.toFixed(0), gridLow: min.toFixed(0),
+      pillLeft: Math.max(24, Math.min(w - 24, last.x)).toFixed(0),
+      periodStart: period,
+    };
+  }
+
+  detailVals() {
+    const base = this.chartVals('det', 358, 140);
+    const d = DATA[base.period] || DATA[DEFAULT_PERIOD];
+    const statsRows = [
+      { label:'Sharpe Ratio', p:d.sharpeP.toFixed(2), b:d.sharpeB.toFixed(2) },
+      { label:'Volatility', p:d.volP.toFixed(1)+'%', b:d.volB.toFixed(1)+'%' },
+      { label:'Max Drawdown', p:d.mddP.toFixed(1)+'%', b:d.mddB.toFixed(1)+'%' },
+      { label:'Alpha', p:(d.alpha>=0?'+':'')+d.alpha.toFixed(1)+'%', b:'—' },
+      { label:'Beta', p:d.beta.toFixed(2), b:'—' },
+      { label:'Correlation', p:d.corr.toFixed(2), b:'—' },
+    ];
+    return Object.assign({}, base, { statsRows });
+  }
+
+  entityStats(period, ent) {
+    const d = DATA[period] || DATA[DEFAULT_PERIOD];
+    if (ent.key === 'b9010') return { ret: d.br, vol: d.volB, mdd: d.mddB, sharpe: d.sharpeB, seed: d.seedB };
+    const m = ent.mult;
+    return { ret: d.pr * m.ret, vol: d.volP * m.vol, mdd: d.mddP * m.mdd, sharpe: d.sharpeP * m.sharpe, seed: d.seedP + m.seed };
+  }
+
+  compareVals() {
+    const period = (this.state.period && this.state.period.cmp) || DEFAULT_PERIOD;
+    const on = this.state.compareSeries || DEFAULT_COMPARE;
+    const w = 358, h = 150;
+    const d = DATA[period] || DATA[DEFAULT_PERIOD];
+    const rows = ENTITIES.map(ent => {
+      const s = this.entityStats(period, ent);
+      const st = ENTITY_STYLES[ent.key];
+      const pts = this.genSeries(d.n, s.ret, s.seed || 1);
+      const line = on[ent.key] ? this.pathFor(pts, w, h) : '';
+      return {
+        key: ent.key, name: ent.name, sub: ent.sub,
+        retStr: (s.ret >= 0 ? '+' : '') + s.ret.toFixed(1) + '%',
+        statLine: 'Sharpe ' + s.sharpe.toFixed(2) + ' · Vol ' + s.vol.toFixed(1) + '% · MaxDD ' + s.mdd.toFixed(1) + '%',
+        swatch: st.c, line, dash: st.dash, strokeW: st.w,
+        on: !!on[ent.key], opacity: on[ent.key] ? 1 : 0.4,
+        toggle: () => this.toggleEntity(ent.key),
+      };
+    });
+    return { period, periodBtns: this.periodButtons('cmp', period), rows };
+  }
+
+  barVals() {
+    const base = this.chartVals('bar', 300, 130);
+    const period = base.period;
+    const d = DATA[period] || DATA[DEFAULT_PERIOD];
+    const pPts = this.genSeries(d.n, d.pr, d.seedP);
+    const bPts = this.genSeries(d.n, d.br, d.seedB);
+    const pB = this.bucketReturns(pPts, 6);
+    const bB = this.bucketReturns(bPts, 6);
+    const maxAbs = Math.max.apply(null, pB.concat(bB).map(v => Math.abs(v))) || 1;
+    const buckets = pB.map((v, i) => ({
+      key: i, label: 'P' + (i + 1),
+      pH: (Math.abs(v) / maxAbs * 100).toFixed(0),
+      bH: (Math.abs(bB[i]) / maxAbs * 100).toFixed(0),
+    }));
+    return Object.assign({}, base, { buckets });
+  }
+
+  toggleExpandedTicker(t) { this.setState(s => ({ expandedTicker: s.expandedTicker === t ? null : t })); }
+
+  tickerChart(item, period, w, h) {
+    const d = DATA[period] || DATA[DEFAULT_PERIOD];
+    const ret = d.pr * item.mult.ret;
+    const pts = this.genSeries(d.n, ret, item.seed);
+    const bPts = this.genSeries(d.n, d.br, d.seedB);
+    const pLine = this.pathFor(pts, w, h);
+    const bLine = this.pathFor(bPts, w, h);
+    const pArea = pLine + ` L${w},${h} L0,${h} Z`;
+    const last = this.lastPoint(pts, w, h);
+    const min = Math.min.apply(null, pts), max = Math.max.apply(null, pts);
+    const vol = d.volP * item.mult.vol;
+    const mdd = d.mddP * item.mult.mdd;
+    const sharpe = (ret / vol) * item.mult.sharpe;
+    return {
+      pLine, bLine, pArea, endX: last.x.toFixed(1), endY: last.y.toFixed(1),
+      gridHigh: max.toFixed(0), gridLow: min.toFixed(0),
+      pillLeft: Math.max(24, Math.min(w - 24, last.x)).toFixed(0),
+      retStr: (ret >= 0 ? '+' : '') + ret.toFixed(1) + '%',
+      retColor: ret >= 0 ? POS : NEG,
+      statsRows: [
+        { label:'Sharpe Ratio', v: sharpe.toFixed(2) },
+        { label:'Volatility', v: vol.toFixed(1) + '%' },
+        { label:'Max Drawdown', v: (-Math.abs(mdd)).toFixed(1) + '%' },
+        { label:'Beta (vs S&P 500)', v: item.mult.beta.toFixed(2) },
+        { label:'Correlation (vs S&P 500)', v: item.mult.corr.toFixed(2) },
+      ],
+    };
+  }
+
+  watchlistVals() {
+    const period = (this.state.period && this.state.period.watchlist) || DEFAULT_PERIOD;
+    const d = DATA[period] || DATA[DEFAULT_PERIOD];
+    const expanded = this.state.expandedTicker;
+    return {
+      period,
+      periodBtns: this.periodButtons('watchlist', period),
+      rows: WATCHLIST.map(w => {
+        const ret = d.pr * w.mult.ret;
+        const pts = this.genSeries(d.n, ret, w.seed);
+        const color = ret >= 0 ? POS : NEG;
+        const isOpen = expanded === w.t;
+        return {
+          t:w.t, n:w.n, price:w.price, color, isOpen,
+          chg: (ret >= 0 ? '+' : '') + ret.toFixed(1) + '%',
+          spark: this.pathFor(pts, 56, 24, 3),
+          toggle: () => this.toggleExpandedTicker(w.t),
+          detail: isOpen ? this.tickerChart(w, period, 330, 130) : null,
+        };
+      }),
+    };
+  }
+
+  marketSnapshotVals() {
+    return MARKET_SNAPSHOT.map(s => {
+      const pts = this.genSeries(20, s.chg * 4, s.seed);
+      const color = s.chg >= 0 ? POS : NEG;
+      return { label:s.label, value:s.value, color,
+        chg: (s.chg >= 0 ? '+' : '') + s.chg.toFixed(2) + '%',
+        spark: this.pathFor(pts, 88, 34, 3) };
+    });
+  }
+
+  setupVals() {
+    const setup = this.state.setup;
+    const modeDef = SETUP_MODES.find(m => m.key === setup.mode) || SETUP_MODES[0];
+    const dollarVals = setup.rows.map(r => {
+      const v = parseFloat(r.val) || 0;
+      if (setup.mode === 'shares') return v * (MOCK_PRICES[(r.ticker || '').toUpperCase()] || 0);
+      return v;
+    });
+    const total = dollarVals.reduce((a, b) => a + b, 0) || 1;
+    const rows = setup.rows.map((r, i) => ({
+      i, ticker: r.ticker, val: r.val,
+      pct: (dollarVals[i] / total * 100).toFixed(1),
+      onTicker: (e) => this.updateSetupRow(i, 'ticker', e.target.value.toUpperCase()),
+      onVal: (e) => this.updateSetupRow(i, 'val', e.target.value),
+      remove: () => this.removeSetupRow(i),
+    }));
+    return {
+      name: setup.name, onName: (e) => this.setSetupName(e.target.value),
+      modeBtns: SETUP_MODES.map(m => ({
+        key: m.key, label: m.label, active: m.key === setup.mode,
+        onClick: () => this.setSetupMode(m.key),
+        bg: m.key === setup.mode ? 'rgba(145,132,217,.15)' : 'transparent',
+        color: m.key === setup.mode ? ACCENT : TEXT,
+        border: m.key === setup.mode ? ACCENT : DIVIDER,
+      })),
+      hint: modeDef.hint, unit: modeDef.unit, rows, addRow: () => this.addSetupRow(),
+      totalStr: (setup.mode === 'dollar' || setup.mode === 'shares') ? '$' + total.toFixed(0) : '100.0%',
+    };
+  }
+
+  tabVals() {
+    const at = this.state.activeTab || 'overview';
+    const c = k => at === k ? ACCENT : TAB_INACTIVE;
+    const activeKey = this.state.activePortfolio || 'core';
+    const active = PORTFOLIOS.find(p => p.key === activeKey) || PORTFOLIOS[0];
+    const hasPortfolios = this.state.hasPortfolios !== false;
+    return {
+      isOverview: at === 'overview', isCompare: at === 'compare', isWatchlist: at === 'watchlist', isAccount: at === 'account',
+      overviewColor: c('overview'), compareColor: c('compare'), watchlistColor: c('watchlist'), accountColor: c('account'),
+      toOverview: () => this.setTab('overview'), toCompare: () => this.setTab('compare'),
+      toWatchlist: () => this.setTab('watchlist'), toAccount: () => this.setTab('account'),
+      activeName: active.name, showSwitcher: this.state.showSwitcher, toggleSwitcher: () => this.toggleSwitcher(),
+      hasPortfolios, toggleHasPortfolios: () => this.toggleHasPortfolios(),
+      showAddScreen: this.state.showAddScreen, openAdd: () => this.openAdd(), closeAdd: () => this.closeAdd(),
+      showNormal: hasPortfolios && !this.state.showAddScreen,
+      emptyState: !hasPortfolios && !this.state.showAddScreen,
+      portfolioRows: PORTFOLIOS.map(p => ({
+        key: p.key, name: p.name, sub: p.sub, isActive: p.key === activeKey,
+        dotBorder: p.key === activeKey ? ACCENT : '#464a63',
+        select: () => this.selectPortfolio(p.key),
+      })),
+    };
+  }
+
+  renderVals() {
+    return {
+      det: this.detailVals(),
+      cmp: this.compareVals(),
+      ga: this.chartVals('ga', 300, 130),
+      sp: this.chartVals('sp', 300, 110),
+      ax: this.chartVals('ax', 270, 140),
+      bar: this.barVals(),
+      cg: this.chartVals('cg', 270, 140),
+      holdings: HOLDINGS,
+      wl: this.watchlistVals(),
+      snapshot: this.marketSnapshotVals(),
+      acctRows: ACCOUNT_ROWS,
+      tabs: this.tabVals(),
+      setup: this.setupVals(),
+    };
+  }
+}
+</script>
+
+
+</body></html>
