@@ -20,6 +20,10 @@ export const nocturneTheme: Theme = {
     negative: '#e08787',
     positive: '#7fbf98',
     chartPalette: ['#9184d9', '#7fbf98', '#e0a567', '#6ea8d8', '#e08787', '#c9a4e0'],
+    chartGridLine: '#2a2d3d',
+    chartAxisLabel: '#75798c',
+    chartBenchmarkLine: '#595d6c',
+    chartCursorLine: '#4c5397',
   },
   typography: {
     weight: {

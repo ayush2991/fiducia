@@ -83,11 +83,16 @@ export function ChevronRightIcon({ color }: IconProps) {
   );
 }
 
-export function EmptyPortfoliosIcon() {
+type EmptyPortfoliosIconProps = {
+  borderColor: string;
+  plusColor: string;
+};
+
+export function EmptyPortfoliosIcon({ borderColor, plusColor }: EmptyPortfoliosIconProps) {
   return (
     <Svg width={40} height={40} viewBox="0 0 40 40">
-      <Circle cx={20} cy={20} r={18} fill="none" stroke="#2c2f40" strokeWidth={1.5} />
-      <Path d="M20 12v16M12 20h16" stroke="#595d6c" strokeWidth={1.5} strokeLinecap="round" />
+      <Circle cx={20} cy={20} r={18} fill="none" stroke={borderColor} strokeWidth={1.5} />
+      <Path d="M20 12v16M12 20h16" stroke={plusColor} strokeWidth={1.5} strokeLinecap="round" />
     </Svg>
   );
 }

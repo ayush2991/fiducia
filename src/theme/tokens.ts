@@ -18,6 +18,13 @@ export type ColorTokens = {
   // Distinct per-entity line colors for the Compare tab's overlay chart —
   // cycled through in portfolio/benchmark list order.
   chartPalette: string[];
+  // Chart-internal decoration that doesn't map cleanly onto textSecondary/
+  // textMuted/border — the mock tunes these independently per theme rather
+  // than deriving them, so they get dedicated tokens.
+  chartGridLine: string;
+  chartAxisLabel: string;
+  chartBenchmarkLine: string;
+  chartCursorLine: string;
 };
 
 // Font weights only — per-component fontSize/letterSpacing values are tuned
