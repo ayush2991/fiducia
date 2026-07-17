@@ -76,14 +76,19 @@ function computePcts(rows: HoldingRow[], mode: EntryMode): number[] {
   }
 }
 
-function computeTotalStr(rows: HoldingRow[], mode: EntryMode): string {
+// Reuses the already-computed per-row percentages so the footer can never disagree
+// with what's shown per row (e.g. Raw Weights sums to 0% when every row is empty,
+// not a hardcoded 100%).
+function computeTotalStr(rows: HoldingRow[], mode: EntryMode, pcts: number[]): string {
   switch (mode) {
     case 'alloc': {
       const sum = rows.reduce((s, r) => s + (parseFloat(r.value) || 0), 0);
       return `${sum.toFixed(1)}%`;
     }
-    case 'raw':
-      return '100%';
+    case 'raw': {
+      const sum = pcts.reduce((s, p) => s + p, 0);
+      return `${sum.toFixed(1)}%`;
+    }
     case 'shares': {
       const sum = rows.reduce((s, r) => s + (parseFloat(r.value) || 0) * (r.price ?? 0), 0);
       return `$${sum.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
@@ -108,6 +113,14 @@ export function AddPortfolio() {
     setRows((prev) => prev.map((r) => (r.id === id ? { ...r, ...patch } : r)));
   }
 
+  // Row values are entered under one mode's unit (%, raw weight, shares, dollars) —
+  // switching modes without clearing them would silently reinterpret the same number
+  // under a different unit (e.g. "50" meaning 50% becomes 50 shares).
+  function changeMode(next: EntryMode) {
+    setMode(next);
+    setRows((prev) => prev.map((r) => ({ ...r, value: '' })));
+  }
+
   async function validateTicker(rowId: string, rawTicker: string) {
     const ticker = rawTicker.trim().toUpperCase();
     if (!ticker) {
@@ -122,9 +135,10 @@ export function AddPortfolio() {
       const price = await getLatestPrice(ticker);
       if (validationSeq.current[rowId] !== seq) return; // superseded
       updateRow(rowId, { validationState: 'valid', price, error: undefined });
-    } catch {
+    } catch (err) {
       if (validationSeq.current[rowId] !== seq) return;
-      updateRow(rowId, { validationState: 'invalid', price: undefined, error: 'Unknown ticker' });
+      const message = err instanceof Error ? err.message : 'Unknown ticker';
+      updateRow(rowId, { validationState: 'invalid', price: undefined, error: message });
     }
   }
 
@@ -146,7 +160,7 @@ export function AddPortfolio() {
   });
 
   const pcts = computePcts(rows, mode);
-  const totalStr = computeTotalStr(rows, mode);
+  const totalStr = computeTotalStr(rows, mode, pcts);
   const allocTotal = rows.reduce((s, r) => s + (parseFloat(r.value) || 0), 0);
   const totalIsOff = mode === 'alloc' && (allocTotal < 95 || allocTotal > 105);
 
@@ -199,7 +213,7 @@ export function AddPortfolio() {
               <Pressable
                 key={m}
                 style={[styles.modeBtn, mode === m && styles.modeBtnActive]}
-                onPress={() => setMode(m)}
+                onPress={() => changeMode(m)}
               >
                 <Text style={[styles.modeBtnText, mode === m && styles.modeBtnTextActive]}>
                   {MODE_LABELS[m]}
@@ -406,7 +420,7 @@ const styles = StyleSheet.create({
     gap: 10,
     paddingVertical: 10,
     borderBottomWidth: 1,
-    borderBottomColor: '#1e2030',
+    borderBottomColor: colors.borderSubtle,
   },
   tickerInput: {
     width: 72,

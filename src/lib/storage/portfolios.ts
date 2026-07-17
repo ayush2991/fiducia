@@ -4,24 +4,47 @@ export interface PortfolioRow {
   id: string;
   name: string;
   type: 'user' | 'benchmark';
+  holdings: { ticker: string; weight: number }[];
 }
 
-export async function insertPortfolio(id: string, name: string, type: 'user' | 'benchmark'): Promise<void> {
-  const db = await getDb();
-  await db.runAsync('INSERT INTO portfolios (id, name, type) VALUES (?, ?, ?)', id, name, type);
+interface PortfolioHoldingJoinRow {
+  id: string;
+  name: string;
+  type: 'user' | 'benchmark';
+  ticker: string | null;
+  weight: number | null;
 }
 
-export async function insertHoldings(
-  portfolioId: string,
+function groupJoinRows(rows: PortfolioHoldingJoinRow[]): PortfolioRow[] {
+  const byId = new Map<string, PortfolioRow>();
+  for (const row of rows) {
+    let portfolio = byId.get(row.id);
+    if (!portfolio) {
+      portfolio = { id: row.id, name: row.name, type: row.type, holdings: [] };
+      byId.set(row.id, portfolio);
+    }
+    if (row.ticker !== null && row.weight !== null) {
+      portfolio.holdings.push({ ticker: row.ticker, weight: row.weight });
+    }
+  }
+  return Array.from(byId.values());
+}
+
+// Creates the portfolio and its holdings atomically — a failure partway through
+// rolls back rather than leaving an orphaned, holdings-less portfolio row.
+export async function createPortfolioWithHoldings(
+  id: string,
+  name: string,
+  type: 'user' | 'benchmark',
   holdings: { ticker: string; weight: number }[]
 ): Promise<void> {
-  if (holdings.length === 0) return;
   const db = await getDb();
   await db.withTransactionAsync(async () => {
+    await db.runAsync('INSERT INTO portfolios (id, name, type) VALUES (?, ?, ?)', id, name, type);
     for (const h of holdings) {
       await db.runAsync(
         'INSERT INTO holdings (portfolio_id, ticker, weight) VALUES (?, ?, ?)',
-        portfolioId,
+        id,
         h.ticker,
         h.weight
       );
@@ -29,23 +52,25 @@ export async function insertHoldings(
   });
 }
 
+// Single JOIN query instead of one portfolios query + N per-portfolio holdings queries.
 export async function getAllPortfolios(type?: 'user' | 'benchmark'): Promise<PortfolioRow[]> {
   const db = await getDb();
-  if (type) {
-    return db.getAllAsync<PortfolioRow>(
-      'SELECT id, name, type FROM portfolios WHERE type = ? ORDER BY rowid ASC',
-      type
-    );
-  }
-  return db.getAllAsync<PortfolioRow>('SELECT id, name, type FROM portfolios ORDER BY rowid ASC');
-}
-
-export async function getHoldings(portfolioId: string): Promise<{ ticker: string; weight: number }[]> {
-  const db = await getDb();
-  return db.getAllAsync<{ ticker: string; weight: number }>(
-    'SELECT ticker, weight FROM holdings WHERE portfolio_id = ? ORDER BY weight DESC',
-    portfolioId
-  );
+  const rows = type
+    ? await db.getAllAsync<PortfolioHoldingJoinRow>(
+        `SELECT p.id, p.name, p.type, h.ticker, h.weight
+         FROM portfolios p
+         LEFT JOIN holdings h ON h.portfolio_id = p.id
+         WHERE p.type = ?
+         ORDER BY p.rowid ASC, h.weight DESC`,
+        type
+      )
+    : await db.getAllAsync<PortfolioHoldingJoinRow>(
+        `SELECT p.id, p.name, p.type, h.ticker, h.weight
+         FROM portfolios p
+         LEFT JOIN holdings h ON h.portfolio_id = p.id
+         ORDER BY p.rowid ASC, h.weight DESC`
+      );
+  return groupJoinRows(rows);
 }
 
 export async function replaceHoldings(

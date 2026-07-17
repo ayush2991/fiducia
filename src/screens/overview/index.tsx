@@ -50,10 +50,11 @@ function PortfolioSwitcher({
   onClose: () => void;
   onAddNew: () => void;
 }) {
+  const insets = useSafeAreaInsets();
   return (
     <Modal visible transparent animationType="fade" onRequestClose={onClose}>
       <Pressable style={styles.scrim} onPress={onClose}>
-        <Pressable style={styles.sheet} onPress={() => {}}>
+        <Pressable style={[styles.sheet, { paddingBottom: insets.bottom + 18 }]} onPress={() => {}}>
           <View style={styles.dragHandle} />
           <Text style={styles.switcherTitle}>Your Portfolios</Text>
           {portfolios.map((p) => {

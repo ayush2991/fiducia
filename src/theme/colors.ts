@@ -7,6 +7,7 @@ export const colors = {
   surfaceMuted: '#232532',
   border: '#232532',
   borderStrong: '#2c2f40',
+  borderSubtle: '#1e2030',
   textPrimary: '#e9e9ed',
   textSecondary: '#75798c',
   textMuted: '#595d6c',
