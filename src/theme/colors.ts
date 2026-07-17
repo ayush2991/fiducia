@@ -15,4 +15,7 @@ export const colors = {
   accentSoft: '#d2cefd',
   negative: '#e08787',
   positive: '#7fbf98',
+  // Distinct per-entity line colors for the Compare tab's overlay chart —
+  // cycled through in portfolio/benchmark list order.
+  chartPalette: ['#9184d9', '#7fbf98', '#e0a567', '#6ea8d8', '#e08787', '#c9a4e0'],
 };
