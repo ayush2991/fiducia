@@ -13,11 +13,6 @@ CREATE TABLE IF NOT EXISTS prices (
   PRIMARY KEY (ticker, date)
 );
 CREATE INDEX IF NOT EXISTS idx_prices_ticker_date ON prices(ticker, date);
-
-CREATE TABLE IF NOT EXISTS price_meta (
-  ticker TEXT PRIMARY KEY,
-  full_fetched_on TEXT
-);
 `;
 
 let dbPromise: Promise<SQLite.SQLiteDatabase> | null = null;

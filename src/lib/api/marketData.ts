@@ -7,6 +7,7 @@ type DailySeriesResponse = {
   'Time Series (Daily)'?: Record<string, { '4. close': string }>;
   'Error Message'?: string;
   Note?: string;
+  Information?: string;
 };
 
 type SymbolSearchResponse = {
@@ -20,12 +21,11 @@ function requireApiKey(): string {
   return API_KEY;
 }
 
-export async function fetchDailySeries(
-  ticker: string,
-  outputSize: 'compact' | 'full' = 'compact'
-): Promise<PricePoint[]> {
+// outputsize is always 'compact' (last ~100 trading days) — Alpha Vantage's free
+// tier doesn't support 'full', so PeriodKey is capped to what compact can back.
+export async function fetchDailySeries(ticker: string): Promise<PricePoint[]> {
   const apiKey = requireApiKey();
-  const url = `${BASE_URL}?function=TIME_SERIES_DAILY&symbol=${encodeURIComponent(ticker)}&outputsize=${outputSize}&apikey=${apiKey}`;
+  const url = `${BASE_URL}?function=TIME_SERIES_DAILY&symbol=${encodeURIComponent(ticker)}&outputsize=compact&apikey=${apiKey}`;
   const res = await fetch(url);
   if (!res.ok) {
     throw new Error(`Alpha Vantage request failed with status ${res.status}`);
@@ -36,6 +36,9 @@ export async function fetchDailySeries(
   }
   if (data.Note) {
     throw new Error('Alpha Vantage rate limit hit, try again later');
+  }
+  if (data.Information) {
+    throw new Error(data.Information);
   }
   const series = data['Time Series (Daily)'];
   if (!series) {

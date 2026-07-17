@@ -12,7 +12,12 @@ const DIVIDER = 'rgba(233,233,237,.16)';
 
 export function PeriodPills({ active, onSelect }: PeriodPillsProps) {
   return (
-    <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.row}>
+    <ScrollView
+      horizontal
+      showsHorizontalScrollIndicator={false}
+      style={styles.scroll}
+      contentContainerStyle={styles.row}
+    >
       {PERIODS.map((period) => {
         const isActive = period === active;
         return (
@@ -32,10 +37,17 @@ export function PeriodPills({ active, onSelect }: PeriodPillsProps) {
 }
 
 const styles = StyleSheet.create({
+  scroll: {
+    flexGrow: 0,
+    flexShrink: 0,
+  },
   row: {
+    flexDirection: 'row',
+    alignItems: 'center',
     gap: 6,
     paddingHorizontal: 18,
     paddingTop: 10,
+    paddingBottom: 10,
   },
   pill: {
     borderWidth: 1,

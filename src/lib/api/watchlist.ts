@@ -5,14 +5,12 @@ import { annualizedReturn, maxDrawdown, sharpeRatio, volatility } from '@/lib/co
 import {
   dailyReturns,
   periodReturn,
-  periodStartDate,
   sliceToPeriod,
   toIndexedSeries,
   tradingDaySpan,
   type PricePoint,
 } from '@/lib/compute/returns';
-import * as priceMetaStorage from '@/lib/storage/priceMeta';
-import { getAllPrices, getEarliestDate, getLatestDate, upsertPrices } from '@/lib/storage/prices';
+import { getAllPrices, getLatestDate, upsertPrices } from '@/lib/storage/prices';
 import * as watchlistStorage from '@/lib/storage/watchlist';
 
 const BENCHMARK_TICKER = 'SPY';
@@ -21,32 +19,18 @@ function todayISODate(): string {
   return new Date().toISOString().slice(0, 10);
 }
 
-async function ensureFreshHistory(ticker: string, period: PeriodKey): Promise<void> {
+// PeriodKey is capped to what a single 'compact' fetch (~100 trading days) can back,
+// so a once-a-day refresh is always enough — no separate full-history fetch needed.
+async function ensureFreshHistory(ticker: string): Promise<void> {
   const today = todayISODate();
-
   const latest = await getLatestDate(ticker);
-  if (latest !== today) {
-    try {
-      const series = await fetchDailySeries(ticker, 'compact');
-      const tail = latest === null ? series : series.filter((p) => p.date > latest);
-      await upsertPrices(ticker, tail);
-    } catch {
-      // Fetch failed (offline / rate limit) — serve whatever is already cached, per spec §2/§5.
-    }
-  }
-
-  const requiredStart = periodStartDate(period, today);
-  const earliest = await getEarliestDate(ticker);
-  const fullFetchedOn = await priceMetaStorage.getFullFetchedOn(ticker);
-  const needsFullHistory = (earliest === null || earliest > requiredStart) && fullFetchedOn !== today;
-  if (needsFullHistory) {
-    try {
-      const full = await fetchDailySeries(ticker, 'full');
-      await upsertPrices(ticker, full);
-      await priceMetaStorage.setFullFetchedOn(ticker, today);
-    } catch {
-      // Fetch failed (offline / rate limit) — serve whatever is already cached, per spec §2/§5.
-    }
+  if (latest === today) return;
+  try {
+    const series = await fetchDailySeries(ticker);
+    const tail = latest === null ? series : series.filter((p) => p.date > latest);
+    await upsertPrices(ticker, tail);
+  } catch {
+    // Fetch failed (offline / rate limit) — serve whatever is already cached, per spec §2/§5.
   }
 }
 
@@ -83,7 +67,7 @@ export interface WatchlistResult {
 }
 
 export async function listWatchlist(period: PeriodKey): Promise<WatchlistResult> {
-  await ensureFreshHistory(BENCHMARK_TICKER, period);
+  await ensureFreshHistory(BENCHMARK_TICKER);
   const benchmarkPrices = await getAllPrices(BENCHMARK_TICKER);
   const { points: benchmarkSliced, truncatedFrom: benchmarkTruncatedFrom } = sliceToPeriod(
     benchmarkPrices,
@@ -98,7 +82,7 @@ export async function listWatchlist(period: PeriodKey): Promise<WatchlistResult>
   const tickers = await watchlistStorage.listTickers();
   const items = await Promise.all(
     tickers.map(async ({ ticker, name }) => {
-      await ensureFreshHistory(ticker, period);
+      await ensureFreshHistory(ticker);
       const prices = await getAllPrices(ticker);
       return buildPerformance(ticker, name, prices, benchmarkPrices, period);
     })
@@ -113,7 +97,7 @@ export async function addWatchlistTicker(rawTicker: string): Promise<void> {
   }
   let series: PricePoint[];
   try {
-    series = await fetchDailySeries(ticker, 'compact');
+    series = await fetchDailySeries(ticker);
   } catch {
     throw new Error(`Unknown ticker: ${ticker}`);
   }

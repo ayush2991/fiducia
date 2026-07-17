@@ -2,20 +2,16 @@ import type { PeriodKey } from '@/lib/api/types';
 
 export type PricePoint = { date: string; close: number };
 
-const PERIOD_DAYS: Partial<Record<PeriodKey, number>> = {
+const PERIOD_DAYS: Record<PeriodKey, number> = {
   '1D': 1,
   '7D': 7,
   '30D': 30,
   '3M': 90,
-  '1Y': 365,
-  '5Y': 365 * 5,
 };
 
 export function periodStartDate(period: PeriodKey, referenceDate: string): string {
-  if (period === 'MAX') return '0000-01-01';
   const ref = new Date(`${referenceDate}T00:00:00Z`);
-  if (period === 'YTD') return `${ref.getUTCFullYear()}-01-01`;
-  const days = PERIOD_DAYS[period]!;
+  const days = PERIOD_DAYS[period];
   const start = new Date(ref);
   start.setUTCDate(start.getUTCDate() - days);
   return start.toISOString().slice(0, 10);

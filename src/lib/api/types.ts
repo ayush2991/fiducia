@@ -1,8 +1,11 @@
-export type PeriodKey = '1D' | '7D' | '30D' | '3M' | 'YTD' | '1Y' | '5Y' | 'MAX';
+// Capped to what Alpha Vantage's free-tier TIME_SERIES_DAILY (compact = last ~100
+// trading days) can actually back — outputsize=full is a premium-only feature, so
+// longer periods (YTD/1Y/5Y/MAX) would silently be mislabeled with partial data.
+export type PeriodKey = '1D' | '7D' | '30D' | '3M';
 
-export const PERIODS: PeriodKey[] = ['1D', '7D', '30D', '3M', 'YTD', '1Y', '5Y', 'MAX'];
+export const PERIODS: PeriodKey[] = ['1D', '7D', '30D', '3M'];
 
-export const DEFAULT_PERIOD: PeriodKey = '1Y';
+export const DEFAULT_PERIOD: PeriodKey = '3M';
 
 export interface PerformanceSeries {
   period: PeriodKey;

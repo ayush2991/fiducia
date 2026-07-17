@@ -14,12 +14,8 @@ describe('periodStartDate', () => {
     expect(periodStartDate('30D', '2026-07-17')).toBe('2026-06-17');
   });
 
-  it('returns Jan 1 of the reference year for YTD', () => {
-    expect(periodStartDate('YTD', '2026-07-17')).toBe('2026-01-01');
-  });
-
-  it('returns a date far in the past for MAX', () => {
-    expect(periodStartDate('MAX', '2026-07-17')).toBe('0000-01-01');
+  it('subtracts calendar days for 3M', () => {
+    expect(periodStartDate('3M', '2026-07-17')).toBe('2026-04-18');
   });
 });
 
@@ -43,7 +39,7 @@ describe('sliceToPeriod', () => {
   });
 
   it('sets truncatedFrom when the earliest available point is after the requested start', () => {
-    const result = sliceToPeriod(prices, 'MAX');
+    const result = sliceToPeriod(prices, '3M');
     expect(result.points).toEqual(prices);
     expect(result.truncatedFrom).toBe('2026-01-01');
   });

@@ -11,15 +11,6 @@ export async function getLatestDate(ticker: string): Promise<string | null> {
   return row?.maxDate ?? null;
 }
 
-export async function getEarliestDate(ticker: string): Promise<string | null> {
-  const db = await getDb();
-  const row = await db.getFirstAsync<{ minDate: string | null }>(
-    'SELECT MIN(date) as minDate FROM prices WHERE ticker = ?',
-    ticker
-  );
-  return row?.minDate ?? null;
-}
-
 export async function upsertPrices(ticker: string, points: PricePoint[]): Promise<void> {
   if (points.length === 0) return;
   const db = await getDb();
