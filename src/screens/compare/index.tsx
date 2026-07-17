@@ -8,6 +8,7 @@ import { CompareChart, type CompareChartLine } from '@/components/compare-chart'
 import { EmptyState } from '@/components/empty-state';
 import { PeriodPills } from '@/components/period-pills';
 import { compareEntities } from '@/lib/api/compare';
+import { getActiveProvider } from '@/lib/api/settings';
 import { DEFAULT_PERIOD, type PeriodKey, type PortfolioPerformance } from '@/lib/api/types';
 import type { ColorTokens } from '@/theme/tokens';
 import { useTheme } from '@/theme/ThemeProvider';
@@ -62,6 +63,10 @@ export function Compare() {
     queryKey: ['compare', period],
     queryFn: () => compareEntities(period),
   });
+  const { data: activeProvider, isPending: isProviderPending } = useQuery({
+    queryKey: ['activeProvider'],
+    queryFn: getActiveProvider,
+  });
 
   const colorById = useMemo(() => {
     const map = new Map<string, string>();
@@ -93,6 +98,17 @@ export function Compare() {
         message="Add at least one portfolio to overlay its performance against benchmarks or other portfolios."
         ctaLabel="+ Add Portfolio"
         onPressCta={() => router.push('/add-portfolio')}
+      />
+    );
+  }
+
+  if (!isProviderPending && !activeProvider) {
+    return (
+      <EmptyState
+        title="No market data provider"
+        message="Add an API key in Settings to see performance, returns, and chart data."
+        ctaLabel="Go to Settings"
+        onPressCta={() => router.push('/account')}
       />
     );
   }

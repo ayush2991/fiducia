@@ -1,4 +1,4 @@
-import { fetchDailySeries, lookupCompanyName } from './marketData';
+import { fetchDailySeries, lookupCompanyName, NoProviderConfiguredError } from './marketData';
 import type { PeriodKey, PerformanceSeries, PerformanceStats, WatchlistTickerPerformance } from './types';
 import { alignByDate, alphaBetaCorrelation } from '@/lib/compute/regression';
 import { annualizedReturn, maxDrawdown, sharpeRatio, volatility } from '@/lib/compute/risk';
@@ -117,7 +117,8 @@ export async function addWatchlistTicker(rawTicker: string): Promise<void> {
   let series: PricePoint[];
   try {
     series = await fetchDailySeries(ticker);
-  } catch {
+  } catch (err) {
+    if (err instanceof NoProviderConfiguredError) throw err;
     throw new Error(`Unknown ticker: ${ticker}`);
   }
   await upsertPrices(ticker, series);

@@ -9,6 +9,7 @@ import { EmptyState } from '@/components/empty-state';
 import { PeriodPills } from '@/components/period-pills';
 import { WatchlistRow } from '@/components/watchlist-row';
 import { listWatchlist, removeWatchlistTicker } from '@/lib/api/watchlist';
+import { getActiveProvider } from '@/lib/api/settings';
 import { DEFAULT_PERIOD, type PeriodKey } from '@/lib/api/types';
 import type { ColorTokens } from '@/theme/tokens';
 import { useTheme } from '@/theme/ThemeProvider';
@@ -22,6 +23,10 @@ export function Watchlist() {
   const { data, isPending } = useQuery({
     queryKey: ['watchlist', period],
     queryFn: () => listWatchlist(period),
+  });
+  const { data: activeProvider, isPending: isProviderPending } = useQuery({
+    queryKey: ['activeProvider'],
+    queryFn: getActiveProvider,
   });
   const removeMutation = useMutation({
     mutationFn: (ticker: string) => removeWatchlistTicker(ticker),
@@ -52,6 +57,13 @@ export function Watchlist() {
         <EmptyState
           title="Your watchlist is empty"
           message="Track tickers here without adding them to a portfolio."
+        />
+      ) : !isProviderPending && !activeProvider ? (
+        <EmptyState
+          title="No market data provider"
+          message="Add an API key in Settings to see prices and performance for your watchlist."
+          ctaLabel="Go to Settings"
+          onPressCta={() => router.push('/account')}
         />
       ) : (
         <>
