@@ -1,10 +1,12 @@
+import { useMemo } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { Path, Svg } from 'react-native-svg';
 
 import { PerformanceChart } from '@/components/performance-chart';
 import { linePath } from '@/lib/compute/chartGeometry';
 import type { WatchlistTickerPerformance } from '@/lib/api/types';
-import { colors } from '@/theme/colors';
+import type { ColorTokens } from '@/theme/tokens';
+import { useTheme } from '@/theme/ThemeProvider';
 
 type WatchlistRowProps = {
   item: WatchlistTickerPerformance;
@@ -24,6 +26,8 @@ const STATS_ROWS: { key: keyof WatchlistTickerPerformance['stats']; label: strin
 ];
 
 export function WatchlistRow({ item, benchmarkSeries, isOpen, onToggle, onLongPress }: WatchlistRowProps) {
+  const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const changeColor = item.stats.return >= 0 ? colors.positive : colors.negative;
   const changeLabel = `${item.stats.return >= 0 ? '+' : ''}${item.stats.return.toFixed(1)}%`;
   const sparkPath = linePath(
@@ -77,83 +81,84 @@ export function WatchlistRow({ item, benchmarkSeries, isOpen, onToggle, onLongPr
   );
 }
 
-const styles = StyleSheet.create({
-  wrapper: {
-    borderBottomWidth: 1,
-    borderBottomColor: '#1e2030',
-  },
-  row: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    paddingVertical: 12,
-    paddingHorizontal: 18,
-  },
-  badge: {
-    width: 36,
-    height: 36,
-    borderRadius: 8,
-    backgroundColor: colors.surfaceMuted,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  badgeLabel: {
-    fontSize: 10,
-    fontWeight: '600',
-    color: colors.accentSoft,
-  },
-  info: {
-    flex: 1,
-    minWidth: 0,
-  },
-  name: {
-    fontSize: 13,
-    color: colors.textPrimary,
-  },
-  ticker: {
-    fontSize: 11,
-    color: colors.textSecondary,
-    marginTop: 2,
-  },
-  priceCol: {
-    alignItems: 'flex-end',
-    width: 66,
-  },
-  price: {
-    fontSize: 13,
-    fontWeight: '500',
-    color: colors.textPrimary,
-  },
-  change: {
-    fontSize: 11,
-    marginTop: 2,
-  },
-  detail: {
-    paddingHorizontal: 18,
-    paddingBottom: 20,
-  },
-  caption: {
-    fontSize: 11,
-    color: colors.textSecondary,
-    marginTop: 6,
-  },
-  statsTable: {
-    marginTop: 12,
-  },
-  statRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingVertical: 7,
-    borderBottomWidth: 1,
-    borderBottomColor: '#21232f',
-  },
-  statLabel: {
-    fontSize: 13,
-    color: colors.textSecondary,
-  },
-  statValue: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: colors.textPrimary,
-  },
-});
+const createStyles = (colors: ColorTokens) =>
+  StyleSheet.create({
+    wrapper: {
+      borderBottomWidth: 1,
+      borderBottomColor: colors.borderSubtle,
+    },
+    row: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 12,
+      paddingVertical: 12,
+      paddingHorizontal: 18,
+    },
+    badge: {
+      width: 36,
+      height: 36,
+      borderRadius: 8,
+      backgroundColor: colors.surfaceMuted,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    badgeLabel: {
+      fontSize: 10,
+      fontWeight: '600',
+      color: colors.accentSoft,
+    },
+    info: {
+      flex: 1,
+      minWidth: 0,
+    },
+    name: {
+      fontSize: 13,
+      color: colors.textPrimary,
+    },
+    ticker: {
+      fontSize: 11,
+      color: colors.textSecondary,
+      marginTop: 2,
+    },
+    priceCol: {
+      alignItems: 'flex-end',
+      width: 66,
+    },
+    price: {
+      fontSize: 13,
+      fontWeight: '500',
+      color: colors.textPrimary,
+    },
+    change: {
+      fontSize: 11,
+      marginTop: 2,
+    },
+    detail: {
+      paddingHorizontal: 18,
+      paddingBottom: 20,
+    },
+    caption: {
+      fontSize: 11,
+      color: colors.textSecondary,
+      marginTop: 6,
+    },
+    statsTable: {
+      marginTop: 12,
+    },
+    statRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      paddingVertical: 7,
+      borderBottomWidth: 1,
+      borderBottomColor: '#21232f',
+    },
+    statLabel: {
+      fontSize: 13,
+      color: colors.textSecondary,
+    },
+    statValue: {
+      fontSize: 13,
+      fontWeight: '600',
+      color: colors.textPrimary,
+    },
+  });

@@ -1,9 +1,11 @@
+import { useMemo } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { Circle, Defs, Line, LinearGradient, Path, Stop, Svg, Text as SvgText } from 'react-native-svg';
 
 import { areaPath, lastPointPosition, linePath, seriesRange } from '@/lib/compute/chartGeometry';
 import type { PerformanceSeries } from '@/lib/api/types';
-import { colors } from '@/theme/colors';
+import type { ColorTokens } from '@/theme/tokens';
+import { useTheme } from '@/theme/ThemeProvider';
 
 type PerformanceChartProps = {
   series: PerformanceSeries;
@@ -20,6 +22,8 @@ export function PerformanceChart({
   width = 330,
   height = 130,
 }: PerformanceChartProps) {
+  const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const values = series.points.map((p) => p.value);
   const benchmarkValues = benchmarkSeries?.points.map((p) => p.value) ?? [];
   const { min, max } = seriesRange(values);
@@ -73,25 +77,26 @@ export function PerformanceChart({
   );
 }
 
-const styles = StyleSheet.create({
-  wrapper: {
-    backgroundColor: colors.surface,
-    borderRadius: 14,
-    paddingTop: 14,
-    paddingHorizontal: 10,
-    paddingBottom: 4,
-    position: 'relative',
-  },
-  pill: {
-    position: 'absolute',
-    top: 12,
-    paddingVertical: 3,
-    paddingHorizontal: 8,
-    borderRadius: 6,
-  },
-  pillLabel: {
-    fontSize: 11,
-    fontWeight: '600',
-    color: colors.background,
-  },
-});
+const createStyles = (colors: ColorTokens) =>
+  StyleSheet.create({
+    wrapper: {
+      backgroundColor: colors.surface,
+      borderRadius: 14,
+      paddingTop: 14,
+      paddingHorizontal: 10,
+      paddingBottom: 4,
+      position: 'relative',
+    },
+    pill: {
+      position: 'absolute',
+      top: 12,
+      paddingVertical: 3,
+      paddingHorizontal: 8,
+      borderRadius: 6,
+    },
+    pillLabel: {
+      fontSize: 11,
+      fontWeight: '600',
+      color: colors.background,
+    },
+  });

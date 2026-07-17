@@ -1,8 +1,10 @@
+import { useMemo } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { Line, Path, Svg } from 'react-native-svg';
 
 import { seriesRange } from '@/lib/compute/chartGeometry';
-import { colors } from '@/theme/colors';
+import type { ColorTokens } from '@/theme/tokens';
+import { useTheme } from '@/theme/ThemeProvider';
 
 export type CompareChartLine = {
   id: string;
@@ -35,6 +37,8 @@ function sharedScalePath(values: number[], min: number, max: number, width: numb
 }
 
 export function CompareChart({ lines, width = 330, height = 160 }: CompareChartProps) {
+  const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const allValues = lines.flatMap((l) => l.values);
   const { min, max } = seriesRange(allValues);
 
@@ -59,12 +63,13 @@ export function CompareChart({ lines, width = 330, height = 160 }: CompareChartP
   );
 }
 
-const styles = StyleSheet.create({
-  wrapper: {
-    backgroundColor: colors.surface,
-    borderRadius: 14,
-    paddingTop: 14,
-    paddingHorizontal: 10,
-    paddingBottom: 4,
-  },
-});
+const createStyles = (colors: ColorTokens) =>
+  StyleSheet.create({
+    wrapper: {
+      backgroundColor: colors.surface,
+      borderRadius: 14,
+      paddingTop: 14,
+      paddingHorizontal: 10,
+      paddingBottom: 4,
+    },
+  });

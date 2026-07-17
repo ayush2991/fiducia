@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { router } from 'expo-router';
 import { useQuery } from '@tanstack/react-query';
 import {
@@ -16,9 +16,12 @@ import { EmptyState } from '@/components/empty-state';
 import { ChevronDownIcon } from '@/components/icons';
 import { listPortfolios } from '@/lib/api/portfolios';
 import type { Holding, Portfolio } from '@/lib/api/types';
-import { colors } from '@/theme/colors';
+import type { ColorTokens } from '@/theme/tokens';
+import { useTheme } from '@/theme/ThemeProvider';
 
 function HoldingItem({ holding }: { holding: Holding }) {
+  const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   return (
     <View style={styles.holdingRow}>
       <View style={styles.tickerBadge}>
@@ -51,6 +54,8 @@ function PortfolioSwitcher({
   onAddNew: () => void;
 }) {
   const insets = useSafeAreaInsets();
+  const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   return (
     <Modal visible transparent animationType="fade" onRequestClose={onClose}>
       <Pressable style={styles.scrim} onPress={onClose}>
@@ -90,6 +95,8 @@ function PortfolioSwitcher({
 
 export function Overview() {
   const insets = useSafeAreaInsets();
+  const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const [activeId, setActiveId] = useState<string | null>(null);
   const [showSwitcher, setShowSwitcher] = useState(false);
 
@@ -158,182 +165,183 @@ export function Overview() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
-  centered: {
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  header: {
-    paddingHorizontal: 18,
-    paddingBottom: 8,
-  },
-  eyebrow: {
-    fontSize: 10,
-    letterSpacing: 1.0,
-    textTransform: 'uppercase',
-    color: colors.accent,
-    fontWeight: '500',
-  },
-  namePressable: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    marginTop: 3,
-    alignSelf: 'flex-start',
-  },
-  portfolioName: {
-    fontSize: 19,
-    fontWeight: '500',
-    color: colors.textPrimary,
-  },
-  scrollContent: {
-    paddingHorizontal: 18,
-    paddingBottom: 32,
-  },
-  holdingsSectionLabel: {
-    fontSize: 13,
-    fontWeight: '500',
-    letterSpacing: 0.26,
-    color: colors.textSecondary,
-    marginTop: 20,
-    marginBottom: 10,
-  },
-  holdingRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    marginBottom: 12,
-  },
-  tickerBadge: {
-    width: 42,
-    height: 26,
-    backgroundColor: colors.surfaceMuted,
-    borderRadius: 6,
-    alignItems: 'center',
-    justifyContent: 'center',
-    flexShrink: 0,
-  },
-  tickerBadgeText: {
-    fontSize: 10.5,
-    fontWeight: '500',
-    color: colors.accentSoft,
-  },
-  holdingMeta: {
-    flex: 1,
-    minWidth: 0,
-  },
-  holdingName: {
-    fontSize: 13,
-    color: colors.textPrimary,
-  },
-  weightBarTrack: {
-    height: 3,
-    backgroundColor: colors.surfaceMuted,
-    borderRadius: 2,
-    marginTop: 6,
-    overflow: 'hidden',
-  },
-  weightBarFill: {
-    position: 'absolute',
-    left: 0,
-    top: 0,
-    bottom: 0,
-    borderRadius: 2,
-    backgroundColor: colors.accent,
-  },
-  holdingWeight: {
-    fontSize: 13,
-    fontWeight: '500',
-    color: colors.textPrimary,
-    flexShrink: 0,
-  },
-  // Switcher modal
-  scrim: {
-    flex: 1,
-    backgroundColor: 'rgba(10,11,18,0.55)',
-    justifyContent: 'flex-end',
-  },
-  sheet: {
-    backgroundColor: colors.surface,
-    borderTopLeftRadius: 16,
-    borderTopRightRadius: 16,
-    paddingHorizontal: 18,
-    paddingBottom: 18,
-    paddingTop: 8,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: -12 },
-    shadowOpacity: 0.4,
-    shadowRadius: 32,
-    elevation: 24,
-  },
-  dragHandle: {
-    width: 32,
-    height: 3,
-    backgroundColor: colors.borderStrong,
-    borderRadius: 2,
-    alignSelf: 'center',
-    marginBottom: 14,
-  },
-  switcherTitle: {
-    fontSize: 13,
-    fontWeight: '500',
-    color: colors.textSecondary,
-    marginBottom: 10,
-  },
-  switcherRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    paddingVertical: 11,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-  },
-  radioDot: {
-    width: 16,
-    height: 16,
-    borderRadius: 8,
-    borderWidth: 1.5,
-    flexShrink: 0,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  radioDotFill: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: colors.accent,
-  },
-  switcherRowMeta: {
-    flex: 1,
-    minWidth: 0,
-  },
-  switcherRowName: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: colors.textPrimary,
-  },
-  switcherRowSub: {
-    fontSize: 11,
-    color: colors.textSecondary,
-    marginTop: 2,
-  },
-  switcherAddBtn: {
-    width: '100%',
-    marginTop: 12,
-    paddingVertical: 11,
-    borderRadius: 10,
-    borderWidth: 1,
-    borderStyle: 'dashed',
-    borderColor: colors.borderStrong,
-    alignItems: 'center',
-  },
-  switcherAddLabel: {
-    fontSize: 13,
-    fontWeight: '500',
-    color: colors.textSecondary,
-  },
-});
+const createStyles = (colors: ColorTokens) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
+    centered: {
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    header: {
+      paddingHorizontal: 18,
+      paddingBottom: 8,
+    },
+    eyebrow: {
+      fontSize: 10,
+      letterSpacing: 1.0,
+      textTransform: 'uppercase',
+      color: colors.accent,
+      fontWeight: '500',
+    },
+    namePressable: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 6,
+      marginTop: 3,
+      alignSelf: 'flex-start',
+    },
+    portfolioName: {
+      fontSize: 19,
+      fontWeight: '500',
+      color: colors.textPrimary,
+    },
+    scrollContent: {
+      paddingHorizontal: 18,
+      paddingBottom: 32,
+    },
+    holdingsSectionLabel: {
+      fontSize: 13,
+      fontWeight: '500',
+      letterSpacing: 0.26,
+      color: colors.textSecondary,
+      marginTop: 20,
+      marginBottom: 10,
+    },
+    holdingRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 12,
+      marginBottom: 12,
+    },
+    tickerBadge: {
+      width: 42,
+      height: 26,
+      backgroundColor: colors.surfaceMuted,
+      borderRadius: 6,
+      alignItems: 'center',
+      justifyContent: 'center',
+      flexShrink: 0,
+    },
+    tickerBadgeText: {
+      fontSize: 10.5,
+      fontWeight: '500',
+      color: colors.accentSoft,
+    },
+    holdingMeta: {
+      flex: 1,
+      minWidth: 0,
+    },
+    holdingName: {
+      fontSize: 13,
+      color: colors.textPrimary,
+    },
+    weightBarTrack: {
+      height: 3,
+      backgroundColor: colors.surfaceMuted,
+      borderRadius: 2,
+      marginTop: 6,
+      overflow: 'hidden',
+    },
+    weightBarFill: {
+      position: 'absolute',
+      left: 0,
+      top: 0,
+      bottom: 0,
+      borderRadius: 2,
+      backgroundColor: colors.accent,
+    },
+    holdingWeight: {
+      fontSize: 13,
+      fontWeight: '500',
+      color: colors.textPrimary,
+      flexShrink: 0,
+    },
+    // Switcher modal
+    scrim: {
+      flex: 1,
+      backgroundColor: 'rgba(10,11,18,0.55)',
+      justifyContent: 'flex-end',
+    },
+    sheet: {
+      backgroundColor: colors.surface,
+      borderTopLeftRadius: 16,
+      borderTopRightRadius: 16,
+      paddingHorizontal: 18,
+      paddingBottom: 18,
+      paddingTop: 8,
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: -12 },
+      shadowOpacity: 0.4,
+      shadowRadius: 32,
+      elevation: 24,
+    },
+    dragHandle: {
+      width: 32,
+      height: 3,
+      backgroundColor: colors.borderStrong,
+      borderRadius: 2,
+      alignSelf: 'center',
+      marginBottom: 14,
+    },
+    switcherTitle: {
+      fontSize: 13,
+      fontWeight: '500',
+      color: colors.textSecondary,
+      marginBottom: 10,
+    },
+    switcherRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 12,
+      paddingVertical: 11,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border,
+    },
+    radioDot: {
+      width: 16,
+      height: 16,
+      borderRadius: 8,
+      borderWidth: 1.5,
+      flexShrink: 0,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    radioDotFill: {
+      width: 8,
+      height: 8,
+      borderRadius: 4,
+      backgroundColor: colors.accent,
+    },
+    switcherRowMeta: {
+      flex: 1,
+      minWidth: 0,
+    },
+    switcherRowName: {
+      fontSize: 14,
+      fontWeight: '500',
+      color: colors.textPrimary,
+    },
+    switcherRowSub: {
+      fontSize: 11,
+      color: colors.textSecondary,
+      marginTop: 2,
+    },
+    switcherAddBtn: {
+      width: '100%',
+      marginTop: 12,
+      paddingVertical: 11,
+      borderRadius: 10,
+      borderWidth: 1,
+      borderStyle: 'dashed',
+      borderColor: colors.borderStrong,
+      alignItems: 'center',
+    },
+    switcherAddLabel: {
+      fontSize: 13,
+      fontWeight: '500',
+      color: colors.textSecondary,
+    },
+  });

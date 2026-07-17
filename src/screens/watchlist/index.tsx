@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { router } from 'expo-router';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Alert, FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
@@ -10,9 +10,12 @@ import { PeriodPills } from '@/components/period-pills';
 import { WatchlistRow } from '@/components/watchlist-row';
 import { listWatchlist, removeWatchlistTicker } from '@/lib/api/watchlist';
 import { DEFAULT_PERIOD, type PeriodKey } from '@/lib/api/types';
-import { colors } from '@/theme/colors';
+import type { ColorTokens } from '@/theme/tokens';
+import { useTheme } from '@/theme/ThemeProvider';
 
 export function Watchlist() {
+  const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const [period, setPeriod] = useState<PeriodKey>(DEFAULT_PERIOD);
   const [expandedTicker, setExpandedTicker] = useState<string | null>(null);
   const queryClient = useQueryClient();
@@ -73,40 +76,41 @@ export function Watchlist() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 18,
-  },
-  eyebrow: {
-    fontSize: 10,
-    letterSpacing: 1.4,
-    textTransform: 'uppercase',
-    color: colors.accent,
-    fontWeight: '500',
-  },
-  title: {
-    fontSize: 20,
-    fontWeight: '500',
-    color: colors.textPrimary,
-    marginTop: 3,
-  },
-  addButton: {
-    width: 32,
-    height: 32,
-    borderRadius: 8,
-    backgroundColor: colors.surfaceMuted,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  list: {
-    marginTop: 8,
-    paddingBottom: 24,
-  },
-});
+const createStyles = (colors: ColorTokens) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
+    header: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingHorizontal: 18,
+    },
+    eyebrow: {
+      fontSize: 10,
+      letterSpacing: 1.4,
+      textTransform: 'uppercase',
+      color: colors.accent,
+      fontWeight: '500',
+    },
+    title: {
+      fontSize: 20,
+      fontWeight: '500',
+      color: colors.textPrimary,
+      marginTop: 3,
+    },
+    addButton: {
+      width: 32,
+      height: 32,
+      borderRadius: 8,
+      backgroundColor: colors.surfaceMuted,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    list: {
+      marginTop: 8,
+      paddingBottom: 24,
+    },
+  });

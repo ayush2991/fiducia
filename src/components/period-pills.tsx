@@ -1,7 +1,7 @@
 import { ScrollView, StyleSheet, Text, TouchableOpacity } from 'react-native';
 
 import { PERIODS, type PeriodKey } from '@/lib/api/types';
-import { colors } from '@/theme/colors';
+import { useTheme } from '@/theme/ThemeProvider';
 
 type PeriodPillsProps = {
   active: PeriodKey;
@@ -11,6 +11,7 @@ type PeriodPillsProps = {
 const DIVIDER = 'rgba(233,233,237,.16)';
 
 export function PeriodPills({ active, onSelect }: PeriodPillsProps) {
+  const { colors } = useTheme();
   return (
     <ScrollView
       horizontal

@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { router } from 'expo-router';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import {
@@ -16,7 +16,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { CloseIcon } from '@/components/icons';
 import { createPortfolio, getLatestPrice } from '@/lib/api/portfolios';
-import { colors } from '@/theme/colors';
+import type { ColorTokens } from '@/theme/tokens';
+import { useTheme } from '@/theme/ThemeProvider';
 
 type EntryMode = 'alloc' | 'raw' | 'shares' | 'dollar';
 
@@ -102,6 +103,8 @@ function computeTotalStr(rows: HoldingRow[], mode: EntryMode, pcts: number[]): s
 
 export function AddPortfolio() {
   const insets = useSafeAreaInsets();
+  const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const queryClient = useQueryClient();
   const [name, setName] = useState('');
   const [mode, setMode] = useState<EntryMode>('alloc');
@@ -314,220 +317,221 @@ export function AddPortfolio() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 18,
-    paddingTop: 20,
-    paddingBottom: 4,
-  },
-  backBtn: {
-    padding: 4,
-  },
-  backChevron: {
-    fontSize: 26,
-    color: colors.textSecondary,
-    lineHeight: 28,
-  },
-  headerTitle: {
-    fontSize: 15,
-    fontWeight: '500',
-    color: colors.textPrimary,
-  },
-  headerSpacer: {
-    width: 26,
-  },
-  scroll: {
-    flex: 1,
-  },
-  scrollContent: {
-    paddingBottom: 8,
-  },
-  section: {
-    paddingHorizontal: 18,
-    paddingTop: 14,
-  },
-  sectionLabel: {
-    fontSize: 11,
-    letterSpacing: 0.66,
-    textTransform: 'uppercase',
-    color: colors.textSecondary,
-    marginBottom: 8,
-  },
-  nameInput: {
-    width: '100%',
-    backgroundColor: colors.surface,
-    borderWidth: 1,
-    borderColor: colors.borderStrong,
-    borderRadius: 8,
-    padding: 12,
-    paddingHorizontal: 14,
-    color: colors.textPrimary,
-    fontSize: 15,
-    fontWeight: '500',
-  },
-  modeBtns: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 6,
-  },
-  modeBtn: {
-    paddingVertical: 8,
-    paddingHorizontal: 13,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: colors.borderStrong,
-  },
-  modeBtnActive: {
-    borderColor: colors.accent,
-    backgroundColor: 'transparent',
-  },
-  modeBtnText: {
-    fontSize: 12.5,
-    fontWeight: '500',
-    color: colors.textSecondary,
-  },
-  modeBtnTextActive: {
-    color: colors.accent,
-  },
-  modeHint: {
-    fontSize: 12.5,
-    color: colors.textSecondary,
-    marginTop: 10,
-    lineHeight: 18,
-  },
-  colHeaders: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-    paddingBottom: 8,
-  },
-  colHeader: {
-    fontSize: 10.5,
-    letterSpacing: 0.66,
-    textTransform: 'uppercase',
-    color: colors.textSecondary,
-  },
-  holdingRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-    paddingVertical: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.borderSubtle,
-  },
-  tickerInput: {
-    width: 72,
-    backgroundColor: colors.surface,
-    borderWidth: 1,
-    borderColor: colors.borderStrong,
-    borderRadius: 8,
-    paddingVertical: 12,
-    paddingHorizontal: 10,
-    color: colors.textPrimary,
-    fontSize: 14,
-    fontWeight: '500',
-  },
-  inputError: {
-    borderColor: colors.negative,
-  },
-  valueInput: {
-    flex: 1,
-    backgroundColor: colors.surface,
-    borderWidth: 1,
-    borderColor: colors.borderStrong,
-    borderRadius: 8,
-    paddingVertical: 12,
-    paddingHorizontal: 10,
-    color: colors.textPrimary,
-    fontSize: 14,
-    fontWeight: '500',
-    textAlign: 'right',
-  },
-  pctLabel: {
-    width: 50,
-    fontSize: 13,
-    color: colors.textSecondary,
-    textAlign: 'right',
-  },
-  removeBtn: {
-    width: 32,
-    height: 32,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: 6,
-  },
-  rowError: {
-    fontSize: 11,
-    color: colors.negative,
-    paddingHorizontal: 2,
-    paddingTop: 4,
-    paddingBottom: 2,
-  },
-  addRowBtn: {
-    width: '100%',
-    marginTop: 10,
-    paddingVertical: 10,
-    borderWidth: 1,
-    borderStyle: 'dashed',
-    borderColor: colors.borderStrong,
-    borderRadius: 8,
-    alignItems: 'center',
-  },
-  addRowLabel: {
-    fontSize: 12.5,
-    fontWeight: '500',
-    color: colors.textSecondary,
-  },
-  totalRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 18,
-    paddingTop: 16,
-  },
-  totalLabel: {
-    fontSize: 13,
-    color: colors.textSecondary,
-  },
-  totalValue: {
-    fontSize: 15,
-    fontWeight: '500',
-    color: colors.textPrimary,
-  },
-  totalValueWarn: {
-    color: colors.negative,
-  },
-  saveBtn: {
-    width: '100%',
-    paddingVertical: 13,
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: colors.accent,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  saveBtnDisabled: {
-    borderColor: colors.borderStrong,
-  },
-  saveBtnText: {
-    fontSize: 13.5,
-    fontWeight: '600',
-    color: colors.accent,
-  },
-  saveBtnTextDisabled: {
-    color: colors.textMuted,
-  },
-  saveError: {
-    fontSize: 12,
-    color: colors.negative,
-    textAlign: 'center',
-    marginTop: 8,
-  },
-});
+const createStyles = (colors: ColorTokens) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
+    header: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingHorizontal: 18,
+      paddingTop: 20,
+      paddingBottom: 4,
+    },
+    backBtn: {
+      padding: 4,
+    },
+    backChevron: {
+      fontSize: 26,
+      color: colors.textSecondary,
+      lineHeight: 28,
+    },
+    headerTitle: {
+      fontSize: 15,
+      fontWeight: '500',
+      color: colors.textPrimary,
+    },
+    headerSpacer: {
+      width: 26,
+    },
+    scroll: {
+      flex: 1,
+    },
+    scrollContent: {
+      paddingBottom: 8,
+    },
+    section: {
+      paddingHorizontal: 18,
+      paddingTop: 14,
+    },
+    sectionLabel: {
+      fontSize: 11,
+      letterSpacing: 0.66,
+      textTransform: 'uppercase',
+      color: colors.textSecondary,
+      marginBottom: 8,
+    },
+    nameInput: {
+      width: '100%',
+      backgroundColor: colors.surface,
+      borderWidth: 1,
+      borderColor: colors.borderStrong,
+      borderRadius: 8,
+      padding: 12,
+      paddingHorizontal: 14,
+      color: colors.textPrimary,
+      fontSize: 15,
+      fontWeight: '500',
+    },
+    modeBtns: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      gap: 6,
+    },
+    modeBtn: {
+      paddingVertical: 8,
+      paddingHorizontal: 13,
+      borderRadius: 8,
+      borderWidth: 1,
+      borderColor: colors.borderStrong,
+    },
+    modeBtnActive: {
+      borderColor: colors.accent,
+      backgroundColor: 'transparent',
+    },
+    modeBtnText: {
+      fontSize: 12.5,
+      fontWeight: '500',
+      color: colors.textSecondary,
+    },
+    modeBtnTextActive: {
+      color: colors.accent,
+    },
+    modeHint: {
+      fontSize: 12.5,
+      color: colors.textSecondary,
+      marginTop: 10,
+      lineHeight: 18,
+    },
+    colHeaders: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 10,
+      paddingBottom: 8,
+    },
+    colHeader: {
+      fontSize: 10.5,
+      letterSpacing: 0.66,
+      textTransform: 'uppercase',
+      color: colors.textSecondary,
+    },
+    holdingRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 10,
+      paddingVertical: 10,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.borderSubtle,
+    },
+    tickerInput: {
+      width: 72,
+      backgroundColor: colors.surface,
+      borderWidth: 1,
+      borderColor: colors.borderStrong,
+      borderRadius: 8,
+      paddingVertical: 12,
+      paddingHorizontal: 10,
+      color: colors.textPrimary,
+      fontSize: 14,
+      fontWeight: '500',
+    },
+    inputError: {
+      borderColor: colors.negative,
+    },
+    valueInput: {
+      flex: 1,
+      backgroundColor: colors.surface,
+      borderWidth: 1,
+      borderColor: colors.borderStrong,
+      borderRadius: 8,
+      paddingVertical: 12,
+      paddingHorizontal: 10,
+      color: colors.textPrimary,
+      fontSize: 14,
+      fontWeight: '500',
+      textAlign: 'right',
+    },
+    pctLabel: {
+      width: 50,
+      fontSize: 13,
+      color: colors.textSecondary,
+      textAlign: 'right',
+    },
+    removeBtn: {
+      width: 32,
+      height: 32,
+      alignItems: 'center',
+      justifyContent: 'center',
+      borderRadius: 6,
+    },
+    rowError: {
+      fontSize: 11,
+      color: colors.negative,
+      paddingHorizontal: 2,
+      paddingTop: 4,
+      paddingBottom: 2,
+    },
+    addRowBtn: {
+      width: '100%',
+      marginTop: 10,
+      paddingVertical: 10,
+      borderWidth: 1,
+      borderStyle: 'dashed',
+      borderColor: colors.borderStrong,
+      borderRadius: 8,
+      alignItems: 'center',
+    },
+    addRowLabel: {
+      fontSize: 12.5,
+      fontWeight: '500',
+      color: colors.textSecondary,
+    },
+    totalRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingHorizontal: 18,
+      paddingTop: 16,
+    },
+    totalLabel: {
+      fontSize: 13,
+      color: colors.textSecondary,
+    },
+    totalValue: {
+      fontSize: 15,
+      fontWeight: '500',
+      color: colors.textPrimary,
+    },
+    totalValueWarn: {
+      color: colors.negative,
+    },
+    saveBtn: {
+      width: '100%',
+      paddingVertical: 13,
+      borderRadius: 10,
+      borderWidth: 1,
+      borderColor: colors.accent,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    saveBtnDisabled: {
+      borderColor: colors.borderStrong,
+    },
+    saveBtnText: {
+      fontSize: 13.5,
+      fontWeight: '600',
+      color: colors.accent,
+    },
+    saveBtnTextDisabled: {
+      color: colors.textMuted,
+    },
+    saveError: {
+      fontSize: 12,
+      color: colors.negative,
+      textAlign: 'center',
+      marginTop: 8,
+    },
+  });
