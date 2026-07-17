@@ -10,6 +10,7 @@ export const DEFAULT_PERIOD: PeriodKey = '3M';
 export interface Holding {
   ticker: string;
   weight: number; // 0–100, normalized
+  name: string;
 }
 
 export interface Portfolio {

@@ -29,7 +29,7 @@ function HoldingItem({ holding }: { holding: Holding }) {
       </View>
       <View style={styles.holdingMeta}>
         <Text style={styles.holdingName} numberOfLines={1}>
-          {holding.ticker}
+          {holding.name}
         </Text>
         <View style={styles.weightBarTrack}>
           <View style={[styles.weightBarFill, { width: `${holding.weight}%` }]} />
