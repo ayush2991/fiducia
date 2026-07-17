@@ -13,4 +13,5 @@ export const colors = {
   accent: '#9184d9',
   accentSoft: '#d2cefd',
   negative: '#e08787',
+  positive: '#7fbf98',
 };
