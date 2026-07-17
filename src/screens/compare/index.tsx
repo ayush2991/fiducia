@@ -22,7 +22,6 @@ function EntityRow({
   isVisible: boolean;
   onToggle: () => void;
 }) {
-  const changeColor = entity.stats.return >= 0 ? colors.positive : colors.negative;
   const holdingsSummary = entity.portfolio.holdings
     .slice(0, 3)
     .map((h) => `${Math.round(h.weight)}% ${h.ticker}`)
@@ -41,7 +40,7 @@ function EntityRow({
           {entity.stats.maxDrawdown.toFixed(1)}%
         </Text>
       </View>
-      <Text style={[styles.rowReturn, { color: changeColor }]}>
+      <Text style={styles.rowReturn}>
         {entity.stats.return >= 0 ? '+' : ''}
         {entity.stats.return.toFixed(1)}%
       </Text>
@@ -107,9 +106,7 @@ export function Compare() {
     <View style={styles.container}>
       <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
         <Text style={styles.eyebrow}>Compare</Text>
-        <Text style={styles.title}>
-          {visibleCount} {visibleCount === 1 ? 'entity' : 'entities'} shown
-        </Text>
+        <Text style={styles.title}>{visibleCount} selected</Text>
       </View>
       <PeriodPills active={period} onSelect={setPeriod} />
       <FlatList
@@ -118,6 +115,7 @@ export function Compare() {
         ListHeaderComponent={
           <View style={styles.chartWrapper}>
             <CompareChart lines={lines} />
+            <Text style={styles.sectionLabel}>Portfolios & Benchmarks</Text>
           </View>
         }
         renderItem={({ item }) => (
@@ -163,7 +161,15 @@ const styles = StyleSheet.create({
   chartWrapper: {
     paddingHorizontal: 18,
     paddingTop: 4,
-    paddingBottom: 12,
+    paddingBottom: 4,
+  },
+  sectionLabel: {
+    fontSize: 13,
+    fontWeight: '500',
+    letterSpacing: 0.26,
+    color: colors.textSecondary,
+    marginTop: 18,
+    marginBottom: 6,
   },
   list: {
     paddingBottom: 24,
@@ -201,7 +207,8 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
   },
   rowReturn: {
-    fontSize: 14,
-    fontWeight: '600',
+    fontSize: 16,
+    fontWeight: '500',
+    color: colors.textPrimary,
   },
 });
