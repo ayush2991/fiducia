@@ -77,18 +77,33 @@ function buildPerformance(
   return { ticker, name, price: last ? last.close : 0, series, stats };
 }
 
-export async function listWatchlist(period: PeriodKey): Promise<WatchlistTickerPerformance[]> {
+export interface WatchlistResult {
+  items: WatchlistTickerPerformance[];
+  benchmarkSeries: PerformanceSeries;
+}
+
+export async function listWatchlist(period: PeriodKey): Promise<WatchlistResult> {
   await ensureFreshHistory(BENCHMARK_TICKER, period);
   const benchmarkPrices = await getAllPrices(BENCHMARK_TICKER);
+  const { points: benchmarkSliced, truncatedFrom: benchmarkTruncatedFrom } = sliceToPeriod(
+    benchmarkPrices,
+    period
+  );
+  const benchmarkSeries: PerformanceSeries = {
+    period,
+    points: toIndexedSeries(benchmarkSliced),
+    truncatedFrom: benchmarkTruncatedFrom,
+  };
 
   const tickers = await watchlistStorage.listTickers();
-  return Promise.all(
+  const items = await Promise.all(
     tickers.map(async ({ ticker, name }) => {
       await ensureFreshHistory(ticker, period);
       const prices = await getAllPrices(ticker);
       return buildPerformance(ticker, name, prices, benchmarkPrices, period);
     })
   );
+  return { items, benchmarkSeries };
 }
 
 export async function addWatchlistTicker(rawTicker: string): Promise<void> {

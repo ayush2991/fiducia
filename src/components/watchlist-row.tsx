@@ -1,17 +1,29 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { Path, Svg } from 'react-native-svg';
 
+import { PerformanceChart } from '@/components/performance-chart';
 import { linePath } from '@/lib/compute/chartGeometry';
 import type { WatchlistTickerPerformance } from '@/lib/api/types';
 import { colors } from '@/theme/colors';
 
 type WatchlistRowProps = {
   item: WatchlistTickerPerformance;
-  onPress?: () => void;
+  benchmarkSeries?: WatchlistTickerPerformance['series'];
+  isOpen: boolean;
+  onToggle: () => void;
   onLongPress?: () => void;
 };
 
-export function WatchlistRow({ item, onPress, onLongPress }: WatchlistRowProps) {
+const STATS_ROWS: { key: keyof WatchlistTickerPerformance['stats']; label: string; suffix: string }[] = [
+  { key: 'sharpe', label: 'Sharpe Ratio', suffix: '' },
+  { key: 'volatility', label: 'Volatility', suffix: '%' },
+  { key: 'maxDrawdown', label: 'Max Drawdown', suffix: '%' },
+  { key: 'alpha', label: 'Alpha (vs S&P 500)', suffix: '%' },
+  { key: 'beta', label: 'Beta (vs S&P 500)', suffix: '' },
+  { key: 'correlation', label: 'Correlation (vs S&P 500)', suffix: '' },
+];
+
+export function WatchlistRow({ item, benchmarkSeries, isOpen, onToggle, onLongPress }: WatchlistRowProps) {
   const changeColor = item.stats.return >= 0 ? colors.positive : colors.negative;
   const changeLabel = `${item.stats.return >= 0 ? '+' : ''}${item.stats.return.toFixed(1)}%`;
   const sparkPath = linePath(
@@ -23,7 +35,7 @@ export function WatchlistRow({ item, onPress, onLongPress }: WatchlistRowProps) 
 
   return (
     <View style={styles.wrapper}>
-      <Pressable style={styles.row} onPress={onPress} onLongPress={onLongPress}>
+      <Pressable style={styles.row} onPress={onToggle} onLongPress={onLongPress}>
         <View style={styles.badge}>
           <Text style={styles.badgeLabel}>{item.ticker}</Text>
         </View>
@@ -41,6 +53,26 @@ export function WatchlistRow({ item, onPress, onLongPress }: WatchlistRowProps) 
           <Text style={[styles.change, { color: changeColor }]}>{changeLabel}</Text>
         </View>
       </Pressable>
+      {isOpen ? (
+        <View style={styles.detail}>
+          <PerformanceChart series={item.series} benchmarkSeries={benchmarkSeries} lineColor={changeColor} />
+          <Text style={styles.caption}>Dashed line: S&P 500 · same period</Text>
+          {item.series.truncatedFrom ? (
+            <Text style={styles.caption}>Data from {item.series.truncatedFrom}</Text>
+          ) : null}
+          <View style={styles.statsTable}>
+            {STATS_ROWS.map((row) => (
+              <View key={row.key} style={styles.statRow}>
+                <Text style={styles.statLabel}>{row.label}</Text>
+                <Text style={styles.statValue}>
+                  {item.stats[row.key].toFixed(2)}
+                  {row.suffix}
+                </Text>
+              </View>
+            ))}
+          </View>
+        </View>
+      ) : null}
     </View>
   );
 }
@@ -95,5 +127,33 @@ const styles = StyleSheet.create({
   change: {
     fontSize: 11,
     marginTop: 2,
+  },
+  detail: {
+    paddingHorizontal: 18,
+    paddingBottom: 20,
+  },
+  caption: {
+    fontSize: 11,
+    color: colors.textSecondary,
+    marginTop: 6,
+  },
+  statsTable: {
+    marginTop: 12,
+  },
+  statRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingVertical: 7,
+    borderBottomWidth: 1,
+    borderBottomColor: '#21232f',
+  },
+  statLabel: {
+    fontSize: 13,
+    color: colors.textSecondary,
+  },
+  statValue: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: colors.textPrimary,
   },
 });

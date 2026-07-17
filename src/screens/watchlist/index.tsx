@@ -13,11 +13,12 @@ import { colors } from '@/theme/colors';
 
 export function Watchlist() {
   const [period, setPeriod] = useState<PeriodKey>(DEFAULT_PERIOD);
+  const [expandedTicker, setExpandedTicker] = useState<string | null>(null);
   const { data, isPending } = useQuery({
     queryKey: ['watchlist', period],
     queryFn: () => listWatchlist(period),
   });
-  const items = data ?? [];
+  const items = data?.items ?? [];
 
   return (
     <View style={styles.container}>
@@ -41,7 +42,14 @@ export function Watchlist() {
           <FlatList
             data={items}
             keyExtractor={(item) => item.ticker}
-            renderItem={({ item }) => <WatchlistRow item={item} />}
+            renderItem={({ item }) => (
+              <WatchlistRow
+                item={item}
+                benchmarkSeries={data?.benchmarkSeries}
+                isOpen={expandedTicker === item.ticker}
+                onToggle={() => setExpandedTicker((cur) => (cur === item.ticker ? null : item.ticker))}
+              />
+            )}
             contentContainerStyle={styles.list}
           />
         </>
