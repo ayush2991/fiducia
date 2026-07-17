@@ -34,6 +34,24 @@ async function ensureFreshHistory(ticker: string): Promise<void> {
   }
 }
 
+// A stored name equal to the ticker means the lookup at add-time failed (rate
+// limit / offline / no match) and silently fell back — insertTicker uses INSERT
+// OR IGNORE so that fallback would otherwise be stuck forever. Retry it here so
+// a transient failure self-heals on a later load instead of showing the ticker
+// as the name permanently.
+async function resolveDisplayName(ticker: string, storedName: string): Promise<string> {
+  if (storedName !== ticker) return storedName;
+  try {
+    const resolved = await lookupCompanyName(ticker);
+    if (resolved !== ticker) {
+      await watchlistStorage.updateName(ticker, resolved);
+    }
+    return resolved;
+  } catch {
+    return storedName;
+  }
+}
+
 function buildPerformance(
   ticker: string,
   name: string,
@@ -84,7 +102,8 @@ export async function listWatchlist(period: PeriodKey): Promise<WatchlistResult>
     tickers.map(async ({ ticker, name }) => {
       await ensureFreshHistory(ticker);
       const prices = await getAllPrices(ticker);
-      return buildPerformance(ticker, name, prices, benchmarkPrices, period);
+      const resolvedName = await resolveDisplayName(ticker, name);
+      return buildPerformance(ticker, resolvedName, prices, benchmarkPrices, period);
     })
   );
   return { items, benchmarkSeries };

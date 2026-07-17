@@ -1,4 +1,4 @@
-import { fetchDailySeries } from './marketData';
+import { fetchDailySeries, lookupCompanyName } from './marketData';
 import type { Holding, Portfolio } from './types';
 import * as storage from '@/lib/storage/portfolios';
 import { getLatestClose, getLatestDate, upsertPrices } from '@/lib/storage/prices';
@@ -14,13 +14,15 @@ function todayISODate(): string {
   return new Date().toISOString().slice(0, 10);
 }
 
-function normalizeWeights(holdings: { ticker: string; weight: number }[]): Holding[] {
+function normalizeWeights(holdings: { ticker: string; weight: number }[]): { ticker: string; weight: number }[] {
   const total = holdings.reduce((s, h) => s + h.weight, 0);
   if (total === 0) return [];
   return holdings.map((h) => ({ ticker: h.ticker, weight: (h.weight / total) * 100 }));
 }
 
-function mergeDedupeNormalize(rawHoldings: { ticker: string; weight: number }[]): Holding[] {
+function mergeDedupeNormalize(
+  rawHoldings: { ticker: string; weight: number }[]
+): { ticker: string; weight: number }[] {
   const merged: Record<string, number> = {};
   for (const h of rawHoldings) {
     merged[h.ticker] = (merged[h.ticker] ?? 0) + h.weight;
@@ -31,13 +33,52 @@ function mergeDedupeNormalize(rawHoldings: { ticker: string; weight: number }[])
   return normalizeWeights(deduped);
 }
 
+// Resolves a company name per ticker, same fallback-to-ticker-on-failure
+// contract as watchlist's addWatchlistTicker.
+async function attachNames(holdings: { ticker: string; weight: number }[]): Promise<Holding[]> {
+  return Promise.all(
+    holdings.map(async (h) => {
+      let name = h.ticker;
+      try {
+        name = await lookupCompanyName(h.ticker);
+      } catch {
+        // leave name as the ticker — same silent fallback as lookupCompanyName itself
+      }
+      return { ticker: h.ticker, weight: h.weight, name };
+    })
+  );
+}
+
 function toApiPortfolio(row: storage.PortfolioRow): Portfolio {
   return { id: row.id, name: row.name, type: row.type, holdings: row.holdings };
 }
 
+// A stored holding name equal to its ticker means the lookup at save-time
+// failed (rate limit / offline / no match) and silently fell back — retry it
+// here so a transient failure self-heals on a later load instead of showing
+// the ticker as the name permanently (same pattern as watchlist.ts).
+async function healStuckHoldingNames(row: storage.PortfolioRow): Promise<storage.PortfolioRow> {
+  const holdings = await Promise.all(
+    row.holdings.map(async (h) => {
+      if (h.name !== h.ticker) return h;
+      try {
+        const resolved = await lookupCompanyName(h.ticker);
+        if (resolved !== h.ticker) {
+          await storage.updateHoldingName(row.id, h.ticker, resolved);
+        }
+        return { ...h, name: resolved };
+      } catch {
+        return h;
+      }
+    })
+  );
+  return { ...row, holdings };
+}
+
 export async function listPortfolios(type?: 'user' | 'benchmark'): Promise<Portfolio[]> {
   const rows = await storage.getAllPortfolios(type);
-  return rows.map(toApiPortfolio);
+  const healed = await Promise.all(rows.map(healStuckHoldingNames));
+  return healed.map(toApiPortfolio);
 }
 
 export async function createPortfolio(
@@ -45,7 +86,7 @@ export async function createPortfolio(
   type: 'user' | 'benchmark',
   rawHoldings: { ticker: string; weight: number }[]
 ): Promise<Portfolio> {
-  const normalized = mergeDedupeNormalize(rawHoldings);
+  const normalized = await attachNames(mergeDedupeNormalize(rawHoldings));
   const id = generateId();
   await storage.createPortfolioWithHoldings(id, name, type, normalized);
   return { id, name, type, holdings: normalized };
@@ -55,7 +96,7 @@ export async function updatePortfolioHoldings(
   portfolioId: string,
   rawHoldings: { ticker: string; weight: number }[]
 ): Promise<void> {
-  const normalized = mergeDedupeNormalize(rawHoldings);
+  const normalized = await attachNames(mergeDedupeNormalize(rawHoldings));
   await storage.replaceHoldings(portfolioId, normalized);
 }
 
