@@ -9,7 +9,8 @@ import { EmptyState } from '@/components/empty-state';
 import { PeriodPills } from '@/components/period-pills';
 import { compareEntities } from '@/lib/api/compare';
 import { DEFAULT_PERIOD, type PeriodKey, type PortfolioPerformance } from '@/lib/api/types';
-import { colors } from '@/theme/colors';
+import type { ColorTokens } from '@/theme/tokens';
+import { useTheme } from '@/theme/ThemeProvider';
 
 function EntityRow({
   entity,
@@ -22,6 +23,8 @@ function EntityRow({
   isVisible: boolean;
   onToggle: () => void;
 }) {
+  const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const holdingsSummary = entity.portfolio.holdings
     .slice(0, 3)
     .map((h) => `${Math.round(h.weight)}% ${h.ticker}`)
@@ -50,6 +53,8 @@ function EntityRow({
 
 export function Compare() {
   const insets = useSafeAreaInsets();
+  const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const [period, setPeriod] = useState<PeriodKey>(DEFAULT_PERIOD);
   const [hiddenIds, setHiddenIds] = useState<Set<string>>(new Set());
 
@@ -62,7 +67,7 @@ export function Compare() {
     const map = new Map<string, string>();
     entities.forEach((e, i) => map.set(e.portfolio.id, colors.chartPalette[i % colors.chartPalette.length]));
     return map;
-  }, [entities]);
+  }, [entities, colors]);
 
   function toggle(id: string) {
     setHiddenIds((cur) => {
@@ -132,83 +137,84 @@ export function Compare() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
-  centered: {
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  header: {
-    paddingHorizontal: 18,
-    paddingBottom: 8,
-  },
-  eyebrow: {
-    fontSize: 10,
-    letterSpacing: 1.0,
-    textTransform: 'uppercase',
-    color: colors.accent,
-    fontWeight: '500',
-  },
-  title: {
-    fontSize: 19,
-    fontWeight: '500',
-    color: colors.textPrimary,
-    marginTop: 3,
-  },
-  chartWrapper: {
-    paddingHorizontal: 18,
-    paddingTop: 4,
-    paddingBottom: 4,
-  },
-  sectionLabel: {
-    fontSize: 13,
-    fontWeight: '500',
-    letterSpacing: 0.26,
-    color: colors.textSecondary,
-    marginTop: 18,
-    marginBottom: 6,
-  },
-  list: {
-    paddingBottom: 24,
-  },
-  row: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    paddingVertical: 12,
-    paddingHorizontal: 18,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.borderSubtle,
-  },
-  rowHidden: {
-    opacity: 0.4,
-  },
-  colorDot: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-    flexShrink: 0,
-  },
-  rowMeta: {
-    flex: 1,
-    minWidth: 0,
-    gap: 3,
-  },
-  rowName: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: colors.textPrimary,
-  },
-  rowSub: {
-    fontSize: 11,
-    color: colors.textSecondary,
-  },
-  rowReturn: {
-    fontSize: 16,
-    fontWeight: '500',
-    color: colors.textPrimary,
-  },
-});
+const createStyles = (colors: ColorTokens) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
+    centered: {
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    header: {
+      paddingHorizontal: 18,
+      paddingBottom: 8,
+    },
+    eyebrow: {
+      fontSize: 10,
+      letterSpacing: 1.0,
+      textTransform: 'uppercase',
+      color: colors.accent,
+      fontWeight: '500',
+    },
+    title: {
+      fontSize: 19,
+      fontWeight: '500',
+      color: colors.textPrimary,
+      marginTop: 3,
+    },
+    chartWrapper: {
+      paddingHorizontal: 18,
+      paddingTop: 4,
+      paddingBottom: 4,
+    },
+    sectionLabel: {
+      fontSize: 13,
+      fontWeight: '500',
+      letterSpacing: 0.26,
+      color: colors.textSecondary,
+      marginTop: 18,
+      marginBottom: 6,
+    },
+    list: {
+      paddingBottom: 24,
+    },
+    row: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 12,
+      paddingVertical: 12,
+      paddingHorizontal: 18,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.borderSubtle,
+    },
+    rowHidden: {
+      opacity: 0.4,
+    },
+    colorDot: {
+      width: 10,
+      height: 10,
+      borderRadius: 5,
+      flexShrink: 0,
+    },
+    rowMeta: {
+      flex: 1,
+      minWidth: 0,
+      gap: 3,
+    },
+    rowName: {
+      fontSize: 14,
+      fontWeight: '500',
+      color: colors.textPrimary,
+    },
+    rowSub: {
+      fontSize: 11,
+      color: colors.textSecondary,
+    },
+    rowReturn: {
+      fontSize: 16,
+      fontWeight: '500',
+      color: colors.textPrimary,
+    },
+  });

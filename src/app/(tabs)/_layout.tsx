@@ -2,9 +2,10 @@ import { Tabs, TabList, TabSlot, TabTrigger } from 'expo-router/ui';
 
 import { AccountIcon, CompareIcon, OverviewIcon, WatchlistIcon } from '@/components/icons';
 import { TabBarButton, TabBarContainer } from '@/components/tab-bar';
-import { colors } from '@/theme/colors';
+import { useTheme } from '@/theme/ThemeProvider';
 
 export default function TabLayout() {
+  const { colors } = useTheme();
   return (
     <Tabs style={{ flex: 1, backgroundColor: colors.background }}>
       <TabSlot style={{ flex: 1 }} />

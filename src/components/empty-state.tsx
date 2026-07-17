@@ -1,7 +1,9 @@
+import { useMemo } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { EmptyPortfoliosIcon } from '@/components/icons';
-import { colors } from '@/theme/colors';
+import type { ColorTokens } from '@/theme/tokens';
+import { useTheme } from '@/theme/ThemeProvider';
 
 type EmptyStateProps = {
   title: string;
@@ -11,6 +13,8 @@ type EmptyStateProps = {
 };
 
 export function EmptyState({ title, message, ctaLabel, onPressCta }: EmptyStateProps) {
+  const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   return (
     <View style={styles.container}>
       <EmptyPortfoliosIcon />
@@ -25,40 +29,41 @@ export function EmptyState({ title, message, ctaLabel, onPressCta }: EmptyStateP
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 36,
-    backgroundColor: colors.background,
-  },
-  title: {
-    fontSize: 17,
-    fontWeight: '500',
-    color: colors.textPrimary,
-    marginTop: 18,
-    marginBottom: 8,
-    textAlign: 'center',
-  },
-  message: {
-    fontSize: 13,
-    color: colors.textSecondary,
-    textAlign: 'center',
-    lineHeight: 19.5,
-    marginBottom: 22,
-  },
-  cta: {
-    borderWidth: 1,
-    borderColor: colors.accent,
-    backgroundColor: 'transparent',
-    paddingVertical: 11,
-    paddingHorizontal: 22,
-    borderRadius: 10,
-  },
-  ctaLabel: {
-    color: colors.accent,
-    fontSize: 13.5,
-    fontWeight: '600',
-  },
-});
+const createStyles = (colors: ColorTokens) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      alignItems: 'center',
+      justifyContent: 'center',
+      paddingHorizontal: 36,
+      backgroundColor: colors.background,
+    },
+    title: {
+      fontSize: 17,
+      fontWeight: '500',
+      color: colors.textPrimary,
+      marginTop: 18,
+      marginBottom: 8,
+      textAlign: 'center',
+    },
+    message: {
+      fontSize: 13,
+      color: colors.textSecondary,
+      textAlign: 'center',
+      lineHeight: 19.5,
+      marginBottom: 22,
+    },
+    cta: {
+      borderWidth: 1,
+      borderColor: colors.accent,
+      backgroundColor: 'transparent',
+      paddingVertical: 11,
+      paddingHorizontal: 22,
+      borderRadius: 10,
+    },
+    ctaLabel: {
+      color: colors.accent,
+      fontSize: 13.5,
+      fontWeight: '600',
+    },
+  });
