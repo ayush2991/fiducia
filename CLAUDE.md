@@ -4,19 +4,28 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project
 
-Fiducia is a React Native app (Expo, TypeScript) for comparing investment portfolios, targeting both iOS and Android. The codebase is currently a fresh Expo scaffold — `App.tsx` is the sole entry point rendered via `index.ts` (`registerRootComponent`). No navigation, state management, or data layer has been added yet.
+Fiducia is a React Native app (Expo, TypeScript, expo-router) for comparing investment portfolios, targeting both iOS and Android. `docs/superpowers/specs/2026-07-16-portfolio-comparison-design.md` is the approved design spec and remains the source of truth for architecture decisions not covered below. `docs/plans/backend-foundation.md`, referenced by the spec, does not exist in this repo — treat the spec as authoritative where the two would conflict.
 
-## Planned architecture
+## Architecture
 
-`docs/superpowers/specs/2026-07-16-portfolio-comparison-design.md` is the approved design spec for the first real feature (portfolio comparison + charting) and is the source of truth for architecture decisions once implementation starts. Read it before scaffolding `src/`. Key decisions from that spec, useful context even before code exists:
+Strict layering, enforced by convention rather than tooling — don't skip a layer:
 
-- **Local-only v1**: expo-sqlite for storage (portfolios, holdings, cached daily prices, watchlist) — no backend/auth yet. A v2 Supabase migration is anticipated, so all data access must go through `src/lib/api/*`; UI code and screens never touch SQLite or the market-data API directly.
-- **Market data**: Alpha Vantage `TIME_SERIES_DAILY`, delta-fetched (only the missing tail per ticker) to stay under free-tier quota, with cached data served on fetch failure/offline.
-  - **`outputsize=full` is a premium-only feature on Alpha Vantage's free tier** — confirmed by calling it directly; it returns 200 OK with an `Information` field (not `Note`, which is the rate-limit signal) explaining the paywall. `outputsize=compact` (the only usable free option) always returns just the last ~100 trading days, full stop — there is no free way to get more via this endpoint. Any period selector must be capped to what a compact fetch can actually back (~3 months); don't add UI for longer periods (1Y/5Y/MAX/YTD) without a plan to either pull from a different data source or accumulate history day-by-day over real time. `fetchDailySeries` in `src/lib/api/marketData.ts` checks for `Information` and throws so a paywall response can't be silently swallowed and misreported as a working longer-period fetch.
-- **Computation is in-memory, on demand** from the raw price cache (no precomputed stats cache) — return, volatility, max drawdown, alpha/beta/correlation, Sharpe.
+- **`src/app/`** — expo-router file-based routes only. Each route file is a thin wrapper that renders the matching component from `src/screens/`; it holds no logic of its own (see `src/app/(tabs)/index.tsx`). `src/app/_layout.tsx` sets up the root `Stack` (tabs + modal routes for `add-portfolio`/`add-ticker`) and the app-wide `QueryClient`.
+- **`src/screens/`** — one directory per screen (`overview`, `compare`, `watchlist`, `account`, `add-portfolio`, `add-ticker`), each with an `index.tsx`. This is where actual UI composition and screen-level state live.
+- **`src/components/`** — shared presentational components (`tab-bar`, `period-pills`, `performance-chart`, `watchlist-row`, `empty-state`, `icons`).
+- **`src/lib/api/`** — the only layer screens/components may call for data. Wraps `src/lib/storage/*` (SQLite) and `src/lib/compute/*` (pure math) behind a stable interface (`portfolios.ts`, `watchlist.ts`, `marketData.ts`, `types.ts`). This indirection exists because a v2 Supabase migration is anticipated — UI code must never import `expo-sqlite` or call the market-data fetcher directly.
+- **`src/lib/storage/`** — expo-sqlite access. `db.ts` owns the singleton connection, schema (`portfolios`, `holdings`, `prices`, `watchlist` tables) and seeds the two benchmark portfolios (90/10, 60/40) on first open. `portfolios.ts`/`prices.ts`/`watchlist.ts` are per-table query modules.
+- **`src/lib/compute/`** — pure, unit-tested functions for return/volatility/max-drawdown/Sharpe (`returns.ts`, `risk.ts`), alpha/beta/correlation (`regression.ts`), and chart point layout (`chartGeometry.ts`). No I/O; computed in-memory on demand from the raw price cache — there is no precomputed stats cache.
+- **`src/theme/colors.ts`** — design tokens extracted from the mock (see "Matching the mock exactly" below).
+- Path alias `@/*` → `./src/*` (kept in sync between `tsconfig.json` and `jest.config.js` — see Automated tests).
+
+Key behavioral decisions:
+
+- **Local-only v1**: no backend/auth. All persistence is expo-sqlite.
+- **Market data**: Alpha Vantage `TIME_SERIES_DAILY`, delta-fetched (only the missing tail per ticker, via `getLatestDate`/`upsertPrices`) to stay under free-tier quota, with cached data served on fetch failure/offline (see `getLatestPrice` in `src/lib/api/portfolios.ts` and the equivalent in `watchlist.ts` for the once-a-day refresh cap and stale-cache fallback pattern).
+  - **`outputsize=full` is a premium-only feature on Alpha Vantage's free tier** — confirmed by calling it directly; it returns 200 OK with an `Information` field (not `Note`, which is the rate-limit signal) explaining the paywall. `outputsize=compact` (the only usable free option) always returns just the last ~100 trading days, full stop — there is no free way to get more via this endpoint. `PeriodKey` in `src/lib/api/types.ts` is capped to `1D`/`7D`/`30D`/`3M` for exactly this reason; don't add longer periods (1Y/5Y/MAX/YTD) without a plan to either pull from a different data source or accumulate history day-by-day over real time. `fetchDailySeries` in `src/lib/api/marketData.ts` checks for `Information` and throws so a paywall response can't be silently swallowed and misreported as a working longer-period fetch.
 - **State management**: TanStack Query for async data through `src/lib/api/*`; plain React state for local UI state (active tab/portfolio/period). No Zustand/Redux.
-- **Screens**: 4-tab shell (Overview/Compare/Watchlist/Account) plus an Add Portfolio flow, per the "Nocturne" dark-theme mockups. `Portfolio Tracker.html` at the repo root is a bundled export of that mockup set — a visual reference, not app code.
-- `docs/plans/backend-foundation.md` (an earlier, superseded plan) is referenced by the spec but does not currently exist in this repo — treat the spec above as authoritative.
+- **Screens**: 4-tab shell (Overview/Compare/Watchlist/Account) plus an Add Portfolio and Add Ticker flow, per the "Nocturne" dark-theme mockups. `Portfolio Tracker.html` at the repo root is a bundled export of that mockup set — a visual reference, not app code.
 
 ## Commands
 
@@ -24,7 +33,8 @@ Fiducia is a React Native app (Expo, TypeScript) for comparing investment portfo
 - `npm run ios` — start the dev server and launch the iOS simulator.
 - `npm run android` — start the dev server and launch the Android emulator.
 - `npm run web` — start the dev server for web.
-- `npx tsc --noEmit` — type-check the project (there is no separate `lint`/`test`/`build` script defined yet).
+- `npx tsc --noEmit` — type-check the project (there is no separate `lint`/`build` script defined yet).
+- `npm test` — run the Jest unit tests (`src/lib/compute/*.test.ts`). Pass a path to run one file, e.g. `npm test -- src/lib/compute/risk.test.ts`.
 
 ## Important: Expo SDK version
 
