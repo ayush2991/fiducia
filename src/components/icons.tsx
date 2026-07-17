@@ -51,6 +51,14 @@ export function BackIcon({ color }: IconProps) {
   );
 }
 
+export function PlusIcon({ color }: IconProps) {
+  return (
+    <Svg width={14} height={14} viewBox="0 0 14 14">
+      <Path d="M7 1v12M1 7h12" stroke={color} strokeWidth={1.5} strokeLinecap="round" />
+    </Svg>
+  );
+}
+
 export function EmptyPortfoliosIcon() {
   return (
     <Svg width={40} height={40} viewBox="0 0 40 40">
