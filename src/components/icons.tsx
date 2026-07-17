@@ -75,6 +75,14 @@ export function ChevronDownIcon({ color }: IconProps) {
   );
 }
 
+export function ChevronRightIcon({ color }: IconProps) {
+  return (
+    <Svg width={7} height={12} viewBox="0 0 7 12">
+      <Polyline points="1,1 6,6 1,11" fill="none" stroke={color} strokeWidth={1.5} />
+    </Svg>
+  );
+}
+
 export function EmptyPortfoliosIcon() {
   return (
     <Svg width={40} height={40} viewBox="0 0 40 40">
