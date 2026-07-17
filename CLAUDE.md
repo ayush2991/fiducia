@@ -42,7 +42,9 @@ This project is on **Expo SDK 57**, which is a recent major version with breakin
 
 ## Matching the mock exactly
 
-`Portfolio Tracker.html` at the repo root is the source of truth for visual design (colors, type scale, spacing, component styles, icons) — not the prose in the design spec doc, which doesn't carry exact hex codes or pixel values. Its real markup is a JSON-escaped JS string wrapped in bundler boilerplate; skimming the outer wrapper is not enough to find the actual mock content. Decode it first (e.g. `python3 -c "import json,re,pathlib; ..."` to pull out the escaped HTML) and extract concrete tokens (hex colors, font sizes/weights, border/radius values, exact icon SVG paths) from the decoded markup before writing any styling code. Do not build UI from memory of "how this kind of app usually looks."
+`Portfolio Tracker.html` at the repo root is the source of truth for visual design (colors, type scale, spacing, component styles, icons) — not the prose in the design spec doc, which doesn't carry exact hex codes or pixel values. Its real markup is a JSON-escaped JS string wrapped in bundler boilerplate; skimming the outer wrapper is not enough to find the actual mock content.
+
+**`docs/mock-reference.html` is the already-decoded plain HTML** — read this directly instead of re-decoding `Portfolio Tracker.html` from scratch. It has one `data-screen-label` block per screen (`"Nocturne Detail"`, `"Nocturne Compare"`, `"Nocturne Tab Shell"` — which nests Overview/Watchlist/Account/Add Portfolio's normal and empty states — and `"Nocturne Add Portfolio"`); grep for the label to jump to a screen's markup and pull concrete tokens (hex colors, font sizes/weights, border/radius values, exact icon SVG paths, literal copy) before writing or reviewing any styling code. If `Portfolio Tracker.html` is ever updated, regenerate this file the same way it was produced: extract the JSON string inside `<script type="__bundler/template">...</script>` and `json.loads` it to get plain HTML (`python3 -c "import json; ..."`). Do not build UI from memory of "how this kind of app usually looks."
 
 ## Verifying UI changes
 
