@@ -33,3 +33,12 @@ export async function getAllPrices(ticker: string): Promise<PricePoint[]> {
     ticker
   );
 }
+
+export async function getLatestClose(ticker: string): Promise<number | null> {
+  const db = await getDb();
+  const row = await db.getFirstAsync<{ close: number }>(
+    'SELECT close FROM prices WHERE ticker = ? ORDER BY date DESC LIMIT 1',
+    ticker
+  );
+  return row?.close ?? null;
+}

@@ -59,6 +59,22 @@ export function PlusIcon({ color }: IconProps) {
   );
 }
 
+export function CloseIcon({ color }: IconProps) {
+  return (
+    <Svg width={12} height={12} viewBox="0 0 12 12">
+      <Path d="M1 1l10 10M11 1L1 11" stroke={color} strokeWidth={1.5} strokeLinecap="round" />
+    </Svg>
+  );
+}
+
+export function ChevronDownIcon({ color }: IconProps) {
+  return (
+    <Svg width={12} height={12} viewBox="0 0 12 12">
+      <Path d="M2 4l4 4 4-4" fill="none" stroke={color} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" />
+    </Svg>
+  );
+}
+
 export function EmptyPortfoliosIcon() {
   return (
     <Svg width={40} height={40} viewBox="0 0 40 40">
