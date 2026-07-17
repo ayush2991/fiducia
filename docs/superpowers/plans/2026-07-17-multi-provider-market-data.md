@@ -8,6 +8,18 @@
 
 **Tech Stack:** Expo SDK 57, `expo-secure-store` (new dependency), existing `src/lib/api`/`src/lib/storage` layering, Jest for the new pure-parsing logic in each adapter.
 
+## Status (as of implementation pass on `claude/app-next-steps-bts0do`)
+
+Tasks 1–11 are implemented, type-checked (`npx tsc --noEmit` clean), covered by passing Jest tests (51/51), and committed/pushed. Notable deviations from the original sketch, resolved during implementation rather than left as TODOs:
+
+- Tiingo auth is an `Authorization: Token <key>` header, not the `?token=` query param this doc originally sketched — confirmed against the official `tiingo-python` client source, since Tiingo's own docs pages returned HTTP 403 to automated fetches.
+- FMP's `historical-price-full` response wraps the daily array in a `historical` key — confirmed against the `fmpsdk` client source for the same reason.
+- `ProviderId` is redeclared locally in `src/lib/storage/settings.ts` rather than imported from `src/lib/api/providers/types.ts` (Task 6's sketch imported it) — storage must never depend on api, matching the existing `PricePoint` redeclaration pattern used across `compute`/`storage`/`api`.
+- `marketData.ts` imports the `PROVIDERS` map from `settings.ts` directly rather than duplicating it (Task 8 left this as an open decision) — no circular import resulted.
+- Task 9 turned out to need a different mechanism than "catch `NoProviderConfiguredError`": `ensureFreshHistory` in `compare.ts`/`watchlist.ts` already swallows all fetch errors (rate-limit, offline, missing-provider alike) to serve cached data per spec, so the error never reaches `useQuery`'s error state. Implemented as a proactive `getActiveProvider()` check on both screens instead. Also fixed a related pre-existing bug: `addWatchlistTicker` was mislabeling a missing-provider failure as "Unknown ticker."
+
+**Task 12 (end-to-end simulator verification) is NOT done** — this implementation pass ran in a Linux sandbox with no iOS Simulator/Xcode, and `npx expo start` fails outright here (Metro's own startup makes a network call blocked by this environment's outbound proxy, independent of anything in the code). The checklist below still needs a real run on a machine with a simulator/device before this is considered shippable.
+
 ## Global Constraints
 
 - UI code never touches `expo-secure-store` or any vendor HTTP endpoint directly — only `src/lib/api/settings.ts` and `src/lib/api/marketData.ts` (same layering rule as the rest of the app, per `CLAUDE.md`).
