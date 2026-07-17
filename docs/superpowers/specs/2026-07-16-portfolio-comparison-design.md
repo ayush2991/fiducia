@@ -13,6 +13,7 @@ Visual design is driven by an existing mockup set ("Nocturne" dark theme) coveri
 - Users manually define portfolios (tickers + weights).
 - The app fetches and caches historical daily prices to compute performance over time, not just current value.
 - Users can view a single portfolio's performance vs. a benchmark (Detail screen), or overlay multiple portfolios/benchmarks (Compare screen).
+- Users can also track individual tickers on a Watchlist, independent of any portfolio, and view each one's own historical performance over a selectable period — same computation machinery as a portfolio, applied to a single 100%-weighted holding, compared against a fixed S&P 500 (`SPY`) benchmark exactly like a portfolio's Detail screen (Sharpe, Volatility, Max Drawdown, Alpha, Beta, Correlation).
 - No auth, no backend server. Portfolio and price data live entirely on-device and are lost on reinstall (same limitation as the original v1 plan; v2 addresses this).
 
 ## 1. Data & storage layer
@@ -57,10 +58,11 @@ Default benchmarks (`90/10`, `60/40 Classic`, etc., per the mockup's `ENTITIES`)
 
 **Provider: Alpha Vantage** free tier, `TIME_SERIES_DAILY` endpoint.
 
-- On app open, for each ticker referenced by any portfolio, benchmark, or watchlist entry: check the latest cached date in `prices` for that ticker (`MAX(date) WHERE ticker = ?`). If stale (not today, accounting for market days), fetch only the missing tail rather than the full history, and upsert into `prices`.
-- Given the free tier's low daily request quota, this delta-fetch approach is required — refetching full history for every ticker on every open would exhaust the quota immediately with more than a couple of tickers.
+- On app open, for each ticker referenced by any portfolio, benchmark, or watchlist entry: check the latest cached date in `prices` for that ticker (`MAX(date) WHERE ticker = ?`). If it's not today's date, fetch (`TIME_SERIES_DAILY`, default `outputsize=compact` — the latest ~100 trading days) and upsert only the rows newer than the cached max into `prices`.
+- **Once-per-day-per-ticker cap**: since `TIME_SERIES_DAILY` is end-of-day data, there is no benefit to fetching more than once per calendar day per ticker regardless of whether the market is open — refreshing intraday just re-returns the same close prices at the cost of quota. The "latest cached date is today" check above is both the staleness check and the request-budget cap, and query-layer caching (TanStack Query `staleTime`, generous enough that switching tabs doesn't re-trigger `listWatchlist`/`getPortfolioPerformance`) prevents redundant in-app refetching on top of that.
+- **Compact vs. full history**: `compact` (~100 days) is enough for periods up to 3M and is what every routine refresh requests. If the user selects a period whose lookback exceeds what's currently cached for a ticker (e.g. 1Y/5Y/MAX, or a portfolio holding with under a year of cached history), fetch that one ticker again same-day with `outputsize=full` (20+ years) and upsert the additional older rows — this is a deliberate second request for that ticker on that day, traded off against not paying the larger `full` payload cost on every routine refresh.
 - **Offline / rate-limited fallback**: if a fetch fails (no network, quota exceeded, API error), serve whatever is already cached and show a subtle "prices as of [date], couldn't refresh" indicator. Only show a hard error/retry state when there is no cached data at all for a ticker that's needed right now (e.g. a portfolio's first-ever fetch failed).
-- Watchlist entries use the same price cache; a sparkline is derived from the last ~24 cached points.
+- Watchlist entries use the same price cache and the same compute layer as portfolios (§3) — each ticker is treated as a single 100%-weighted holding, not a live quote feed. `SPY` is fetched/cached once as the shared fixed benchmark for every watchlist ticker's Alpha/Beta/Correlation and chart overlay, under the same once-per-day cap as any other ticker.
 - Share Count / Dollar-amount entry modes (see §5) need a *current* price at entry time — this is a lightweight "latest cached price, fetch if missing" lookup, not a new data path.
 
 ## 3. Computation
@@ -79,6 +81,8 @@ All derived values (return, volatility, drawdown, alpha, beta, correlation, Shar
 - **Sharpe Ratio**: `(annualized return − risk-free rate) / annualized volatility`, using a **hardcoded risk-free rate constant** (e.g. 4%) rather than a fetched treasury yield — simplest option, adequate for a comparison tool that isn't providing financial advice.
 
 **Chart rendering**: the raw daily series is downsampled to ~100–150 points for longer periods (1Y/5Y/MAX) for smooth SVG rendering; shorter periods (1D–3M) render at or near full daily resolution.
+
+**Watchlist tickers as synthetic single-holding portfolios**: a watchlist ticker's performance is computed by the same return/volatility/max-drawdown/Sharpe/regression functions as a portfolio, called with one synthetic holding at 100% weight and a **fixed benchmark of `SPY`** (not user-selectable, unlike a portfolio's Detail screen). This reuses `returns.ts`/`risk.ts`/`backtest.ts`/`regression.ts` as-is — a watchlist ticker's `PerformanceStats` is populated exactly like a portfolio's: Return, Sharpe Ratio, Volatility, Max Drawdown, Alpha, Beta, Correlation, all computed against `SPY`'s daily-return series over the same window.
 
 ## 4. Navigation & screens
 
@@ -106,10 +110,17 @@ Matches "Nocturne Compare" mockup:
 - Tappable list below the chart ("Portfolios & Benchmarks"): color dot, name, holdings summary, stat line (Sharpe/Vol/MaxDD), period return %. Tapping a row toggles that entity's line on/off (opacity-fades when hidden).
 
 ### Watchlist tab (real, functional)
-A list of individually-tracked tickers (independent of any portfolio), reusing the price-cache layer:
-- Each row: ticker badge, name, sparkline (from cached price history), current price, % change.
-- "+" action to add a ticker (simple ticker entry/validation against the market-data API — no holdings math).
-- Remove via swipe or row action.
+A list of individually-tracked tickers (independent of any portfolio), showing each ticker's own historical performance — not a live quote feed:
+- **Header**: "Watchlist" title, a "+" action to add a ticker (simple ticker entry/validation against the market-data API — no holdings math).
+- **Global period pills** (1D/7D/30D/3M/YTD/1Y/5Y/MAX, same set and default as Overview/Compare) — apply to every row's return figure and to whichever ticker is currently expanded. Changing the period recomputes every ticker's stats/series from the cache (in-memory, no new fetch unless the newly-selected period's lookback exceeds what's cached for a given ticker, per §2).
+- **Collapsed row**: ticker badge, name, ticker symbol, and the period return (colored green/red), with a chevron indicating expand/collapse.
+- **Tapping a row expands it in place**, revealing:
+  - A line chart of the ticker's value over the selected period, in the same visual style as the Overview chart's portfolio line — gradient glow fill, gridlines with high/low labels, dashed crosshair + pulsing dot at the latest point, floating value pill — **plus a dashed `SPY` benchmark line** (fixed, not toggleable) with a caption below the chart: "Dashed line: S&P 500 · same period".
+  - A stats block: Sharpe Ratio, Volatility, Max Drawdown, Alpha, Beta, Correlation — all vs. `SPY` — matching the portfolio Detail screen's stats table exactly (Return is already shown on the collapsed row, so it's not repeated here).
+  - The same "data from [date]" truncation note as portfolios when the selected period exceeds the ticker's or `SPY`'s available cached history.
+- Remove via long-press row action → confirm.
+
+**Deferred (not in the first watchlist implementation)**: a "Markets" snapshot strip above the list (index/commodity/yield mini-cards) appears in the latest mock but needs data sources beyond per-ticker daily-close prices (an index level, a commodity price, a treasury yield) — tracked as a follow-up, not scoped here.
 
 ### Account tab (stub)
 Static placeholder screen only — no profile data, no auth, no "Log Out." Just enough presence to match the tab bar visually (e.g. "Account features coming soon"). Real auth is deferred to the v2 backend migration.
@@ -144,7 +155,7 @@ Matches "Nocturne Add Portfolio" mockup:
 
 - `npx tsc --noEmit` for type safety.
 - **Unit tests** (Jest) for the pure computation functions — period return, volatility, max drawdown, alpha/beta/correlation regression, static-weight portfolio value backtest, chart downsampling — using hand-computed fixture data, since correctness here is the core product value.
-- **Manual verification** via `npm start`: create a portfolio in each of the 4 entry modes; switch between portfolios via the switcher; toggle period and series visibility on both Detail and Compare; add/remove Watchlist tickers; force offline (airplane mode) and confirm cached data still renders with a staleness indicator; confirm the empty state renders with zero portfolios; confirm the truncated-history note appears for a period exceeding a holding's history.
+- **Manual verification** via `npm start`: create a portfolio in each of the 4 entry modes; switch between portfolios via the switcher; toggle period and series visibility on both Detail and Compare; add/remove Watchlist tickers, change the Watchlist's global period and confirm every row's return updates, expand a row and confirm its chart shows a dashed SPY benchmark line and its stats include Alpha/Beta/Correlation; force offline (airplane mode) and confirm cached data still renders with a staleness indicator; confirm the empty state renders with zero portfolios/zero watchlist tickers; confirm the truncated-history note appears for a period exceeding a holding's or watchlist ticker's history.
 
 ## 7. Code architecture
 
@@ -223,12 +234,12 @@ export interface PortfolioPerformance {
   stats: PerformanceStats;
 }
 
-export interface WatchlistItem {
+export interface WatchlistTickerPerformance {
   ticker: string;
   name: string;
-  price: number;
-  changePct: number;
-  sparkline: { date: string; close: number }[];
+  price: number; // latest cached close, for display — series.points are indexed to 100, not dollars
+  series: PerformanceSeries;
+  stats: PerformanceStats; // alpha/beta/correlation always present — computed against the fixed SPY benchmark
 }
 ```
 
@@ -250,7 +261,7 @@ getPortfolioPerformance(portfolioId: string, period: PeriodKey, benchmarkId?: st
 compareEntities(entityIds: string[], period: PeriodKey): Promise<PortfolioPerformance[]>
 
 // watchlist.ts
-listWatchlist(): Promise<WatchlistItem[]>
+listWatchlist(period: PeriodKey): Promise<WatchlistTickerPerformance[]>
 addWatchlistTicker(ticker: string): Promise<void>
 removeWatchlistTicker(ticker: string): Promise<void>
 ```
