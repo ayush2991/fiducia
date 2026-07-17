@@ -78,3 +78,11 @@ The project has no `ios/`/`android/` native directories (see below), so verifica
 ## Native projects
 
 There are no checked-in `ios/`/`android/` native directories — this is a managed Expo workflow (`.gitignore` explicitly excludes `/ios` and `/android`). Don't hand-edit native project files; use `app.json` (Expo config) and Expo config plugins instead. If bare native code becomes necessary, it would require `expo prebuild`.
+
+## Troubleshooting
+
+- **TS17004 (or similar "cannot find module"/JSX errors) that look like genuine type errors are often just a missing `node_modules`** in a fresh sandbox/container, not a real code problem. Before debugging further, run `npm install` and re-run `npx tsc --noEmit` and `npm test` — if they pass cleanly afterward, the errors were a sandbox artifact, not a bug to fix in source.
+
+## Git / DevOps
+
+- Remote git operations (e.g. deleting a remote branch) can fail with an HTTP 403 in this environment due to credential restrictions, independent of anything wrong with the branch or command. If that happens, don't retry — report the exact command back to the user so they can run it themselves with their own credentials.
