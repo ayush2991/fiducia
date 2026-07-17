@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { router } from 'expo-router';
 import { useQuery } from '@tanstack/react-query';
 import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { PlusIcon } from '@/components/icons';
 import { EmptyState } from '@/components/empty-state';
@@ -19,10 +20,11 @@ export function Watchlist() {
     queryFn: () => listWatchlist(period),
   });
   const items = data?.items ?? [];
+  const insets = useSafeAreaInsets();
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
+      <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
         <View>
           <Text style={styles.eyebrow}>Markets</Text>
           <Text style={styles.title}>Watchlist</Text>
@@ -68,7 +70,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 18,
-    paddingTop: 20,
   },
   eyebrow: {
     fontSize: 10,
