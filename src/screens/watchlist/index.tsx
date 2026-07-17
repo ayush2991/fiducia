@@ -1,26 +1,38 @@
 import { useState } from 'react';
 import { router } from 'expo-router';
-import { useQuery } from '@tanstack/react-query';
-import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { Alert, FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { PlusIcon } from '@/components/icons';
 import { EmptyState } from '@/components/empty-state';
 import { PeriodPills } from '@/components/period-pills';
 import { WatchlistRow } from '@/components/watchlist-row';
-import { listWatchlist } from '@/lib/api/watchlist';
+import { listWatchlist, removeWatchlistTicker } from '@/lib/api/watchlist';
 import { DEFAULT_PERIOD, type PeriodKey } from '@/lib/api/types';
 import { colors } from '@/theme/colors';
 
 export function Watchlist() {
   const [period, setPeriod] = useState<PeriodKey>(DEFAULT_PERIOD);
   const [expandedTicker, setExpandedTicker] = useState<string | null>(null);
+  const queryClient = useQueryClient();
   const { data, isPending } = useQuery({
     queryKey: ['watchlist', period],
     queryFn: () => listWatchlist(period),
   });
+  const removeMutation = useMutation({
+    mutationFn: (ticker: string) => removeWatchlistTicker(ticker),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['watchlist'] }),
+  });
   const items = data?.items ?? [];
   const insets = useSafeAreaInsets();
+
+  function confirmRemove(ticker: string) {
+    Alert.alert(`Remove ${ticker}?`, undefined, [
+      { text: 'Cancel', style: 'cancel' },
+      { text: 'Remove', style: 'destructive', onPress: () => removeMutation.mutate(ticker) },
+    ]);
+  }
 
   return (
     <View style={styles.container}>
@@ -50,6 +62,7 @@ export function Watchlist() {
                 benchmarkSeries={data?.benchmarkSeries}
                 isOpen={expandedTicker === item.ticker}
                 onToggle={() => setExpandedTicker((cur) => (cur === item.ticker ? null : item.ticker))}
+                onLongPress={() => confirmRemove(item.ticker)}
               />
             )}
             contentContainerStyle={styles.list}
