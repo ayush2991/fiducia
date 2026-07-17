@@ -7,6 +7,24 @@ export const PERIODS: PeriodKey[] = ['1D', '7D', '30D', '3M'];
 
 export const DEFAULT_PERIOD: PeriodKey = '3M';
 
+export interface Holding {
+  ticker: string;
+  weight: number; // 0–100, normalized
+}
+
+export interface Portfolio {
+  id: string;
+  name: string;
+  type: 'user' | 'benchmark';
+  holdings: Holding[];
+}
+
+export interface PortfolioPerformance {
+  portfolio: Portfolio;
+  series: PerformanceSeries;
+  stats: PerformanceStats;
+}
+
 export interface PerformanceSeries {
   period: PeriodKey;
   points: { date: string; value: number }[]; // indexed to 100 at window start
