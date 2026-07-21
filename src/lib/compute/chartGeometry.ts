@@ -24,10 +24,32 @@ export function lastPointPosition(
   height: number,
   padY = 8
 ): { x: number; y: number } {
+  return pointPosition(values, values.length - 1, width, height, padY);
+}
+
+// Position of an arbitrary point (not just the last), so a chart can track a
+// scrub/drag gesture across the series instead of only ever showing the end.
+export function pointPosition(
+  values: number[],
+  index: number,
+  width: number,
+  height: number,
+  padY = 8
+): { x: number; y: number } {
   const { min, max } = seriesRange(values);
   const range = max - min || 1;
-  const last = values[values.length - 1];
-  return { x: width, y: padY + (height - padY * 2) * (1 - (last - min) / range) };
+  const stepX = values.length > 1 ? width / (values.length - 1) : 0;
+  const v = values[index];
+  return { x: index * stepX, y: padY + (height - padY * 2) * (1 - (v - min) / range) };
+}
+
+// Maps a touch's x-offset (in whatever pixel space the caller measured, e.g. via
+// onLayout) to the nearest series index, given that same space's total width.
+export function nearestIndexForX(x: number, count: number, spaceWidth: number): number {
+  if (count <= 1) return 0;
+  const stepX = spaceWidth / (count - 1);
+  const index = Math.round(x / stepX);
+  return Math.max(0, Math.min(count - 1, index));
 }
 
 export function seriesRange(values: number[]): { min: number; max: number } {
