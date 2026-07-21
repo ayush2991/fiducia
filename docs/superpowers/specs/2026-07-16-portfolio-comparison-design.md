@@ -106,7 +106,7 @@ Shows the **Detail screen** (matches "Nocturne Detail" mockup) for the currently
 Matches "Nocturne Compare" mockup:
 - Header: "Compare", count of currently-visible entities.
 - Same period pills.
-- Multi-line overlay chart: all portfolios and benchmarks shown by default, each with a distinct color/dash style (per the mockup's `ENTITY_STYLES`).
+- Multi-line overlay chart: all portfolios and benchmarks shown by default, each with a distinct color/dash style (per the mockup's `ENTITY_STYLES`). **Interactive scrubbing**: dragging a finger across the chart shows a crosshair with a dot on each visible line at that x-position, plus a small tooltip listing each line's return-to-date at that point; releasing hides the crosshair/tooltip (unlike the Overview/Watchlist charts, there's no static crosshair at the latest point when not touching).
 - Tappable list below the chart ("Portfolios & Benchmarks"): color dot, name, holdings summary, stat line (Sharpe/Vol/MaxDD), period return %. Tapping a row toggles that entity's line on/off (opacity-fades when hidden).
 
 ### Watchlist tab (real, functional)
