@@ -93,7 +93,7 @@ Shows the **Detail screen** (matches "Nocturne Detail" mockup) for the currently
 - Header: portfolio name + chevron (opens portfolio switcher).
 - Big return headline, "vs Benchmark X +Y% · period" subtitle.
 - Horizontal period pills (1D/7D/30D/3M/YTD/1Y/5Y/MAX).
-- Line chart: gradient glow fill under the portfolio line, dashed benchmark line, dashed crosshair + pulsing dot at the latest point, floating value pill, gridlines with high/low labels (this is the finalized "2a" style from the mockup's design exploration — glow area + crosshair combined).
+- Line chart: gradient glow fill under the portfolio line, dashed benchmark line, dashed crosshair + pulsing dot at the latest point, floating value pill, gridlines with high/low labels (this is the finalized "2a" style from the mockup's design exploration — glow area + crosshair combined). **Interactive scrubbing**: dragging a finger across the chart moves the crosshair/dot/pill to track the touch position, updates the pill to that day's return-to-date, and shows the scrubbed date; releasing snaps the crosshair back to the latest point.
 - Toggle chips below the chart to show/hide the portfolio or benchmark line independently.
 - Statistics table: Sharpe Ratio, Volatility, Max Drawdown, Alpha, Beta, Correlation (last three shown for the portfolio only; benchmark column shows "—" for those three).
 - Holdings list: ticker badge, name, weight bar, weight %.
@@ -115,7 +115,7 @@ A list of individually-tracked tickers (independent of any portfolio), showing e
 - **Global period pills** (1D/7D/30D/3M/YTD/1Y/5Y/MAX, same set and default as Overview/Compare) — apply to every row's return figure and to whichever ticker is currently expanded. Changing the period recomputes every ticker's stats/series from the cache (in-memory, no new fetch unless the newly-selected period's lookback exceeds what's cached for a given ticker, per §2).
 - **Collapsed row**: ticker badge, name, ticker symbol, and the period return (colored green/red), with a chevron indicating expand/collapse.
 - **Tapping a row expands it in place**, revealing:
-  - A line chart of the ticker's value over the selected period, in the same visual style as the Overview chart's portfolio line — gradient glow fill, gridlines with high/low labels, dashed crosshair + pulsing dot at the latest point, floating value pill — **plus a dashed `SPY` benchmark line** (fixed, not toggleable) with a caption below the chart: "Dashed line: S&P 500 · same period".
+  - A line chart of the ticker's value over the selected period, in the same visual style as the Overview chart's portfolio line — gradient glow fill, gridlines with high/low labels, dashed crosshair + pulsing dot at the latest point, floating value pill, **the same drag-to-scrub crosshair tracking described in the Overview tab** — **plus a dashed `SPY` benchmark line** (fixed, not toggleable) with a caption below the chart: "Dashed line: S&P 500 · same period".
   - A stats block: Sharpe Ratio, Volatility, Max Drawdown, Alpha, Beta, Correlation — all vs. `SPY` — matching the portfolio Detail screen's stats table exactly (Return is already shown on the collapsed row, so it's not repeated here).
   - The same "data from [date]" truncation note as portfolios when the selected period exceeds the ticker's or `SPY`'s available cached history.
 - Remove via long-press row action → confirm.

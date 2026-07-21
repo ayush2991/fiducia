@@ -1,4 +1,11 @@
-import { areaPath, lastPointPosition, linePath, seriesRange } from './chartGeometry';
+import {
+  areaPath,
+  lastPointPosition,
+  linePath,
+  nearestIndexForX,
+  pointPosition,
+  seriesRange,
+} from './chartGeometry';
 
 describe('linePath', () => {
   it('returns an empty string for no values', () => {
@@ -23,6 +30,37 @@ describe('areaPath', () => {
 describe('lastPointPosition', () => {
   it('returns the x/y of the final value', () => {
     expect(lastPointPosition([10, 20], 56, 24, 3)).toEqual({ x: 56, y: 3 });
+  });
+});
+
+describe('pointPosition', () => {
+  it('matches lastPointPosition when given the final index', () => {
+    expect(pointPosition([10, 20, 30], 2, 56, 24, 3)).toEqual(lastPointPosition([10, 20, 30], 56, 24, 3));
+  });
+
+  it('places an earlier index proportionally along the x-axis', () => {
+    expect(pointPosition([10, 20, 30], 1, 56, 24, 3)).toEqual({ x: 28, y: 12 });
+  });
+
+  it('places the first index at x=0', () => {
+    expect(pointPosition([10, 20, 30], 0, 56, 24, 3)).toEqual({ x: 0, y: 21 });
+  });
+});
+
+describe('nearestIndexForX', () => {
+  it('returns 0 for a single-point series', () => {
+    expect(nearestIndexForX(40, 1, 56)).toBe(0);
+  });
+
+  it('rounds to the closest index', () => {
+    expect(nearestIndexForX(0, 3, 56)).toBe(0);
+    expect(nearestIndexForX(20, 3, 56)).toBe(1);
+    expect(nearestIndexForX(56, 3, 56)).toBe(2);
+  });
+
+  it('clamps out-of-range x to the series bounds', () => {
+    expect(nearestIndexForX(-10, 3, 56)).toBe(0);
+    expect(nearestIndexForX(1000, 3, 56)).toBe(2);
   });
 });
 
