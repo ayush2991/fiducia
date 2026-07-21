@@ -158,6 +158,7 @@ export function AddPortfolio() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['portfolios'] });
+      queryClient.invalidateQueries({ queryKey: ['compare'] });
       router.back();
     },
   });
