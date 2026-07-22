@@ -107,22 +107,24 @@ export function CompareChart({ lines, dates, width = 330, height = 160, onScrubC
             />
           ))}
           {crosshairX !== null ? (
-            <Line
-              x1={crosshairX}
-              y1={0}
-              x2={crosshairX}
-              y2={height}
-              stroke="#4c5397"
-              strokeWidth={1}
-              strokeDasharray="2,2"
-            />
+            <Line x1={crosshairX} y1={0} x2={crosshairX} y2={height} stroke={colors.accentSoft} strokeWidth={1.5} />
           ) : null}
           {activeScrubX !== null
             ? lines.map((line) => {
                 if (line.values.length === 0) return null;
                 const index = nearestIndexForX(activeScrubX, line.values.length, chartAreaWidth);
                 const pos = sharedScalePosition(line.values, index, min, max, width, height);
-                return <Circle key={line.id} cx={pos.x} cy={pos.y} r={3.5} fill={line.color} />;
+                return (
+                  <Circle
+                    key={line.id}
+                    cx={pos.x}
+                    cy={pos.y}
+                    r={4}
+                    fill={line.color}
+                    stroke={colors.background}
+                    strokeWidth={1.5}
+                  />
+                );
               })
             : null}
         </Svg>

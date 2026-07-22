@@ -271,7 +271,7 @@ export function Overview() {
             <PerformanceChart
               series={detail.portfolio.series}
               benchmarkSeries={detail.benchmark.series}
-              lineColor={detail.portfolio.stats.return >= 0 ? colors.positive : colors.negative}
+              lineColor={colors.accent}
               showSeries={showPortfolio}
               showBenchmark={showBenchmark}
               onScrubChange={setScrubFraction}
