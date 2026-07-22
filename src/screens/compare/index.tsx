@@ -30,6 +30,7 @@ function EntityRow({
     .slice(0, 3)
     .map((h) => `${Math.round(h.weight)}% ${h.ticker}`)
     .join(' · ');
+  const isUnavailable = entity.dataFreshness.unavailableTickers.length > 0;
 
   return (
     <Pressable style={[styles.row, !isVisible && styles.rowHidden]} onPress={onToggle}>
@@ -39,10 +40,18 @@ function EntityRow({
         <Text style={styles.rowSub} numberOfLines={1}>
           {holdingsSummary || '—'}
         </Text>
-        <Text style={styles.rowSub}>
-          Sharpe {entity.stats.sharpe.toFixed(2)} · Vol {entity.stats.volatility.toFixed(1)}% · Max DD{' '}
-          {entity.stats.maxDrawdown.toFixed(1)}%
-        </Text>
+        {isUnavailable ? (
+          <Text style={[styles.rowSub, styles.rowSubWarn]} numberOfLines={1}>
+            Couldn't load prices for {entity.dataFreshness.unavailableTickers.join(', ')}
+          </Text>
+        ) : (
+          <Text style={styles.rowSub}>
+            Sharpe {entity.stats.sharpe.toFixed(2)} · Vol {entity.stats.volatility.toFixed(1)}% · Max DD{' '}
+            {entity.stats.maxDrawdown.toFixed(1)}%
+            {entity.series.truncatedFrom ? ` · data from ${entity.series.truncatedFrom}` : ''}
+            {entity.dataFreshness.stale ? ' · stale' : ''}
+          </Text>
+        )}
       </View>
       <Text style={styles.rowReturn}>
         {entity.stats.return >= 0 ? '+' : ''}
@@ -59,7 +68,11 @@ export function Compare() {
   const [period, setPeriod] = useState<PeriodKey>(DEFAULT_PERIOD);
   const [hiddenIds, setHiddenIds] = useState<Set<string>>(new Set());
 
-  const { data: entities = [], isPending } = useQuery({
+  const {
+    data: entities = [],
+    isPending,
+    refetch,
+  } = useQuery({
     queryKey: ['compare', period],
     queryFn: () => compareEntities(period),
   });
@@ -114,6 +127,7 @@ export function Compare() {
   }
 
   const visibleCount = entities.length - hiddenIds.size;
+  const hasUnavailable = entities.some((e) => e.dataFreshness.unavailableTickers.length > 0);
   const lines: CompareChartLine[] = entities
     .filter((e) => !hiddenIds.has(e.portfolio.id))
     .map((e) => ({
@@ -129,6 +143,14 @@ export function Compare() {
         <Text style={styles.eyebrow}>Compare</Text>
         <Text style={styles.title}>{visibleCount} selected</Text>
       </View>
+      {hasUnavailable ? (
+        <View style={styles.banner}>
+          <Text style={styles.bannerText}>Couldn't load some prices</Text>
+          <Pressable onPress={() => refetch()} hitSlop={8}>
+            <Text style={styles.bannerLink}>Retry</Text>
+          </Pressable>
+        </View>
+      ) : null}
       <PeriodPills active={period} onSelect={setPeriod} />
       <FlatList
         data={entities}
@@ -227,6 +249,29 @@ const createStyles = (colors: ColorTokens) =>
     rowSub: {
       fontSize: 11,
       color: colors.textSecondary,
+    },
+    rowSubWarn: {
+      color: colors.negative,
+    },
+    banner: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      marginHorizontal: 18,
+      marginBottom: 8,
+      paddingVertical: 8,
+      paddingHorizontal: 12,
+      borderRadius: 8,
+      backgroundColor: colors.surfaceMuted,
+    },
+    bannerText: {
+      fontSize: 12,
+      color: colors.negative,
+    },
+    bannerLink: {
+      fontSize: 12,
+      fontWeight: '600',
+      color: colors.accent,
     },
     rowReturn: {
       fontSize: 16,

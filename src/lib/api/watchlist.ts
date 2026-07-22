@@ -1,5 +1,11 @@
 import { fetchDailySeries, lookupCompanyName, NoProviderConfiguredError } from './marketData';
-import type { PeriodKey, PerformanceSeries, PerformanceStats, WatchlistTickerPerformance } from './types';
+import type {
+  DataFreshness,
+  PeriodKey,
+  PerformanceSeries,
+  PerformanceStats,
+  WatchlistTickerPerformance,
+} from './types';
 import { alignByDate, alphaBetaCorrelation } from '@/lib/compute/regression';
 import { annualizedReturn, maxDrawdown, sharpeRatio, volatility } from '@/lib/compute/risk';
 import {
@@ -21,17 +27,33 @@ function todayISODate(): string {
 
 // PeriodKey is capped to what a single 'compact' fetch (~100 trading days) can back,
 // so a once-a-day refresh is always enough — no separate full-history fetch needed.
-async function ensureFreshHistory(ticker: string): Promise<void> {
+// Returns whether the ticker's cache is fresh as of today (already-fresh or fetched-and-upserted
+// both count) so callers can tell a real refresh failure apart from "nothing to do".
+async function ensureFreshHistory(ticker: string): Promise<boolean> {
   const today = todayISODate();
   const latest = await getLatestDate(ticker);
-  if (latest === today) return;
+  if (latest === today) return true;
   try {
     const series = await fetchDailySeries(ticker);
     const tail = latest === null ? series : series.filter((p) => p.date > latest);
     await upsertPrices(ticker, tail);
+    return true;
   } catch {
     // Fetch failed (offline / rate limit) — serve whatever is already cached, per spec §2/§5.
+    return false;
   }
+}
+
+// Derives freshness from the refresh outcome + cache state of a ticker's relevant
+// tickers (itself, plus the fixed SPY benchmark it's always compared against).
+function freshnessFor(
+  tickers: string[],
+  refreshOk: Record<string, boolean>,
+  pricesByTicker: Record<string, PricePoint[]>
+): DataFreshness {
+  const unavailableTickers = tickers.filter((t) => (pricesByTicker[t]?.length ?? 0) === 0);
+  const stale = tickers.some((t) => !refreshOk[t] && (pricesByTicker[t]?.length ?? 0) > 0);
+  return { stale, unavailableTickers };
 }
 
 // A stored name equal to the ticker means the lookup at add-time failed (rate
@@ -58,7 +80,7 @@ function buildPerformance(
   prices: PricePoint[],
   benchmarkPrices: PricePoint[],
   period: PeriodKey
-): WatchlistTickerPerformance {
+): Omit<WatchlistTickerPerformance, 'dataFreshness'> {
   const { points: sliced, truncatedFrom } = sliceToPeriod(prices, period);
   const series: PerformanceSeries = { period, points: toIndexedSeries(sliced), truncatedFrom };
 
@@ -85,7 +107,8 @@ export interface WatchlistResult {
 }
 
 export async function listWatchlist(period: PeriodKey): Promise<WatchlistResult> {
-  await ensureFreshHistory(BENCHMARK_TICKER);
+  const refreshOk: Record<string, boolean> = {};
+  refreshOk[BENCHMARK_TICKER] = await ensureFreshHistory(BENCHMARK_TICKER);
   const benchmarkPrices = await getAllPrices(BENCHMARK_TICKER);
   const { points: benchmarkSliced, truncatedFrom: benchmarkTruncatedFrom } = sliceToPeriod(
     benchmarkPrices,
@@ -100,10 +123,16 @@ export async function listWatchlist(period: PeriodKey): Promise<WatchlistResult>
   const tickers = await watchlistStorage.listTickers();
   const items = await Promise.all(
     tickers.map(async ({ ticker, name }) => {
-      await ensureFreshHistory(ticker);
+      refreshOk[ticker] = await ensureFreshHistory(ticker);
       const prices = await getAllPrices(ticker);
       const resolvedName = await resolveDisplayName(ticker, name);
-      return buildPerformance(ticker, resolvedName, prices, benchmarkPrices, period);
+      return {
+        ...buildPerformance(ticker, resolvedName, prices, benchmarkPrices, period),
+        dataFreshness: freshnessFor([ticker, BENCHMARK_TICKER], refreshOk, {
+          [ticker]: prices,
+          [BENCHMARK_TICKER]: benchmarkPrices,
+        }),
+      };
     })
   );
   return { items, benchmarkSeries };

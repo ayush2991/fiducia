@@ -20,7 +20,7 @@ export function Watchlist() {
   const [period, setPeriod] = useState<PeriodKey>(DEFAULT_PERIOD);
   const [expandedTicker, setExpandedTicker] = useState<string | null>(null);
   const queryClient = useQueryClient();
-  const { data, isPending } = useQuery({
+  const { data, isPending, refetch } = useQuery({
     queryKey: ['watchlist', period],
     queryFn: () => listWatchlist(period),
   });
@@ -78,6 +78,7 @@ export function Watchlist() {
                 isOpen={expandedTicker === item.ticker}
                 onToggle={() => setExpandedTicker((cur) => (cur === item.ticker ? null : item.ticker))}
                 onLongPress={() => confirmRemove(item.ticker)}
+                onRetry={() => refetch()}
               />
             )}
             contentContainerStyle={styles.list}

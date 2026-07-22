@@ -156,11 +156,27 @@ export function Overview() {
 
   const active = portfolios.find((p) => p.id === activeId) ?? portfolios[0] ?? null;
 
-  const { data: detail, isPending: isDetailPending } = useQuery({
+  const {
+    data: detail,
+    isPending: isDetailPending,
+    refetch: refetchDetail,
+  } = useQuery({
     queryKey: ['portfolioPerformance', active?.id, period],
     queryFn: () => getPortfolioPerformance(active!.id, period),
     enabled: active !== null,
   });
+  const unavailableTickers = detail
+    ? Array.from(
+        new Set([
+          ...detail.portfolio.dataFreshness.unavailableTickers,
+          ...detail.benchmark.dataFreshness.unavailableTickers,
+        ])
+      )
+    : [];
+  const isStale = detail
+    ? detail.portfolio.dataFreshness.stale || detail.benchmark.dataFreshness.stale
+    : false;
+  const lastAsOfDate = detail?.portfolio.series.points[detail.portfolio.series.points.length - 1]?.date;
   const { data: activeProvider, isPending: isProviderPending } = useQuery({
     queryKey: ['activeProvider'],
     queryFn: getActiveProvider,
@@ -257,6 +273,20 @@ export function Overview() {
             </View>
             {detail.portfolio.series.truncatedFrom ? (
               <Text style={styles.truncationNote}>Data from {detail.portfolio.series.truncatedFrom}</Text>
+            ) : null}
+            {unavailableTickers.length > 0 ? (
+              <View style={styles.retryRow}>
+                <Text style={styles.retryText}>
+                  Couldn't load prices for {unavailableTickers.join(', ')}
+                </Text>
+                <Pressable onPress={() => refetchDetail()} hitSlop={8}>
+                  <Text style={styles.retryLink}>Retry</Text>
+                </Pressable>
+              </View>
+            ) : isStale ? (
+              <Text style={styles.truncationNote}>
+                {lastAsOfDate ? `Prices as of ${lastAsOfDate} · couldn't refresh` : "Couldn't refresh prices"}
+              </Text>
             ) : null}
           </View>
         ) : null}
@@ -390,6 +420,23 @@ const createStyles = (colors: ColorTokens) =>
       fontSize: 11,
       color: colors.textSecondary,
       marginTop: 8,
+    },
+    retryRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      marginTop: 8,
+    },
+    retryText: {
+      fontSize: 11,
+      color: colors.negative,
+      flex: 1,
+      marginRight: 8,
+    },
+    retryLink: {
+      fontSize: 11,
+      fontWeight: '600',
+      color: colors.accent,
     },
     sectionLabel: {
       fontSize: 13,
