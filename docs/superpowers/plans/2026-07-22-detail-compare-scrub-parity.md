@@ -823,18 +823,18 @@ git commit -m "feat: add Compare crosshair value list and live time label, match
 
 **Files:** none (verification-only)
 
-- [ ] **Step 1: Re-run the full test suite and typecheck**
+- [x] **Step 1: Re-run the full test suite and typecheck**
 
 Run: `npm test && npx tsc --noEmit`
 Expected: all pass, no errors.
 
-- [ ] **Step 2: Side-by-side screenshot comparison**
+Result: 61/61 tests pass, `tsc --noEmit` clean.
 
-For each of the two mock screens, open `docs/mock-reference.html` in a browser (or re-check the extracted markup) next to a Simulator screenshot of the equivalent live state (Detail mid-drag; Compare mid-drag), and confirm every element enumerated in "Gaps found" above is now present:
-- Detail: x-axis dates, benchmark scrub dot, "Bench X%" pill, live headline.
-- Compare: x-axis dates, live header time label, "Value at crosshair" row list, no floating tooltip.
+- [ ] **Step 2: Side-by-side screenshot comparison** — SKIPPED
 
-- [ ] **Step 3: Report any remaining pixel-level mismatches**
+Blocked: this Simulator install has no market-data provider configured (fresh SecureStore, empty state on Overview/Compare), and TextInput fields can't be reliably driven via AppleScript in this environment (documented limitation, see CLAUDE.md). User opted to skip this manual visual check rather than have it force-attempted; left for a manual follow-up smoke-test.
+
+- [ ] **Step 3: Report any remaining pixel-level mismatches** — N/A, not performed (see Step 2)
 
 Note (don't silently fix) any purely cosmetic deltas found (exact colors/spacing) for a follow-up pass — this plan targets functional/content parity, not a pixel-perfect redesign pass.
 
