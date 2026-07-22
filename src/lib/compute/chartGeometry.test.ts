@@ -3,6 +3,7 @@ import {
   lastPointPosition,
   linePath,
   nearestIndexForX,
+  percentChangeAt,
   pointPosition,
   seriesRange,
 } from './chartGeometry';
@@ -71,5 +72,24 @@ describe('seriesRange', () => {
 
   it('returns 0/0 for empty input', () => {
     expect(seriesRange([])).toEqual({ min: 0, max: 0 });
+  });
+});
+
+describe('percentChangeAt', () => {
+  it('returns 0% at the start of the series', () => {
+    expect(percentChangeAt([100, 110, 90], 0)).toBe(0);
+  });
+
+  it('computes % change from the first value to the given index', () => {
+    expect(percentChangeAt([100, 110, 90], 1)).toBe(10);
+    expect(percentChangeAt([100, 110, 90], 2)).toBe(-10);
+  });
+
+  it('returns 0 for an empty series', () => {
+    expect(percentChangeAt([], 0)).toBe(0);
+  });
+
+  it('returns 0 when the first value is 0, instead of NaN/Infinity', () => {
+    expect(percentChangeAt([0, 10], 1)).toBe(0);
   });
 });
