@@ -3,7 +3,7 @@ import type { GestureResponderEvent, LayoutChangeEvent } from 'react-native';
 import { StyleSheet, Text, View } from 'react-native';
 import { Circle, Defs, Line, LinearGradient, Path, Stop, Svg, Text as SvgText } from 'react-native-svg';
 
-import { areaPath, linePath, nearestIndexForX, pointPosition, seriesRange } from '@/lib/compute/chartGeometry';
+import { areaPath, linePath, nearestIndexForX, percentChangeAt, pointPosition, seriesRange } from '@/lib/compute/chartGeometry';
 import type { PerformanceSeries } from '@/lib/api/types';
 import type { ColorTokens } from '@/theme/tokens';
 import { useTheme } from '@/theme/ThemeProvider';
@@ -16,6 +16,7 @@ type PerformanceChartProps = {
   height?: number;
   showSeries?: boolean;
   showBenchmark?: boolean;
+  onScrubChange?: (fraction: number | null) => void;
 };
 
 export function PerformanceChart({
@@ -26,23 +27,38 @@ export function PerformanceChart({
   height = 130,
   showSeries = true,
   showBenchmark = true,
+  onScrubChange,
 }: PerformanceChartProps) {
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const [chartAreaWidth, setChartAreaWidth] = useState(width);
-  const [scrubIndex, setScrubIndex] = useState<number | null>(null);
+  const [scrubFraction, setScrubFraction] = useState<number | null>(null);
   const values = series.points.map((p) => p.value);
   const benchmarkValues = benchmarkSeries?.points.map((p) => p.value) ?? [];
   const { min, max } = seriesRange(values);
-  const displayIndex = scrubIndex ?? values.length - 1;
+  // Each series can have a different length (truncated history — see
+  // CLAUDE.md's market-data section), so the drag position is resolved to
+  // an index independently per series rather than sharing one `scrubIndex`.
+  const displayIndex =
+    scrubFraction !== null ? nearestIndexForX(scrubFraction, values.length, 1) : values.length - 1;
+  const benchmarkDisplayIndex =
+    benchmarkValues.length > 0
+      ? scrubFraction !== null
+        ? nearestIndexForX(scrubFraction, benchmarkValues.length, 1)
+        : benchmarkValues.length - 1
+      : null;
   const current = pointPosition(values, displayIndex, width, height);
   const pillLeft = Math.max(24, Math.min(width - 24, current.x));
   const gradientId = 'watchlist-chart-gradient';
 
+  function updateScrub(fraction: number | null) {
+    setScrubFraction(fraction);
+    onScrubChange?.(fraction);
+  }
+
   function handleTouch(evt: GestureResponderEvent) {
     if (values.length === 0 || chartAreaWidth <= 0) return;
-    const index = nearestIndexForX(evt.nativeEvent.locationX, values.length, chartAreaWidth);
-    setScrubIndex(index);
+    updateScrub(Math.max(0, Math.min(1, evt.nativeEvent.locationX / chartAreaWidth)));
   }
 
   function handleLayout(evt: LayoutChangeEvent) {
@@ -57,8 +73,8 @@ export function PerformanceChart({
         onMoveShouldSetResponder={() => true}
         onResponderGrant={handleTouch}
         onResponderMove={handleTouch}
-        onResponderRelease={() => setScrubIndex(null)}
-        onResponderTerminate={() => setScrubIndex(null)}
+        onResponderRelease={() => updateScrub(null)}
+        onResponderTerminate={() => updateScrub(null)}
       >
         <Svg width="100%" height={height} viewBox={`0 0 ${width} ${height}`} preserveAspectRatio="none">
           <Defs>
@@ -78,6 +94,16 @@ export function PerformanceChart({
               stroke="#595d6c"
               strokeWidth={1.3}
               strokeDasharray="3,3"
+            />
+          ) : null}
+          {showBenchmark && benchmarkValues.length > 0 && benchmarkDisplayIndex !== null ? (
+            <Circle
+              cx={pointPosition(benchmarkValues, benchmarkDisplayIndex, width, height).x}
+              cy={pointPosition(benchmarkValues, benchmarkDisplayIndex, width, height).y}
+              r={3.5}
+              fill={colors.background}
+              stroke={colors.textSecondary}
+              strokeWidth={1.5}
             />
           ) : null}
           {showSeries ? (
@@ -103,20 +129,33 @@ export function PerformanceChart({
           </SvgText>
         </Svg>
       </View>
-      {showSeries ? (
-        <View style={[styles.pill, { left: pillLeft - 20, backgroundColor: lineColor }]}>
-          <Text style={styles.pillLabel}>
-            {series.points.length > 0
-              ? `${values[displayIndex] >= values[0] ? '+' : ''}${(
-                  ((values[displayIndex] - values[0]) / values[0]) *
-                  100
-                ).toFixed(2)}%`
-              : ''}
-          </Text>
+      {series.points.length > 0 ? (
+        <View style={styles.xAxisRow}>
+          <Text style={styles.xAxisLabel}>{series.points[0].date}</Text>
+          <Text style={styles.xAxisLabel}>{series.points[series.points.length - 1].date}</Text>
         </View>
       ) : null}
-      {showSeries && scrubIndex !== null && series.points[scrubIndex] ? (
-        <Text style={styles.scrubDate}>{series.points[scrubIndex].date}</Text>
+      {showSeries ? (
+        <View style={[styles.pillGroup, { left: pillLeft - 20 }]}>
+          <View style={[styles.pill, { backgroundColor: lineColor }]}>
+            <Text style={styles.pillLabel}>
+              {series.points.length > 0
+                ? `${percentChangeAt(values, displayIndex) >= 0 ? '+' : ''}${percentChangeAt(values, displayIndex).toFixed(2)}%`
+                : ''}
+            </Text>
+          </View>
+          {showBenchmark && benchmarkValues.length > 0 && benchmarkDisplayIndex !== null ? (
+            <View style={styles.benchPill}>
+              <Text style={styles.benchPillLabel}>
+                Bench {percentChangeAt(benchmarkValues, benchmarkDisplayIndex) >= 0 ? '+' : ''}
+                {percentChangeAt(benchmarkValues, benchmarkDisplayIndex).toFixed(2)}%
+              </Text>
+            </View>
+          ) : null}
+        </View>
+      ) : null}
+      {showSeries && scrubFraction !== null && series.points[displayIndex] ? (
+        <Text style={styles.scrubDate}>{series.points[displayIndex].date}</Text>
       ) : null}
     </View>
   );
@@ -132,9 +171,13 @@ const createStyles = (colors: ColorTokens) =>
       paddingBottom: 4,
       position: 'relative',
     },
-    pill: {
+    pillGroup: {
       position: 'absolute',
       top: 12,
+      alignItems: 'center',
+      gap: 3,
+    },
+    pill: {
       paddingVertical: 3,
       paddingHorizontal: 8,
       borderRadius: 6,
@@ -143,6 +186,27 @@ const createStyles = (colors: ColorTokens) =>
       fontSize: 11,
       fontWeight: '600',
       color: colors.background,
+    },
+    benchPill: {
+      backgroundColor: colors.surfaceMuted,
+      paddingVertical: 2,
+      paddingHorizontal: 7,
+      borderRadius: 5,
+    },
+    benchPillLabel: {
+      fontSize: 10,
+      fontWeight: '500',
+      color: colors.textSecondary,
+    },
+    xAxisRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      paddingHorizontal: 2,
+      paddingTop: 4,
+    },
+    xAxisLabel: {
+      fontSize: 10,
+      color: colors.textMuted,
     },
     scrubDate: {
       position: 'absolute',
