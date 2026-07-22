@@ -110,7 +110,7 @@ export function PerformanceChart({
               ? `${values[displayIndex] >= values[0] ? '+' : ''}${(
                   ((values[displayIndex] - values[0]) / values[0]) *
                   100
-                ).toFixed(1)}%`
+                ).toFixed(2)}%`
               : ''}
           </Text>
         </View>

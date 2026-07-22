@@ -129,7 +129,7 @@ export function CompareChart({ lines, width = 330, height = 160 }: CompareChartP
                 <View style={[styles.tooltipDot, { backgroundColor: line.color }]} />
                 <Text style={styles.tooltipValue}>
                   {pctChange >= 0 ? '+' : ''}
-                  {pctChange.toFixed(1)}%
+                  {pctChange.toFixed(2)}%
                 </Text>
               </View>
             );

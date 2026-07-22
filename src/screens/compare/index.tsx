@@ -55,7 +55,7 @@ function EntityRow({
       </View>
       <Text style={styles.rowReturn}>
         {entity.stats.return >= 0 ? '+' : ''}
-        {entity.stats.return.toFixed(1)}%
+        {entity.stats.return.toFixed(2)}%
       </Text>
     </Pressable>
   );

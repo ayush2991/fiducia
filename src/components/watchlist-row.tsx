@@ -30,7 +30,7 @@ export function WatchlistRow({ item, benchmarkSeries, isOpen, onToggle, onLongPr
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const changeColor = item.stats.return >= 0 ? colors.positive : colors.negative;
-  const changeLabel = `${item.stats.return >= 0 ? '+' : ''}${item.stats.return.toFixed(1)}%`;
+  const changeLabel = `${item.stats.return >= 0 ? '+' : ''}${item.stats.return.toFixed(2)}%`;
   const sparkPath = linePath(
     item.series.points.map((p) => p.value),
     56,

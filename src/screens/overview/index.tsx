@@ -227,13 +227,13 @@ export function Overview() {
           <View style={styles.headline}>
             <Text style={styles.returnValue}>
               {detail.portfolio.stats.return >= 0 ? '+' : ''}
-              {detail.portfolio.stats.return.toFixed(1)}%
+              {detail.portfolio.stats.return.toFixed(2)}%
             </Text>
             <Text style={styles.returnSubtitle}>
               vs {detail.benchmark.portfolio.name}{' '}
               <Text style={styles.returnSubtitleValue}>
                 {detail.benchmark.stats.return >= 0 ? '+' : ''}
-                {detail.benchmark.stats.return.toFixed(1)}%
+                {detail.benchmark.stats.return.toFixed(2)}%
               </Text>{' '}
               · {period}
             </Text>
