@@ -24,6 +24,7 @@ export interface PortfolioPerformance {
   portfolio: Portfolio;
   series: PerformanceSeries;
   stats: PerformanceStats;
+  dataFreshness: DataFreshness;
 }
 
 export interface PerformanceSeries {
@@ -42,12 +43,20 @@ export interface PerformanceStats {
   correlation: number;
 }
 
+// Reflects whether a fetch attempt for one of this entity's relevant tickers
+// (its holdings, plus whichever benchmark it's computed against) failed today.
+export interface DataFreshness {
+  stale: boolean; // a relevant ticker's refresh failed, but cached data exists — served that instead
+  unavailableTickers: string[]; // relevant tickers with zero cached data after a failed fetch
+}
+
 export interface WatchlistTickerPerformance {
   ticker: string;
   name: string;
   price: number; // latest cached close, for display — series.points are indexed to 100, not dollars
   series: PerformanceSeries;
   stats: PerformanceStats;
+  dataFreshness: DataFreshness;
 }
 
 export interface PortfolioDetailPerformance {

@@ -1,5 +1,6 @@
 import { fetchDailySeries } from './marketData';
 import type {
+  DataFreshness,
   PeriodKey,
   PerformanceSeries,
   PerformanceStats,
@@ -36,17 +37,33 @@ function todayISODate(): string {
 
 // PeriodKey is capped to what a single 'compact' fetch (~100 trading days) can back,
 // so a once-a-day refresh is always enough — no separate full-history fetch needed.
-async function ensureFreshHistory(ticker: string): Promise<void> {
+// Returns whether the ticker's cache is fresh as of today (already-fresh or fetched-and-upserted
+// both count) so callers can tell a real refresh failure apart from "nothing to do".
+async function ensureFreshHistory(ticker: string): Promise<boolean> {
   const today = todayISODate();
   const latest = await getLatestDate(ticker);
-  if (latest === today) return;
+  if (latest === today) return true;
   try {
     const series = await fetchDailySeries(ticker);
     const tail = latest === null ? series : series.filter((p) => p.date > latest);
     await upsertPrices(ticker, tail);
+    return true;
   } catch {
     // Fetch failed (offline / rate limit) — serve whatever is already cached, per spec §2/§5.
+    return false;
   }
+}
+
+// Derives per-entity freshness from the refresh outcome + cache state of its relevant
+// tickers (its holdings, plus whichever benchmark it's shown against).
+function freshnessFor(
+  tickers: string[],
+  refreshOk: Record<string, boolean>,
+  pricesByTicker: Record<string, PricePoint[]>
+): DataFreshness {
+  const unavailableTickers = tickers.filter((t) => (pricesByTicker[t]?.length ?? 0) === 0);
+  const stale = tickers.some((t) => !refreshOk[t] && (pricesByTicker[t]?.length ?? 0) > 0);
+  return { stale, unavailableTickers };
 }
 
 function toApiPortfolio(row: portfolioStorage.PortfolioRow): Portfolio {
@@ -58,7 +75,7 @@ function buildPerformance(
   pricesByTicker: Record<string, PricePoint[]>,
   benchmarkPrices: PricePoint[],
   period: PeriodKey
-): PortfolioPerformance {
+): Omit<PortfolioPerformance, 'dataFreshness'> {
   const slicedByTicker: Record<string, PricePoint[]> = {};
   let truncatedFrom: string | undefined;
   for (const h of portfolio.holdings) {
@@ -95,7 +112,12 @@ export async function compareEntities(period: PeriodKey): Promise<PortfolioPerfo
   for (const p of portfolios) {
     for (const h of p.holdings) tickers.add(h.ticker);
   }
-  await Promise.all([...tickers].map(ensureFreshHistory));
+  const refreshOk: Record<string, boolean> = {};
+  await Promise.all(
+    [...tickers].map(async (ticker) => {
+      refreshOk[ticker] = await ensureFreshHistory(ticker);
+    })
+  );
 
   const pricesByTicker: Record<string, PricePoint[]> = {};
   await Promise.all(
@@ -105,7 +127,13 @@ export async function compareEntities(period: PeriodKey): Promise<PortfolioPerfo
   );
 
   const benchmarkPrices = pricesByTicker[BENCHMARK_TICKER] ?? [];
-  return portfolios.map((portfolio) => buildPerformance(portfolio, pricesByTicker, benchmarkPrices, period));
+  return portfolios.map((portfolio) => {
+    const relevantTickers = [...portfolio.holdings.map((h) => h.ticker), BENCHMARK_TICKER];
+    return {
+      ...buildPerformance(portfolio, pricesByTicker, benchmarkPrices, period),
+      dataFreshness: freshnessFor(relevantTickers, refreshOk, pricesByTicker),
+    };
+  });
 }
 
 // Single-portfolio-vs-benchmark performance for the Overview/Detail screen.
@@ -120,7 +148,12 @@ export async function getPortfolioPerformance(
 
   const tickers = new Set<string>([BENCHMARK_TICKER]);
   for (const h of portfolio.holdings) tickers.add(h.ticker);
-  await Promise.all([...tickers].map(ensureFreshHistory));
+  const refreshOk: Record<string, boolean> = {};
+  await Promise.all(
+    [...tickers].map(async (ticker) => {
+      refreshOk[ticker] = await ensureFreshHistory(ticker);
+    })
+  );
 
   const pricesByTicker: Record<string, PricePoint[]> = {};
   await Promise.all(
@@ -130,8 +163,15 @@ export async function getPortfolioPerformance(
   );
 
   const benchmarkPrices = pricesByTicker[BENCHMARK_TICKER] ?? [];
-  const portfolioPerf = buildPerformance(portfolio, pricesByTicker, benchmarkPrices, period);
-  const benchmarkPerf = buildPerformance(syntheticBenchmarkPortfolio(), pricesByTicker, benchmarkPrices, period);
+  const portfolioTickers = [...portfolio.holdings.map((h) => h.ticker), BENCHMARK_TICKER];
+  const portfolioPerf = {
+    ...buildPerformance(portfolio, pricesByTicker, benchmarkPrices, period),
+    dataFreshness: freshnessFor(portfolioTickers, refreshOk, pricesByTicker),
+  };
+  const benchmarkPerf = {
+    ...buildPerformance(syntheticBenchmarkPortfolio(), pricesByTicker, benchmarkPrices, period),
+    dataFreshness: freshnessFor([BENCHMARK_TICKER], refreshOk, pricesByTicker),
+  };
 
   return { portfolio: portfolioPerf, benchmark: benchmarkPerf };
 }

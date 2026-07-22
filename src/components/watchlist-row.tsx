@@ -14,6 +14,7 @@ type WatchlistRowProps = {
   isOpen: boolean;
   onToggle: () => void;
   onLongPress?: () => void;
+  onRetry?: () => void;
 };
 
 const STATS_ROWS: { key: keyof WatchlistTickerPerformance['stats']; label: string; suffix: string }[] = [
@@ -25,7 +26,7 @@ const STATS_ROWS: { key: keyof WatchlistTickerPerformance['stats']; label: strin
   { key: 'correlation', label: 'Correlation (vs S&P 500)', suffix: '' },
 ];
 
-export function WatchlistRow({ item, benchmarkSeries, isOpen, onToggle, onLongPress }: WatchlistRowProps) {
+export function WatchlistRow({ item, benchmarkSeries, isOpen, onToggle, onLongPress, onRetry }: WatchlistRowProps) {
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const changeColor = item.stats.return >= 0 ? colors.positive : colors.negative;
@@ -59,22 +60,40 @@ export function WatchlistRow({ item, benchmarkSeries, isOpen, onToggle, onLongPr
       </Pressable>
       {isOpen ? (
         <View style={styles.detail}>
-          <PerformanceChart series={item.series} benchmarkSeries={benchmarkSeries} lineColor={changeColor} />
-          <Text style={styles.caption}>Dashed line: S&P 500 · same period</Text>
-          {item.series.truncatedFrom ? (
-            <Text style={styles.caption}>Data from {item.series.truncatedFrom}</Text>
-          ) : null}
-          <View style={styles.statsTable}>
-            {STATS_ROWS.map((row) => (
-              <View key={row.key} style={styles.statRow}>
-                <Text style={styles.statLabel}>{row.label}</Text>
-                <Text style={styles.statValue}>
-                  {item.stats[row.key].toFixed(2)}
-                  {row.suffix}
+          {item.series.points.length > 0 ? (
+            <>
+              <PerformanceChart series={item.series} benchmarkSeries={benchmarkSeries} lineColor={changeColor} />
+              <Text style={styles.caption}>Dashed line: S&P 500 · same period</Text>
+              {item.series.truncatedFrom ? (
+                <Text style={styles.caption}>Data from {item.series.truncatedFrom}</Text>
+              ) : null}
+              {item.dataFreshness.stale ? (
+                <Text style={styles.caption}>
+                  Prices as of {item.series.points[item.series.points.length - 1].date} · couldn't refresh
                 </Text>
+              ) : null}
+              <View style={styles.statsTable}>
+                {STATS_ROWS.map((row) => (
+                  <View key={row.key} style={styles.statRow}>
+                    <Text style={styles.statLabel}>{row.label}</Text>
+                    <Text style={styles.statValue}>
+                      {item.stats[row.key].toFixed(2)}
+                      {row.suffix}
+                    </Text>
+                  </View>
+                ))}
               </View>
-            ))}
-          </View>
+            </>
+          ) : (
+            <View style={styles.retryRow}>
+              <Text style={styles.retryText}>Couldn't load prices for {item.ticker}</Text>
+              {onRetry ? (
+                <Pressable onPress={onRetry} hitSlop={8}>
+                  <Text style={styles.retryLink}>Retry</Text>
+                </Pressable>
+              ) : null}
+            </View>
+          )}
         </View>
       ) : null}
     </View>
@@ -141,6 +160,23 @@ const createStyles = (colors: ColorTokens) =>
       fontSize: 11,
       color: colors.textSecondary,
       marginTop: 6,
+    },
+    retryRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingVertical: 8,
+    },
+    retryText: {
+      fontSize: 12,
+      color: colors.negative,
+      flex: 1,
+      marginRight: 8,
+    },
+    retryLink: {
+      fontSize: 12,
+      fontWeight: '600',
+      color: colors.accent,
     },
     statsTable: {
       marginTop: 12,
