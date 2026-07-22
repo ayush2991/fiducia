@@ -56,3 +56,13 @@ export function seriesRange(values: number[]): { min: number; max: number } {
   if (values.length === 0) return { min: 0, max: 0 };
   return { min: Math.min(...values), max: Math.max(...values) };
 }
+
+// % change from a series' first value to the value at `index` — the
+// "return so far" figure shown on both charts' scrub pills/tooltips and
+// both screens' live headline/row values.
+export function percentChangeAt(values: number[], index: number): number {
+  if (values.length === 0) return 0;
+  const base = values[0];
+  if (base === 0) return 0;
+  return ((values[index] - base) / base) * 100;
+}

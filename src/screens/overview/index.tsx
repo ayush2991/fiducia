@@ -17,6 +17,7 @@ import { EmptyState } from '@/components/empty-state';
 import { ChevronDownIcon } from '@/components/icons';
 import { PeriodPills } from '@/components/period-pills';
 import { getPortfolioPerformance } from '@/lib/api/compare';
+import { nearestIndexForX, percentChangeAt } from '@/lib/compute/chartGeometry';
 import { listPortfolios } from '@/lib/api/portfolios';
 import { getActiveProvider } from '@/lib/api/settings';
 import { DEFAULT_PERIOD, type Holding, type PerformanceStats, type PeriodKey, type Portfolio } from '@/lib/api/types';
@@ -141,6 +142,7 @@ export function Overview() {
   const [period, setPeriod] = useState<PeriodKey>(DEFAULT_PERIOD);
   const [showPortfolio, setShowPortfolio] = useState(true);
   const [showBenchmark, setShowBenchmark] = useState(true);
+  const [scrubFraction, setScrubFraction] = useState<number | null>(null);
   const queryClient = useQueryClient();
 
   const { data: portfolios = [], isPending } = useQuery({
@@ -177,6 +179,24 @@ export function Overview() {
     ? detail.portfolio.dataFreshness.stale || detail.benchmark.dataFreshness.stale
     : false;
   const lastAsOfDate = detail?.portfolio.series.points[detail.portfolio.series.points.length - 1]?.date;
+  const portfolioValues = detail?.portfolio.series.points.map((p) => p.value) ?? [];
+  const benchmarkValues = detail?.benchmark.series.points.map((p) => p.value) ?? [];
+  const portfolioScrubIndex =
+    scrubFraction !== null && portfolioValues.length > 0
+      ? nearestIndexForX(scrubFraction, portfolioValues.length, 1)
+      : null;
+  const benchmarkScrubIndex =
+    scrubFraction !== null && benchmarkValues.length > 0
+      ? nearestIndexForX(scrubFraction, benchmarkValues.length, 1)
+      : null;
+  const headlineReturn =
+    portfolioScrubIndex !== null ? percentChangeAt(portfolioValues, portfolioScrubIndex) : detail?.portfolio.stats.return ?? 0;
+  const headlineBenchReturn =
+    benchmarkScrubIndex !== null
+      ? percentChangeAt(benchmarkValues, benchmarkScrubIndex)
+      : detail?.benchmark.stats.return ?? 0;
+  const headlineDateLabel =
+    portfolioScrubIndex !== null ? detail?.portfolio.series.points[portfolioScrubIndex]?.date : null;
   const { data: activeProvider, isPending: isProviderPending } = useQuery({
     queryKey: ['activeProvider'],
     queryFn: getActiveProvider,
@@ -226,16 +246,16 @@ export function Overview() {
         {detail ? (
           <View style={styles.headline}>
             <Text style={styles.returnValue}>
-              {detail.portfolio.stats.return >= 0 ? '+' : ''}
-              {detail.portfolio.stats.return.toFixed(2)}%
+              {headlineReturn >= 0 ? '+' : ''}
+              {headlineReturn.toFixed(2)}%
             </Text>
             <Text style={styles.returnSubtitle}>
               vs {detail.benchmark.portfolio.name}{' '}
               <Text style={styles.returnSubtitleValue}>
-                {detail.benchmark.stats.return >= 0 ? '+' : ''}
-                {detail.benchmark.stats.return.toFixed(2)}%
+                {headlineBenchReturn >= 0 ? '+' : ''}
+                {headlineBenchReturn.toFixed(2)}%
               </Text>{' '}
-              · {period}
+              · {headlineDateLabel ?? period}
             </Text>
           </View>
         ) : null}
@@ -254,6 +274,7 @@ export function Overview() {
               lineColor={detail.portfolio.stats.return >= 0 ? colors.positive : colors.negative}
               showSeries={showPortfolio}
               showBenchmark={showBenchmark}
+              onScrubChange={setScrubFraction}
             />
             <View style={styles.toggleRow}>
               <Pressable

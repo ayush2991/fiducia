@@ -10,6 +10,7 @@ import { PeriodPills } from '@/components/period-pills';
 import { compareEntities } from '@/lib/api/compare';
 import { getActiveProvider } from '@/lib/api/settings';
 import { DEFAULT_PERIOD, type PeriodKey, type PortfolioPerformance } from '@/lib/api/types';
+import { nearestIndexForX, percentChangeAt } from '@/lib/compute/chartGeometry';
 import type { ColorTokens } from '@/theme/tokens';
 import { useTheme } from '@/theme/ThemeProvider';
 
@@ -18,11 +19,13 @@ function EntityRow({
   color,
   isVisible,
   onToggle,
+  scrubPercent,
 }: {
   entity: PortfolioPerformance;
   color: string;
   isVisible: boolean;
   onToggle: () => void;
+  scrubPercent: number | null;
 }) {
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
@@ -31,31 +34,36 @@ function EntityRow({
     .map((h) => `${Math.round(h.weight)}% ${h.ticker}`)
     .join(' · ');
   const isUnavailable = entity.dataFreshness.unavailableTickers.length > 0;
+  const displayPercent = scrubPercent ?? entity.stats.return;
 
   return (
     <Pressable style={[styles.row, !isVisible && styles.rowHidden]} onPress={onToggle}>
       <View style={[styles.colorDot, { backgroundColor: color }]} />
       <View style={styles.rowMeta}>
         <Text style={styles.rowName}>{entity.portfolio.name}</Text>
-        <Text style={styles.rowSub} numberOfLines={1}>
-          {holdingsSummary || '—'}
-        </Text>
-        {isUnavailable ? (
-          <Text style={[styles.rowSub, styles.rowSubWarn]} numberOfLines={1}>
-            Couldn't load prices for {entity.dataFreshness.unavailableTickers.join(', ')}
-          </Text>
-        ) : (
-          <Text style={styles.rowSub}>
-            Sharpe {entity.stats.sharpe.toFixed(2)} · Vol {entity.stats.volatility.toFixed(1)}% · Max DD{' '}
-            {entity.stats.maxDrawdown.toFixed(1)}%
-            {entity.series.truncatedFrom ? ` · data from ${entity.series.truncatedFrom}` : ''}
-            {entity.dataFreshness.stale ? ' · stale' : ''}
-          </Text>
-        )}
+        {scrubPercent === null ? (
+          isUnavailable ? (
+            <Text style={[styles.rowSub, styles.rowSubWarn]} numberOfLines={1}>
+              Couldn't load prices for {entity.dataFreshness.unavailableTickers.join(', ')}
+            </Text>
+          ) : (
+            <>
+              <Text style={styles.rowSub} numberOfLines={1}>
+                {holdingsSummary || '—'}
+              </Text>
+              <Text style={styles.rowSub}>
+                Sharpe {entity.stats.sharpe.toFixed(2)} · Vol {entity.stats.volatility.toFixed(1)}% · Max DD{' '}
+                {entity.stats.maxDrawdown.toFixed(1)}%
+                {entity.series.truncatedFrom ? ` · data from ${entity.series.truncatedFrom}` : ''}
+                {entity.dataFreshness.stale ? ' · stale' : ''}
+              </Text>
+            </>
+          )
+        ) : null}
       </View>
       <Text style={styles.rowReturn}>
-        {entity.stats.return >= 0 ? '+' : ''}
-        {entity.stats.return.toFixed(2)}%
+        {displayPercent >= 0 ? '+' : ''}
+        {displayPercent.toFixed(2)}%
       </Text>
     </Pressable>
   );
@@ -67,6 +75,7 @@ export function Compare() {
   const styles = useMemo(() => createStyles(colors), [colors]);
   const [period, setPeriod] = useState<PeriodKey>(DEFAULT_PERIOD);
   const [hiddenIds, setHiddenIds] = useState<Set<string>>(new Set());
+  const [scrubFraction, setScrubFraction] = useState<number | null>(null);
 
   const {
     data: entities = [],
@@ -136,12 +145,35 @@ export function Compare() {
       dashed: e.portfolio.type === 'benchmark',
       values: e.series.points.map((p) => p.value),
     }));
+  const isScrubbing = scrubFraction !== null;
+  const scrubDateLabel =
+    isScrubbing && entities[0]
+      ? entities[0].series.points[
+          nearestIndexForX(scrubFraction!, entities[0].series.points.length, 1)
+        ]?.date
+      : null;
+
+  function scrubPercentFor(entity: PortfolioPerformance): number | null {
+    if (scrubFraction === null) return null;
+    const values = entity.series.points.map((p) => p.value);
+    if (values.length === 0) return null;
+    const index = nearestIndexForX(scrubFraction, values.length, 1);
+    return percentChangeAt(values, index);
+  }
 
   return (
     <View style={styles.container}>
       <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
         <Text style={styles.eyebrow}>Compare</Text>
-        <Text style={styles.title}>{visibleCount} selected</Text>
+        <Text style={styles.title}>
+          {visibleCount} selected
+          {scrubDateLabel ? (
+            <>
+              {' · '}
+              <Text style={styles.titleAccent}>{scrubDateLabel}</Text>
+            </>
+          ) : null}
+        </Text>
       </View>
       {hasUnavailable ? (
         <View style={styles.banner}>
@@ -157,8 +189,14 @@ export function Compare() {
         keyExtractor={(item) => item.portfolio.id}
         ListHeaderComponent={
           <View style={styles.chartWrapper}>
-            <CompareChart lines={lines} />
-            <Text style={styles.sectionLabel}>Portfolios & Benchmarks</Text>
+            <CompareChart
+              lines={lines}
+              dates={entities[0]?.series.points.map((p) => p.date) ?? []}
+              onScrubChange={setScrubFraction}
+            />
+            <Text style={styles.sectionLabel}>
+              {isScrubbing ? 'Value at crosshair' : 'Portfolios & Benchmarks'}
+            </Text>
           </View>
         }
         renderItem={({ item }) => (
@@ -167,6 +205,7 @@ export function Compare() {
             color={colorById.get(item.portfolio.id) ?? colors.accent}
             isVisible={!hiddenIds.has(item.portfolio.id)}
             onToggle={() => toggle(item.portfolio.id)}
+            scrubPercent={scrubPercentFor(item)}
           />
         )}
         contentContainerStyle={styles.list}
@@ -201,6 +240,9 @@ const createStyles = (colors: ColorTokens) =>
       fontWeight: '500',
       color: colors.textPrimary,
       marginTop: 3,
+    },
+    titleAccent: {
+      color: colors.accentSoft,
     },
     chartWrapper: {
       paddingHorizontal: 18,
