@@ -109,16 +109,8 @@ export function PerformanceChart({
           {showSeries ? (
             <>
               <Path d={linePath(values, width, height)} fill="none" stroke={lineColor} strokeWidth={2} />
-              <Line
-                x1={current.x}
-                y1={0}
-                x2={current.x}
-                y2={height}
-                stroke="#4c5397"
-                strokeWidth={1}
-                strokeDasharray="2,2"
-              />
-              <Circle cx={current.x} cy={current.y} r={4} fill={lineColor} />
+              <Line x1={current.x} y1={0} x2={current.x} y2={height} stroke={colors.accentSoft} strokeWidth={1.5} />
+              <Circle cx={current.x} cy={current.y} r={4.5} fill={lineColor} stroke={colors.background} strokeWidth={2} />
             </>
           ) : null}
           <SvgText x={width - 28} y={height * 0.14 + 4} fill="#75798c" fontSize={9}>
