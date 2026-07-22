@@ -16,8 +16,10 @@ export type CompareChartLine = {
 
 type CompareChartProps = {
   lines: CompareChartLine[];
+  dates: string[];
   width?: number;
   height?: number;
+  onScrubChange?: (fraction: number | null) => void;
 };
 
 const PAD_Y = 8;
@@ -53,7 +55,7 @@ function sharedScalePosition(
   return { x: index * stepX, y: PAD_Y + (height - PAD_Y * 2) * (1 - (v - min) / range) };
 }
 
-export function CompareChart({ lines, width = 330, height = 160 }: CompareChartProps) {
+export function CompareChart({ lines, dates, width = 330, height = 160, onScrubChange }: CompareChartProps) {
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const [chartAreaWidth, setChartAreaWidth] = useState(width);
@@ -65,11 +67,18 @@ export function CompareChart({ lines, width = 330, height = 160 }: CompareChartP
 
   function handleTouch(evt: GestureResponderEvent) {
     if (chartAreaWidth <= 0) return;
-    setScrubX(Math.max(0, Math.min(chartAreaWidth, evt.nativeEvent.locationX)));
+    const x = Math.max(0, Math.min(chartAreaWidth, evt.nativeEvent.locationX));
+    setScrubX(x);
+    onScrubChange?.(x / chartAreaWidth);
   }
 
   function handleLayout(evt: LayoutChangeEvent) {
     setChartAreaWidth(evt.nativeEvent.layout.width);
+  }
+
+  function endTouch() {
+    setScrubX(null);
+    onScrubChange?.(null);
   }
 
   return (
@@ -80,8 +89,8 @@ export function CompareChart({ lines, width = 330, height = 160 }: CompareChartP
         onMoveShouldSetResponder={() => true}
         onResponderGrant={handleTouch}
         onResponderMove={handleTouch}
-        onResponderRelease={() => setScrubX(null)}
-        onResponderTerminate={() => setScrubX(null)}
+        onResponderRelease={endTouch}
+        onResponderTerminate={endTouch}
       >
         <Svg width="100%" height={height} viewBox={`0 0 ${width} ${height}`} preserveAspectRatio="none">
           <Line x1={0} y1={height * 0.14} x2={width} y2={height * 0.14} stroke="#2a2d3d" strokeWidth={1} />
@@ -118,22 +127,10 @@ export function CompareChart({ lines, width = 330, height = 160 }: CompareChartP
             : null}
         </Svg>
       </View>
-      {activeScrubX !== null && crosshairX !== null ? (
-        <View style={[styles.tooltip, { left: Math.max(4, Math.min(width - 84, crosshairX - 40)) }]}>
-          {lines.map((line) => {
-            if (line.values.length === 0) return null;
-            const index = nearestIndexForX(activeScrubX, line.values.length, chartAreaWidth);
-            const pctChange = ((line.values[index] - line.values[0]) / line.values[0]) * 100;
-            return (
-              <View key={line.id} style={styles.tooltipRow}>
-                <View style={[styles.tooltipDot, { backgroundColor: line.color }]} />
-                <Text style={styles.tooltipValue}>
-                  {pctChange >= 0 ? '+' : ''}
-                  {pctChange.toFixed(2)}%
-                </Text>
-              </View>
-            );
-          })}
+      {dates.length > 0 ? (
+        <View style={styles.xAxisRow}>
+          <Text style={styles.xAxisLabel}>{dates[0]}</Text>
+          <Text style={styles.xAxisLabel}>{dates[dates.length - 1]}</Text>
         </View>
       ) : null}
     </View>
@@ -150,28 +147,14 @@ const createStyles = (colors: ColorTokens) =>
       paddingBottom: 4,
       position: 'relative',
     },
-    tooltip: {
-      position: 'absolute',
-      top: 12,
-      backgroundColor: colors.surfaceMuted,
-      borderRadius: 8,
-      paddingVertical: 6,
-      paddingHorizontal: 8,
-      gap: 4,
-    },
-    tooltipRow: {
+    xAxisRow: {
       flexDirection: 'row',
-      alignItems: 'center',
-      gap: 6,
+      justifyContent: 'space-between',
+      paddingHorizontal: 6,
+      paddingTop: 4,
     },
-    tooltipDot: {
-      width: 6,
-      height: 6,
-      borderRadius: 3,
-    },
-    tooltipValue: {
-      fontSize: 11,
-      fontWeight: '600',
-      color: colors.textPrimary,
+    xAxisLabel: {
+      fontSize: 10,
+      color: colors.textMuted,
     },
   });
