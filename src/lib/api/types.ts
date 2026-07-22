@@ -49,3 +49,8 @@ export interface WatchlistTickerPerformance {
   series: PerformanceSeries;
   stats: PerformanceStats;
 }
+
+export interface PortfolioDetailPerformance {
+  portfolio: PortfolioPerformance;
+  benchmark: PortfolioPerformance; // fixed to SPY for now — see docs/superpowers/plans/2026-07-22-overview-detail-screen.md
+}

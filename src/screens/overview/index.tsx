@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { router } from 'expo-router';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   ActivityIndicator,
   Modal,
@@ -12,10 +12,14 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { PerformanceChart } from '@/components/performance-chart';
 import { EmptyState } from '@/components/empty-state';
 import { ChevronDownIcon } from '@/components/icons';
+import { PeriodPills } from '@/components/period-pills';
+import { getPortfolioPerformance } from '@/lib/api/compare';
 import { listPortfolios } from '@/lib/api/portfolios';
-import type { Holding, Portfolio } from '@/lib/api/types';
+import { getActiveProvider } from '@/lib/api/settings';
+import { DEFAULT_PERIOD, type Holding, type PerformanceStats, type PeriodKey, type Portfolio } from '@/lib/api/types';
 import type { ColorTokens } from '@/theme/tokens';
 import { useTheme } from '@/theme/ThemeProvider';
 
@@ -93,12 +97,51 @@ function PortfolioSwitcher({
   );
 }
 
+const STATS_ROWS: { key: keyof PerformanceStats; label: string; suffix: string; portfolioOnly?: boolean }[] = [
+  { key: 'sharpe', label: 'Sharpe Ratio', suffix: '' },
+  { key: 'volatility', label: 'Volatility', suffix: '%' },
+  { key: 'maxDrawdown', label: 'Max Drawdown', suffix: '%' },
+  { key: 'alpha', label: 'Alpha', suffix: '%', portfolioOnly: true },
+  { key: 'beta', label: 'Beta', suffix: '', portfolioOnly: true },
+  { key: 'correlation', label: 'Correlation', suffix: '', portfolioOnly: true },
+];
+
+function StatsTable({ portfolio, benchmark }: { portfolio: PerformanceStats; benchmark: PerformanceStats }) {
+  const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
+  return (
+    <View style={styles.statsTable}>
+      <View style={styles.statsHeaderRow}>
+        <Text style={[styles.statsHeaderCell, styles.statsMetricCol]}>Metric</Text>
+        <Text style={[styles.statsHeaderCell, styles.statsValueCol]}>Portfolio</Text>
+        <Text style={[styles.statsHeaderCell, styles.statsValueCol]}>Bench.</Text>
+      </View>
+      {STATS_ROWS.map((row) => (
+        <View key={row.key} style={styles.statsRow}>
+          <Text style={[styles.statsLabel, styles.statsMetricCol]}>{row.label}</Text>
+          <Text style={[styles.statsPortfolioValue, styles.statsValueCol]}>
+            {portfolio[row.key].toFixed(2)}
+            {row.suffix}
+          </Text>
+          <Text style={[styles.statsBenchValue, styles.statsValueCol]}>
+            {row.portfolioOnly ? '—' : `${benchmark[row.key].toFixed(2)}${row.suffix}`}
+          </Text>
+        </View>
+      ))}
+    </View>
+  );
+}
+
 export function Overview() {
   const insets = useSafeAreaInsets();
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const [activeId, setActiveId] = useState<string | null>(null);
   const [showSwitcher, setShowSwitcher] = useState(false);
+  const [period, setPeriod] = useState<PeriodKey>(DEFAULT_PERIOD);
+  const [showPortfolio, setShowPortfolio] = useState(true);
+  const [showBenchmark, setShowBenchmark] = useState(true);
+  const queryClient = useQueryClient();
 
   const { data: portfolios = [], isPending } = useQuery({
     queryKey: ['portfolios', 'user'],
@@ -112,6 +155,16 @@ export function Overview() {
   }, [portfolios, activeId]);
 
   const active = portfolios.find((p) => p.id === activeId) ?? portfolios[0] ?? null;
+
+  const { data: detail, isPending: isDetailPending } = useQuery({
+    queryKey: ['portfolioPerformance', active?.id, period],
+    queryFn: () => getPortfolioPerformance(active!.id, period),
+    enabled: active !== null,
+  });
+  const { data: activeProvider, isPending: isProviderPending } = useQuery({
+    queryKey: ['activeProvider'],
+    queryFn: getActiveProvider,
+  });
 
   if (isPending) {
     return (
@@ -132,6 +185,17 @@ export function Overview() {
     );
   }
 
+  if (!isProviderPending && !activeProvider) {
+    return (
+      <EmptyState
+        title="No market data provider"
+        message="Add an API key in Settings to see performance, returns, and chart data."
+        ctaLabel="Go to Settings"
+        onPressCta={() => router.push('/account')}
+      />
+    );
+  }
+
   return (
     <View style={styles.container}>
       <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
@@ -143,6 +207,67 @@ export function Overview() {
       </View>
 
       <ScrollView contentContainerStyle={styles.scrollContent}>
+        {detail ? (
+          <View style={styles.headline}>
+            <Text style={styles.returnValue}>
+              {detail.portfolio.stats.return >= 0 ? '+' : ''}
+              {detail.portfolio.stats.return.toFixed(1)}%
+            </Text>
+            <Text style={styles.returnSubtitle}>
+              vs {detail.benchmark.portfolio.name}{' '}
+              <Text style={styles.returnSubtitleValue}>
+                {detail.benchmark.stats.return >= 0 ? '+' : ''}
+                {detail.benchmark.stats.return.toFixed(1)}%
+              </Text>{' '}
+              · {period}
+            </Text>
+          </View>
+        ) : null}
+
+        <PeriodPills active={period} onSelect={setPeriod} />
+
+        {isDetailPending ? (
+          <View style={styles.chartLoading}>
+            <ActivityIndicator color={colors.accent} />
+          </View>
+        ) : detail ? (
+          <View style={styles.chartSection}>
+            <PerformanceChart
+              series={detail.portfolio.series}
+              benchmarkSeries={detail.benchmark.series}
+              lineColor={detail.portfolio.stats.return >= 0 ? colors.positive : colors.negative}
+              showSeries={showPortfolio}
+              showBenchmark={showBenchmark}
+            />
+            <View style={styles.toggleRow}>
+              <Pressable
+                style={[styles.toggleChip, { borderColor: colors.accent, opacity: showPortfolio ? 1 : 0.4 }]}
+                onPress={() => setShowPortfolio((v) => !v)}
+              >
+                <View style={[styles.toggleDot, { backgroundColor: colors.accent }]} />
+                <Text style={styles.toggleLabel}>{active?.name}</Text>
+              </Pressable>
+              <Pressable
+                style={[styles.toggleChip, { borderColor: colors.textMuted, opacity: showBenchmark ? 1 : 0.4 }]}
+                onPress={() => setShowBenchmark((v) => !v)}
+              >
+                <View style={[styles.toggleDash, { backgroundColor: colors.textSecondary }]} />
+                <Text style={styles.toggleLabel}>{detail.benchmark.portfolio.name}</Text>
+              </Pressable>
+            </View>
+            {detail.portfolio.series.truncatedFrom ? (
+              <Text style={styles.truncationNote}>Data from {detail.portfolio.series.truncatedFrom}</Text>
+            ) : null}
+          </View>
+        ) : null}
+
+        {detail ? (
+          <>
+            <Text style={styles.sectionLabel}>Statistics</Text>
+            <StatsTable portfolio={detail.portfolio.stats} benchmark={detail.benchmark.stats} />
+          </>
+        ) : null}
+
         <Text style={styles.holdingsSectionLabel}>Holdings</Text>
         {active?.holdings.map((h) => (
           <HoldingItem key={h.ticker} holding={h} />
@@ -153,7 +278,10 @@ export function Overview() {
         <PortfolioSwitcher
           portfolios={portfolios}
           activeId={activeId}
-          onSelect={setActiveId}
+          onSelect={(id) => {
+            setActiveId(id);
+            queryClient.invalidateQueries({ queryKey: ['portfolioPerformance'] });
+          }}
           onClose={() => setShowSwitcher(false)}
           onAddNew={() => {
             setShowSwitcher(false);
@@ -199,22 +327,135 @@ const createStyles = (colors: ColorTokens) =>
       color: colors.textPrimary,
     },
     scrollContent: {
-      paddingHorizontal: 18,
       paddingBottom: 32,
+    },
+    headline: {
+      paddingHorizontal: 18,
+      paddingTop: 4,
+    },
+    returnValue: {
+      fontSize: 42,
+      fontWeight: '500',
+      color: colors.textPrimary,
+      lineHeight: 46,
+    },
+    returnSubtitle: {
+      fontSize: 12,
+      color: colors.textSecondary,
+      marginTop: 8,
+    },
+    returnSubtitleValue: {
+      color: colors.accentSoft,
+    },
+    chartLoading: {
+      height: 130,
+      marginHorizontal: 18,
+      marginTop: 16,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    chartSection: {
+      paddingHorizontal: 18,
+      marginTop: 16,
+    },
+    toggleRow: {
+      flexDirection: 'row',
+      gap: 8,
+      marginTop: 8,
+    },
+    toggleChip: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 6,
+      paddingVertical: 4,
+      paddingHorizontal: 10,
+      borderRadius: 20,
+      borderWidth: 1,
+    },
+    toggleDot: {
+      width: 8,
+      height: 8,
+      borderRadius: 4,
+    },
+    toggleDash: {
+      width: 8,
+      height: 1.5,
+    },
+    toggleLabel: {
+      fontSize: 11,
+      fontWeight: '500',
+      color: colors.textPrimary,
+    },
+    truncationNote: {
+      fontSize: 11,
+      color: colors.textSecondary,
+      marginTop: 8,
+    },
+    sectionLabel: {
+      fontSize: 13,
+      fontWeight: '500',
+      letterSpacing: 0.26,
+      color: colors.textSecondary,
+      marginTop: 22,
+      marginBottom: 10,
+      marginHorizontal: 18,
+    },
+    statsTable: {
+      marginHorizontal: 18,
+    },
+    statsHeaderRow: {
+      flexDirection: 'row',
+      paddingVertical: 6,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.borderStrong,
+    },
+    statsRow: {
+      flexDirection: 'row',
+      paddingVertical: 8,
+      borderBottomWidth: 1,
+      borderBottomColor: '#21232f',
+    },
+    statsHeaderCell: {
+      fontSize: 10,
+      letterSpacing: 0.6,
+      textTransform: 'uppercase',
+      color: colors.textSecondary,
+    },
+    statsMetricCol: {
+      flex: 1,
+    },
+    statsValueCol: {
+      width: 70,
+      textAlign: 'right',
+    },
+    statsLabel: {
+      fontSize: 13,
+      color: colors.textSecondary,
+    },
+    statsPortfolioValue: {
+      fontSize: 13,
+      fontWeight: '600',
+      color: colors.textPrimary,
+    },
+    statsBenchValue: {
+      fontSize: 13,
+      color: colors.textSecondary,
     },
     holdingsSectionLabel: {
       fontSize: 13,
       fontWeight: '500',
       letterSpacing: 0.26,
       color: colors.textSecondary,
-      marginTop: 20,
+      marginTop: 22,
       marginBottom: 10,
+      marginHorizontal: 18,
     },
     holdingRow: {
       flexDirection: 'row',
       alignItems: 'center',
       gap: 12,
       marginBottom: 12,
+      marginHorizontal: 18,
     },
     tickerBadge: {
       width: 42,
