@@ -14,6 +14,8 @@ type PerformanceChartProps = {
   lineColor: string;
   width?: number;
   height?: number;
+  showSeries?: boolean;
+  showBenchmark?: boolean;
 };
 
 export function PerformanceChart({
@@ -22,6 +24,8 @@ export function PerformanceChart({
   lineColor,
   width = 330,
   height = 130,
+  showSeries = true,
+  showBenchmark = true,
 }: PerformanceChartProps) {
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
@@ -66,8 +70,8 @@ export function PerformanceChart({
           <Line x1={0} y1={height * 0.14} x2={width - 30} y2={height * 0.14} stroke="#2a2d3d" strokeWidth={1} />
           <Line x1={0} y1={height * 0.5} x2={width - 30} y2={height * 0.5} stroke="#2a2d3d" strokeWidth={1} />
           <Line x1={0} y1={height * 0.86} x2={width - 30} y2={height * 0.86} stroke="#2a2d3d" strokeWidth={1} />
-          <Path d={areaPath(values, width, height)} fill={`url(#${gradientId})`} />
-          {benchmarkValues.length > 0 ? (
+          {showSeries ? <Path d={areaPath(values, width, height)} fill={`url(#${gradientId})`} /> : null}
+          {showBenchmark && benchmarkValues.length > 0 ? (
             <Path
               d={linePath(benchmarkValues, width, height)}
               fill="none"
@@ -76,17 +80,21 @@ export function PerformanceChart({
               strokeDasharray="3,3"
             />
           ) : null}
-          <Path d={linePath(values, width, height)} fill="none" stroke={lineColor} strokeWidth={2} />
-          <Line
-            x1={current.x}
-            y1={0}
-            x2={current.x}
-            y2={height}
-            stroke="#4c5397"
-            strokeWidth={1}
-            strokeDasharray="2,2"
-          />
-          <Circle cx={current.x} cy={current.y} r={4} fill={lineColor} />
+          {showSeries ? (
+            <>
+              <Path d={linePath(values, width, height)} fill="none" stroke={lineColor} strokeWidth={2} />
+              <Line
+                x1={current.x}
+                y1={0}
+                x2={current.x}
+                y2={height}
+                stroke="#4c5397"
+                strokeWidth={1}
+                strokeDasharray="2,2"
+              />
+              <Circle cx={current.x} cy={current.y} r={4} fill={lineColor} />
+            </>
+          ) : null}
           <SvgText x={width - 28} y={height * 0.14 + 4} fill="#75798c" fontSize={9}>
             {max.toFixed(0)}
           </SvgText>
@@ -95,17 +103,19 @@ export function PerformanceChart({
           </SvgText>
         </Svg>
       </View>
-      <View style={[styles.pill, { left: pillLeft - 20, backgroundColor: lineColor }]}>
-        <Text style={styles.pillLabel}>
-          {series.points.length > 0
-            ? `${values[displayIndex] >= values[0] ? '+' : ''}${(
-                ((values[displayIndex] - values[0]) / values[0]) *
-                100
-              ).toFixed(1)}%`
-            : ''}
-        </Text>
-      </View>
-      {scrubIndex !== null && series.points[scrubIndex] ? (
+      {showSeries ? (
+        <View style={[styles.pill, { left: pillLeft - 20, backgroundColor: lineColor }]}>
+          <Text style={styles.pillLabel}>
+            {series.points.length > 0
+              ? `${values[displayIndex] >= values[0] ? '+' : ''}${(
+                  ((values[displayIndex] - values[0]) / values[0]) *
+                  100
+                ).toFixed(1)}%`
+              : ''}
+          </Text>
+        </View>
+      ) : null}
+      {showSeries && scrubIndex !== null && series.points[scrubIndex] ? (
         <Text style={styles.scrubDate}>{series.points[scrubIndex].date}</Text>
       ) : null}
     </View>
