@@ -166,7 +166,13 @@ export function Compare() {
       <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
         <Text style={styles.eyebrow}>Compare</Text>
         <Text style={styles.title}>
-          {visibleCount} selected{scrubDateLabel ? ` · ${scrubDateLabel}` : ''}
+          {visibleCount} selected
+          {scrubDateLabel ? (
+            <>
+              {' · '}
+              <Text style={styles.titleAccent}>{scrubDateLabel}</Text>
+            </>
+          ) : null}
         </Text>
       </View>
       {hasUnavailable ? (
@@ -234,6 +240,9 @@ const createStyles = (colors: ColorTokens) =>
       fontWeight: '500',
       color: colors.textPrimary,
       marginTop: 3,
+    },
+    titleAccent: {
+      color: colors.accentSoft,
     },
     chartWrapper: {
       paddingHorizontal: 18,

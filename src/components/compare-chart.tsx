@@ -155,6 +155,6 @@ const createStyles = (colors: ColorTokens) =>
     },
     xAxisLabel: {
       fontSize: 10,
-      color: colors.textMuted,
+      color: colors.textSecondary,
     },
   });
