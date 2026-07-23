@@ -17,6 +17,10 @@ type WatchlistRowProps = {
   onRetry?: () => void;
 };
 
+function formatStat(value: number | null, suffix: string): string {
+  return value !== null ? `${value.toFixed(2)}${suffix}` : 'N/A';
+}
+
 const STATS_ROWS: { key: keyof WatchlistTickerPerformance['stats']; label: string; suffix: string }[] = [
   { key: 'sharpe', label: 'Sharpe Ratio', suffix: '' },
   { key: 'volatility', label: 'Volatility', suffix: '%' },
@@ -76,10 +80,7 @@ export function WatchlistRow({ item, benchmarkSeries, isOpen, onToggle, onLongPr
                 {STATS_ROWS.map((row) => (
                   <View key={row.key} style={styles.statRow}>
                     <Text style={styles.statLabel}>{row.label}</Text>
-                    <Text style={styles.statValue}>
-                      {item.stats[row.key].toFixed(2)}
-                      {row.suffix}
-                    </Text>
+                    <Text style={styles.statValue}>{formatStat(item.stats[row.key], row.suffix)}</Text>
                   </View>
                 ))}
               </View>

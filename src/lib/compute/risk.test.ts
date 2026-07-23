@@ -2,16 +2,31 @@ import { annualizedReturn, maxDrawdown, sharpeRatio, volatility } from './risk';
 
 describe('annualizedReturn', () => {
   it('returns 0 when days is 0', () => {
-    expect(annualizedReturn(10, 0)).toBe(0);
+    expect(annualizedReturn(10, 0, false)).toBe(0);
   });
 
   it('annualizes a one-year return unchanged', () => {
-    expect(annualizedReturn(10, 365)).toBeCloseTo(10, 5);
+    expect(annualizedReturn(10, 365, false)).toBeCloseTo(10, 5);
   });
 
   it('scales up a short-period return when annualized', () => {
     // 5% over 30 days compounds to well over 5% annualized
-    expect(annualizedReturn(5, 30)).toBeGreaterThan(5);
+    expect(annualizedReturn(5, 30, false)).toBeGreaterThan(5);
+  });
+
+  it('returns null when history is truncated and the actual span is below the minimum', () => {
+    // e.g. a brand-new ticker with only 5 real days of history behind a 3M view
+    expect(annualizedReturn(5, 5, true)).toBeNull();
+  });
+
+  it('still annualizes when truncated but the actual span meets the minimum', () => {
+    expect(annualizedReturn(5, 30, true)).toBeGreaterThan(5);
+  });
+
+  it('is unaffected by truncation for an untruncated short period like 7D', () => {
+    // isTruncated=false means the ticker itself has plenty of history —
+    // the user just picked a short period, which should behave as before
+    expect(annualizedReturn(2, 7, false)).toBeGreaterThan(2);
   });
 });
 
@@ -56,5 +71,9 @@ describe('sharpeRatio', () => {
 
   it('is negative when return is below the risk-free rate', () => {
     expect(sharpeRatio(0, 10)).toBeLessThan(0);
+  });
+
+  it('returns null when annualized return is unavailable', () => {
+    expect(sharpeRatio(null, 10)).toBeNull();
   });
 });

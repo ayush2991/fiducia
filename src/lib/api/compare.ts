@@ -66,7 +66,7 @@ function buildPerformance(
   const asClosePoints: PricePoint[] = combined.map((p) => ({ date: p.date, close: p.value }));
   const days = tradingDaySpan(asClosePoints);
   const returnPct = periodReturn(asClosePoints);
-  const annReturn = annualizedReturn(returnPct, days);
+  const annReturn = annualizedReturn(returnPct, days, !!truncatedFrom);
   const vol = volatility(dailyReturns(asClosePoints));
   const mdd = maxDrawdown(asClosePoints.map((p) => p.close));
   const sharpe = sharpeRatio(annReturn, vol);

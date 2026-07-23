@@ -64,7 +64,7 @@ function buildPerformance(
 
   const days = tradingDaySpan(sliced);
   const returnPct = periodReturn(sliced);
-  const annReturn = annualizedReturn(returnPct, days);
+  const annReturn = annualizedReturn(returnPct, days, !!truncatedFrom);
   const vol = volatility(dailyReturns(sliced));
   const mdd = maxDrawdown(sliced.map((p) => p.close));
   const sharpe = sharpeRatio(annReturn, vol);

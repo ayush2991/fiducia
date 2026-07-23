@@ -10,7 +10,7 @@ import { PeriodPills } from '@/components/period-pills';
 import { compareEntities } from '@/lib/api/compare';
 import { getActiveProvider } from '@/lib/api/settings';
 import { DEFAULT_PERIOD, type PeriodKey, type PortfolioPerformance } from '@/lib/api/types';
-import { nearestIndexForX, percentChangeAt } from '@/lib/compute/chartGeometry';
+import { dateDomain, nearestIndexForDate, percentChangeAt } from '@/lib/compute/chartGeometry';
 import type { ColorTokens } from '@/theme/tokens';
 import { useTheme } from '@/theme/ThemeProvider';
 
@@ -52,7 +52,8 @@ function EntityRow({
                 {holdingsSummary || '—'}
               </Text>
               <Text style={styles.rowSub}>
-                Sharpe {entity.stats.sharpe.toFixed(2)} · Vol {entity.stats.volatility.toFixed(1)}% · Max DD{' '}
+                Sharpe {entity.stats.sharpe !== null ? entity.stats.sharpe.toFixed(2) : 'N/A'} · Vol{' '}
+                {entity.stats.volatility.toFixed(1)}% · Max DD{' '}
                 {entity.stats.maxDrawdown.toFixed(1)}%
                 {entity.series.truncatedFrom ? ` · data from ${entity.series.truncatedFrom}` : ''}
                 {entity.dataFreshness.stale ? ' · stale' : ''}
@@ -143,21 +144,30 @@ export function Compare() {
       id: e.portfolio.id,
       color: colorById.get(e.portfolio.id) ?? colors.accent,
       dashed: e.portfolio.type === 'benchmark',
-      values: e.series.points.map((p) => p.value),
+      points: e.series.points,
     }));
+  // Shared date domain across the visible lines — the same one CompareChart
+  // derives internally — so a scrub fraction resolves to the same target date
+  // (and thus the same per-entity nearest point) here as it does on the chart.
+  const chartDomain = dateDomain(lines.map((l) => l.points));
   const isScrubbing = scrubFraction !== null;
+  const scrubTargetDate =
+    isScrubbing && chartDomain.minDate && chartDomain.maxDate
+      ? new Date(
+          Date.parse(chartDomain.minDate) +
+            scrubFraction! * (Date.parse(chartDomain.maxDate) - Date.parse(chartDomain.minDate))
+        ).toISOString()
+      : null;
   const scrubDateLabel =
-    isScrubbing && entities[0]
-      ? entities[0].series.points[
-          nearestIndexForX(scrubFraction!, entities[0].series.points.length, 1)
-        ]?.date
+    scrubTargetDate !== null && entities[0]
+      ? entities[0].series.points[nearestIndexForDate(scrubTargetDate, entities[0].series.points)]?.date
       : null;
 
   function scrubPercentFor(entity: PortfolioPerformance): number | null {
-    if (scrubFraction === null) return null;
+    if (scrubTargetDate === null) return null;
     const values = entity.series.points.map((p) => p.value);
     if (values.length === 0) return null;
-    const index = nearestIndexForX(scrubFraction, values.length, 1);
+    const index = nearestIndexForDate(scrubTargetDate, entity.series.points);
     return percentChangeAt(values, index);
   }
 
@@ -189,11 +199,7 @@ export function Compare() {
         keyExtractor={(item) => item.portfolio.id}
         ListHeaderComponent={
           <View style={styles.chartWrapper}>
-            <CompareChart
-              lines={lines}
-              dates={entities[0]?.series.points.map((p) => p.date) ?? []}
-              onScrubChange={setScrubFraction}
-            />
+            <CompareChart lines={lines} onScrubChange={setScrubFraction} />
             <Text style={styles.sectionLabel}>
               {isScrubbing ? 'Value at crosshair' : 'Portfolios & Benchmarks'}
             </Text>
