@@ -1,6 +1,6 @@
 import * as SecureStore from 'expo-secure-store';
 
-export type ProviderId = 'alphaVantage' | 'tiingo' | 'financialModelingPrep';
+export type ProviderId = 'tiingo' | 'financialModelingPrep';
 
 const ACTIVE_PROVIDER_KEY = 'fiducia.activeProvider';
 const apiKeyStorageKey = (providerId: ProviderId) => `fiducia.apiKey.${providerId}`;

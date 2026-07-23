@@ -1,11 +1,9 @@
 import * as storage from '@/lib/storage/settings';
 import { PROVIDER_METADATA, type ProviderId, type ProviderMetadata } from './providers/types';
-import { alphaVantageProvider } from './providers/alphaVantage';
 import { tiingoProvider } from './providers/tiingo';
 import { financialModelingPrepProvider } from './providers/financialModelingPrep';
 
 export const PROVIDERS = {
-  alphaVantage: alphaVantageProvider,
   tiingo: tiingoProvider,
   financialModelingPrep: financialModelingPrepProvider,
 };

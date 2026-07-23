@@ -9,7 +9,7 @@ function todayISODate(): string {
 
 // Caps how many fetchDailySeries calls are in flight at once, application-wide,
 // so a portfolio/watchlist with many tickers doesn't burst past a provider's
-// per-minute rate limit (e.g. Alpha Vantage's free tier).
+// per-minute rate limit.
 let activeFetches = 0;
 const waiters: (() => void)[] = [];
 

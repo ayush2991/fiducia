@@ -1,6 +1,5 @@
-// Capped to what Alpha Vantage's free-tier TIME_SERIES_DAILY (compact = last ~100
-// trading days) can actually back — outputsize=full is a premium-only feature, so
-// longer periods (YTD/1Y/5Y/MAX) would silently be mislabeled with partial data.
+// Capped to what every supported provider's free tier can actually back with full
+// history — longer periods (YTD/1Y/5Y/MAX) would silently be mislabeled with partial data.
 export type PeriodKey = '1D' | '7D' | '30D' | '3M';
 
 export const PERIODS: PeriodKey[] = ['1D', '7D', '30D', '3M'];

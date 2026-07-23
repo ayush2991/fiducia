@@ -1,6 +1,6 @@
 export type PricePoint = { date: string; close: number };
 
-export type ProviderId = 'alphaVantage' | 'tiingo' | 'financialModelingPrep';
+export type ProviderId = 'tiingo' | 'financialModelingPrep';
 
 export interface MarketDataProvider {
   fetchDailySeries(ticker: string, apiKey: string): Promise<PricePoint[]>;
@@ -18,7 +18,6 @@ export interface ProviderMetadata {
 }
 
 export const PROVIDER_METADATA: ProviderMetadata[] = [
-  { id: 'alphaVantage', label: 'Alpha Vantage', signupUrl: 'https://www.alphavantage.co/support/#api-key' },
   { id: 'tiingo', label: 'Tiingo', signupUrl: 'https://api.tiingo.com' },
   {
     id: 'financialModelingPrep',
