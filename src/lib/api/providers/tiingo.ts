@@ -9,8 +9,21 @@ function authHeaders(apiKey: string): HeadersInit {
 type DailyPriceResponse = { date: string; close: number }[];
 type TickerMetadataResponse = { name?: string };
 
+// Without a startDate, Tiingo's /prices endpoint returns only the single most
+// recent trading day, not a history — so every fetch must request an explicit
+// range. 130 calendar days comfortably covers the longest supported period
+// (3M ~= 90 calendar days) plus weekends/holidays and a lookback day for return
+// calculations.
+const HISTORY_LOOKBACK_DAYS = 130;
+
+function startDateParam(): string {
+  const start = new Date();
+  start.setDate(start.getDate() - HISTORY_LOOKBACK_DAYS);
+  return start.toISOString().slice(0, 10);
+}
+
 async function fetchDailySeries(ticker: string, apiKey: string): Promise<PricePoint[]> {
-  const url = `${BASE_URL}/tiingo/daily/${encodeURIComponent(ticker)}/prices`;
+  const url = `${BASE_URL}/tiingo/daily/${encodeURIComponent(ticker)}/prices?startDate=${startDateParam()}`;
   const res = await fetch(url, { headers: authHeaders(apiKey) });
   if (res.status === 404) {
     throw new Error(`Unknown ticker: ${ticker}`);
