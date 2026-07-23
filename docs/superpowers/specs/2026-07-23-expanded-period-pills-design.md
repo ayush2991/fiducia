@@ -40,40 +40,56 @@ extending it further.
 
 ### 2. `src/lib/compute/returns.ts` — `periodStartDate`
 
-Extend `PERIOD_DAYS` with the new fixed-length periods:
-
-```ts
-const PERIOD_DAYS: Record<Exclude<PeriodKey, 'YTD'>, number> = {
-  '1D': 1,
-  '1W': 7,
-  '1M': 30,
-  '3M': 90,
-  '6M': 182,
-  '1Y': 365,
-  '3Y': 1095,
-  '5Y': 1825,
-};
-```
-
-`YTD` is not a fixed day-count — it's the start of the reference date's calendar year. Special-case
-it in `periodStartDate`:
+The current implementation multiplies a fixed day-count (`PERIOD_DAYS[period]`) against the
+reference date. That works for `1D`/`1W` (a day/a week is unambiguously N calendar days), but
+multiplying days out to `1M`/`3M`/`6M`/`1Y`/`3Y`/`5Y` doesn't actually mean "N months/years ago"
+— e.g. `5 * 365 = 1825` days drifts against the actual calendar date once leap years are crossed
+(a real "5 years ago" is 1826 or 1827 days back, depending how many Feb 29ths fall in the
+window), and doesn't match what a user means by "1 month ago" (28–31 days depending on the
+month). The mock's own period labels confirm calendar-relative semantics (`'3mo ago'`, `'1yr ago'`,
+`'5yr ago'`), so switch to calendar-date arithmetic (`setUTCMonth`/`setUTCFullYear`) for anything
+month-or-longer, keeping day arithmetic only for `1D`/`1W`:
 
 ```ts
 export function periodStartDate(period: PeriodKey, referenceDate: string): string {
   if (period === 'YTD') {
     return `${referenceDate.slice(0, 4)}-01-01`;
   }
-  const ref = new Date(`${referenceDate}T00:00:00Z`);
-  const days = PERIOD_DAYS[period];
-  const start = new Date(ref);
-  start.setUTCDate(start.getUTCDate() - days);
+  const start = new Date(`${referenceDate}T00:00:00Z`);
+  switch (period) {
+    case '1D':
+      start.setUTCDate(start.getUTCDate() - 1);
+      break;
+    case '1W':
+      start.setUTCDate(start.getUTCDate() - 7);
+      break;
+    case '1M':
+      start.setUTCMonth(start.getUTCMonth() - 1);
+      break;
+    case '3M':
+      start.setUTCMonth(start.getUTCMonth() - 3);
+      break;
+    case '6M':
+      start.setUTCMonth(start.getUTCMonth() - 6);
+      break;
+    case '1Y':
+      start.setUTCFullYear(start.getUTCFullYear() - 1);
+      break;
+    case '3Y':
+      start.setUTCFullYear(start.getUTCFullYear() - 3);
+      break;
+    case '5Y':
+      start.setUTCFullYear(start.getUTCFullYear() - 5);
+      break;
+  }
   return start.toISOString().slice(0, 10);
 }
 ```
 
-`sliceToPeriod` and everything downstream (`compare.ts`, `watchlist.ts`, `compare.ts`'s
-`buildPerformance`) call `periodStartDate` already and need no changes — they're generic over
-`PeriodKey`.
+This drops the `PERIOD_DAYS` record entirely — every branch is a direct calendar-arithmetic
+statement instead of a day-count lookup multiplied out. `sliceToPeriod` and everything downstream
+(`compare.ts`, `watchlist.ts`, `buildPerformance`) call `periodStartDate` already and need no
+changes — they're generic over `PeriodKey`.
 
 ### 3. `src/lib/api/providers/tiingo.ts` — extend the lookback window
 
@@ -102,8 +118,11 @@ through 4.
 
 - `src/lib/compute/returns.test.ts`: update the `periodStartDate`/`sliceToPeriod` cases to use
   the renamed periods (`7D`→`1W`, `30D`→`1M`), add a case for `YTD` (e.g.
-  `periodStartDate('YTD', '2026-07-17')` → `'2026-01-01'`), and add a case for one of the new
-  long periods (e.g. `5Y`).
+  `periodStartDate('YTD', '2026-07-17')` → `'2026-01-01'`), and add cases exercising the new
+  calendar-arithmetic branches — e.g. `periodStartDate('1Y', '2026-07-17')` → `'2025-07-17'` and
+  `periodStartDate('5Y', '2026-07-17')` → `'2021-07-17'` — plus one case that crosses a leap day
+  (e.g. a `1Y` or `3Y` request from a late-Feb reference date) to confirm the calendar arithmetic
+  doesn't drift the way fixed day-multiplication would have.
 - Provider tests (`tiingo.test.ts`, `financialModelingPrep.test.ts`) test response parsing, not
   the lookback constant — no changes expected, but re-run them to confirm.
 
