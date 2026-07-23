@@ -41,6 +41,7 @@ export function PerformanceChart({
   const styles = useMemo(() => createStyles(colors), [colors]);
   const touchAreaRef = useRef<RNView>(null);
   const pageOffsetXRef = useRef(0);
+  const isTouchingRef = useRef(false);
   const [chartAreaWidth, setChartAreaWidth] = useState(width);
   const [scrubFraction, setScrubFraction] = useState<number | null>(null);
   const values = series.points.map((p) => p.value);
@@ -104,6 +105,13 @@ export function PerformanceChart({
 
   function handleLayout(evt: LayoutChangeEvent) {
     setChartAreaWidth(evt.nativeEvent.layout.width);
+    // A layout above the chart (e.g. Overview's headline, which re-renders with new
+    // text on every scrub tick) can shift this view and re-fire onLayout mid-drag.
+    // measure() resolves asynchronously, so a stale/racy result landing while the
+    // finger is still moving can snap pageOffsetXRef to a wrong value and send the
+    // crosshair flying to an edge. The offset can't legitimately change mid-touch,
+    // so skip the remeasure while a touch is active.
+    if (isTouchingRef.current) return;
     touchAreaRef.current?.measure((_x, _y, _w, _h, pageX) => {
       pageOffsetXRef.current = pageX;
     });
@@ -116,10 +124,19 @@ export function PerformanceChart({
         onLayout={handleLayout}
         onStartShouldSetResponder={() => true}
         onMoveShouldSetResponder={() => true}
-        onResponderGrant={handleTouch}
+        onResponderGrant={(evt) => {
+          isTouchingRef.current = true;
+          handleTouch(evt);
+        }}
         onResponderMove={handleTouch}
-        onResponderRelease={() => updateScrub(null)}
-        onResponderTerminate={() => updateScrub(null)}
+        onResponderRelease={() => {
+          isTouchingRef.current = false;
+          updateScrub(null);
+        }}
+        onResponderTerminate={() => {
+          isTouchingRef.current = false;
+          updateScrub(null);
+        }}
         onResponderTerminationRequest={() => false}
       >
         <Svg width="100%" height={height} viewBox={`0 0 ${width} ${height}`} preserveAspectRatio="none">

@@ -66,6 +66,7 @@ export function CompareChart({ lines, width = 330, height = 160, onScrubChange }
   const styles = useMemo(() => createStyles(colors), [colors]);
   const touchAreaRef = useRef<RNView>(null);
   const pageOffsetXRef = useRef(0);
+  const isTouchingRef = useRef(false);
   const [chartAreaWidth, setChartAreaWidth] = useState(width);
   const [scrubX, setScrubX] = useState<number | null>(null);
   const allValues = lines.flatMap((l) => l.points.map((p) => p.value));
@@ -96,12 +97,18 @@ export function CompareChart({ lines, width = 330, height = 160, onScrubChange }
 
   function handleLayout(evt: LayoutChangeEvent) {
     setChartAreaWidth(evt.nativeEvent.layout.width);
+    // See PerformanceChart's handleLayout: a layout shift above this view can
+    // re-fire onLayout mid-drag, and measure()'s async result can land stale
+    // while the finger is still moving, snapping pageOffsetXRef to a wrong
+    // value. The offset can't legitimately change mid-touch, so skip it.
+    if (isTouchingRef.current) return;
     touchAreaRef.current?.measure((_x, _y, _w, _h, pageX) => {
       pageOffsetXRef.current = pageX;
     });
   }
 
   function endTouch() {
+    isTouchingRef.current = false;
     setScrubX(null);
     onScrubChange?.(null);
   }
@@ -113,7 +120,10 @@ export function CompareChart({ lines, width = 330, height = 160, onScrubChange }
         onLayout={handleLayout}
         onStartShouldSetResponder={() => true}
         onMoveShouldSetResponder={() => true}
-        onResponderGrant={handleTouch}
+        onResponderGrant={(evt) => {
+          isTouchingRef.current = true;
+          handleTouch(evt);
+        }}
         onResponderMove={handleTouch}
         onResponderRelease={endTouch}
         onResponderTerminate={endTouch}

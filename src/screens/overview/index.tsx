@@ -245,7 +245,11 @@ export function Overview() {
         </Pressable>
       </View>
 
-      <ScrollView contentContainerStyle={styles.scrollContent}>
+      {/* Disable vertical scroll while scrubbing the chart: otherwise a slightly
+          diagonal drag lets the ScrollView claim the gesture and terminate the
+          chart's touch responder, snapping the crosshair back to its rightmost
+          resting position. (CompareChart hides this by drawing no resting crosshair.) */}
+      <ScrollView contentContainerStyle={styles.scrollContent} scrollEnabled={scrubFraction === null}>
         {detail ? (
           <View style={styles.headline}>
             <Text style={styles.returnValue}>
