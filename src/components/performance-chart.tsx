@@ -74,7 +74,13 @@ export function PerformanceChart({
         : benchmarkPoints.length - 1
       : null;
   const current = pointPositionByDate(series.points, displayIndex, domain, { min, max }, width, height);
-  const pillLeft = Math.max(24, Math.min(width - 24, current.x));
+  // `current.x` lives in the SVG's internal `width`-unit viewBox space, which the
+  // <Svg> stretches to the actual rendered width via preserveAspectRatio="none" —
+  // but pillGroup below is a plain RN View, not part of that coordinate system, so
+  // its position has to be rescaled to real pixels or it drifts from the crosshair
+  // whenever the rendered width differs from `width`.
+  const renderedX = chartAreaWidth > 0 ? (current.x / width) * chartAreaWidth : current.x;
+  const pillLeft = Math.max(24, Math.min(chartAreaWidth - 24, renderedX));
   const gradientId = 'watchlist-chart-gradient';
 
   function updateScrub(fraction: number | null) {
