@@ -2,18 +2,37 @@ import type { PeriodKey } from '@/lib/api/types';
 
 export type PricePoint = { date: string; close: number };
 
-const PERIOD_DAYS: Record<PeriodKey, number> = {
-  '1D': 1,
-  '7D': 7,
-  '30D': 30,
-  '3M': 90,
-};
-
 export function periodStartDate(period: PeriodKey, referenceDate: string): string {
-  const ref = new Date(`${referenceDate}T00:00:00Z`);
-  const days = PERIOD_DAYS[period];
-  const start = new Date(ref);
-  start.setUTCDate(start.getUTCDate() - days);
+  if (period === 'YTD') {
+    return `${referenceDate.slice(0, 4)}-01-01`;
+  }
+  const start = new Date(`${referenceDate}T00:00:00Z`);
+  switch (period) {
+    case '1D':
+      start.setUTCDate(start.getUTCDate() - 1);
+      break;
+    case '1W':
+      start.setUTCDate(start.getUTCDate() - 7);
+      break;
+    case '1M':
+      start.setUTCMonth(start.getUTCMonth() - 1);
+      break;
+    case '3M':
+      start.setUTCMonth(start.getUTCMonth() - 3);
+      break;
+    case '6M':
+      start.setUTCMonth(start.getUTCMonth() - 6);
+      break;
+    case '1Y':
+      start.setUTCFullYear(start.getUTCFullYear() - 1);
+      break;
+    case '3Y':
+      start.setUTCFullYear(start.getUTCFullYear() - 3);
+      break;
+    case '5Y':
+      start.setUTCFullYear(start.getUTCFullYear() - 5);
+      break;
+  }
   return start.toISOString().slice(0, 10);
 }
 

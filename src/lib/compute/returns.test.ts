@@ -9,13 +9,32 @@ import {
 } from './returns';
 
 describe('periodStartDate', () => {
-  it('subtracts calendar days for fixed-length periods', () => {
-    expect(periodStartDate('7D', '2026-07-17')).toBe('2026-07-10');
-    expect(periodStartDate('30D', '2026-07-17')).toBe('2026-06-17');
+  it('subtracts calendar days for 1D and 1W', () => {
+    expect(periodStartDate('1D', '2026-07-17')).toBe('2026-07-16');
+    expect(periodStartDate('1W', '2026-07-17')).toBe('2026-07-10');
   });
 
-  it('subtracts calendar days for 3M', () => {
-    expect(periodStartDate('3M', '2026-07-17')).toBe('2026-04-18');
+  it('subtracts calendar months for 1M/3M/6M', () => {
+    expect(periodStartDate('1M', '2026-07-17')).toBe('2026-06-17');
+    expect(periodStartDate('3M', '2026-07-17')).toBe('2026-04-17');
+    expect(periodStartDate('6M', '2026-07-17')).toBe('2026-01-17');
+  });
+
+  it('starts YTD at January 1 of the reference year', () => {
+    expect(periodStartDate('YTD', '2026-07-17')).toBe('2026-01-01');
+  });
+
+  it('subtracts calendar years for 1Y/3Y/5Y', () => {
+    expect(periodStartDate('1Y', '2026-07-17')).toBe('2025-07-17');
+    expect(periodStartDate('3Y', '2026-07-17')).toBe('2023-07-17');
+    expect(periodStartDate('5Y', '2026-07-17')).toBe('2021-07-17');
+  });
+
+  it('does not drift across a leap day for year-based periods', () => {
+    // 2024 was a leap year; naive day-multiplication (365*N) would land
+    // one day off from the true calendar date for a reference date after Feb 29.
+    expect(periodStartDate('1Y', '2025-03-01')).toBe('2024-03-01');
+    expect(periodStartDate('3Y', '2025-03-01')).toBe('2022-03-01');
   });
 });
 
@@ -27,11 +46,11 @@ describe('sliceToPeriod', () => {
   ];
 
   it('returns an empty slice with no truncation note for empty input', () => {
-    expect(sliceToPeriod([], '7D')).toEqual({ points: [] });
+    expect(sliceToPeriod([], '1W')).toEqual({ points: [] });
   });
 
   it('includes only points on/after the period start, using the last point as "today"', () => {
-    const result = sliceToPeriod(prices, '7D');
+    const result = sliceToPeriod(prices, '1W');
     expect(result.points).toEqual([
       { date: '2026-01-05', close: 105 },
       { date: '2026-01-10', close: 110 },

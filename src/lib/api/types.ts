@@ -1,10 +1,14 @@
-// Capped to what every supported provider's free tier can actually back with full
-// history — longer periods (YTD/1Y/5Y/MAX) would silently be mislabeled with partial data.
-export type PeriodKey = '1D' | '7D' | '30D' | '3M';
+// 1D/1W use fixed day-count subtraction; 1M/3M/6M/1Y/3Y/5Y use calendar month/year
+// arithmetic (not day multiplication, which drifts across leap years); YTD starts at
+// January 1 of the reference year. See periodStartDate in src/lib/compute/returns.ts.
+// The Tiingo provider's once-a-day fetch window is sized to cover the longest period
+// (5Y) so switching periods never triggers a second fetch — see HISTORY_LOOKBACK_DAYS
+// in src/lib/api/providers/tiingo.ts.
+export type PeriodKey = '1D' | '1W' | '1M' | '3M' | '6M' | 'YTD' | '1Y' | '3Y' | '5Y';
 
-export const PERIODS: PeriodKey[] = ['1D', '7D', '30D', '3M'];
+export const PERIODS: PeriodKey[] = ['1D', '1W', '1M', '3M', '6M', 'YTD', '1Y', '3Y', '5Y'];
 
-export const DEFAULT_PERIOD: PeriodKey = '3M';
+export const DEFAULT_PERIOD: PeriodKey = '1Y';
 
 export interface Holding {
   ticker: string;
