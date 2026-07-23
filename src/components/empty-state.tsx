@@ -17,7 +17,7 @@ export function EmptyState({ title, message, ctaLabel, onPressCta }: EmptyStateP
   const styles = useMemo(() => createStyles(colors), [colors]);
   return (
     <View style={styles.container}>
-      <EmptyPortfoliosIcon />
+      <EmptyPortfoliosIcon color={colors.borderStrong} glyphColor={colors.textMuted} />
       <Text style={styles.title}>{title}</Text>
       <Text style={styles.message}>{message}</Text>
       {ctaLabel ? (

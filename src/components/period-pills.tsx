@@ -8,8 +8,6 @@ type PeriodPillsProps = {
   onSelect: (period: PeriodKey) => void;
 };
 
-const DIVIDER = 'rgba(233,233,237,.16)';
-
 export function PeriodPills({ active, onSelect }: PeriodPillsProps) {
   const { colors } = useTheme();
   return (
@@ -25,7 +23,7 @@ export function PeriodPills({ active, onSelect }: PeriodPillsProps) {
           <TouchableOpacity
             key={period}
             onPress={() => onSelect(period)}
-            style={[styles.pill, { borderColor: isActive ? colors.accent : DIVIDER }]}
+            style={[styles.pill, { borderColor: isActive ? colors.accent : colors.borderSubtle }]}
           >
             <Text style={[styles.label, { color: isActive ? colors.accent : colors.textPrimary }]}>
               {period}

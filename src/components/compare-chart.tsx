@@ -130,9 +130,9 @@ export function CompareChart({ lines, width = 330, height = 160, onScrubChange }
         onResponderTerminationRequest={() => false}
       >
         <Svg width="100%" height={height} viewBox={`0 0 ${width} ${height}`} preserveAspectRatio="none">
-          <Line x1={0} y1={height * 0.14} x2={width} y2={height * 0.14} stroke="#2a2d3d" strokeWidth={1} />
-          <Line x1={0} y1={height * 0.5} x2={width} y2={height * 0.5} stroke="#2a2d3d" strokeWidth={1} />
-          <Line x1={0} y1={height * 0.86} x2={width} y2={height * 0.86} stroke="#2a2d3d" strokeWidth={1} />
+          <Line x1={0} y1={height * 0.14} x2={width} y2={height * 0.14} stroke={colors.border} strokeWidth={1} />
+          <Line x1={0} y1={height * 0.5} x2={width} y2={height * 0.5} stroke={colors.border} strokeWidth={1} />
+          <Line x1={0} y1={height * 0.86} x2={width} y2={height * 0.86} stroke={colors.border} strokeWidth={1} />
           {lines.map((line) => (
             <Path
               key={line.id}

@@ -1,25 +1,30 @@
-// "Nocturne" dark palette — extracted from the mockup source of truth,
-// Portfolio Tracker.html (data-screen-label="Nocturne Tab Shell").
+// "Nocturne" dark palette — higher-contrast revision extracted from the
+// updated design artifact's "4a" screen ("Detail — Nocturne (high contrast)").
+// Deepens the ground and lightens muted text/borders vs the original mock
+// (docs/mock-reference.html, data-screen-label="Nocturne Detail") for better
+// legibility. positive/negative/chartPalette aren't shown in that screen —
+// derived by applying the same lightening delta observed on `accent`.
 // See docs/superpowers/specs/2026-07-16-portfolio-comparison-design.md for the product spec.
 import type { Theme } from '../tokens';
 
 export const nocturneTheme: Theme = {
   name: 'nocturne',
   colors: {
-    background: '#161826',
+    background: '#12131e',
     surface: '#1c1e2c',
     surfaceMuted: '#232532',
-    border: '#232532',
-    borderStrong: '#2c2f40',
-    borderSubtle: '#1e2030',
-    textPrimary: '#e9e9ed',
-    textSecondary: '#75798c',
-    textMuted: '#595d6c',
-    accent: '#9184d9',
-    accentSoft: '#d2cefd',
-    negative: '#e08787',
-    positive: '#7fbf98',
-    chartPalette: ['#9184d9', '#7fbf98', '#e0a567', '#6ea8d8', '#e08787', '#c9a4e0'],
+    border: '#3a3d54',
+    borderStrong: '#454968',
+    borderSubtle: '#262a3d',
+    textPrimary: '#f2f2f5',
+    textSecondary: '#c3c6da',
+    textMuted: '#9498b0',
+    accent: '#a89bec',
+    accentSoft: '#e3defc',
+    negative: '#f79e9a',
+    positive: '#96d6ab',
+    chartPalette: ['#a89bec', '#96d6ab', '#f7bc7a', '#85bfeb', '#f79e9a', '#e0bbf3'],
+    scrim: 'rgba(10,11,18,0.55)',
   },
   typography: {
     weight: {

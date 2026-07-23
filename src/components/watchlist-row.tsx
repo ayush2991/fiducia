@@ -187,7 +187,7 @@ const createStyles = (colors: ColorTokens) =>
       justifyContent: 'space-between',
       paddingVertical: 7,
       borderBottomWidth: 1,
-      borderBottomColor: '#21232f',
+      borderBottomColor: colors.borderSubtle,
     },
     statLabel: {
       fontSize: 13,

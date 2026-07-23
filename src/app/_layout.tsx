@@ -4,7 +4,7 @@ import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
 
 import { seedDevProviderFromEnv } from '@/lib/api/settings';
-import { ThemeProvider } from '@/theme/ThemeProvider';
+import { ThemeProvider, useTheme } from '@/theme/ThemeProvider';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -14,6 +14,21 @@ const queryClient = new QueryClient({
   },
 });
 
+function AppShell() {
+  const { themeName } = useTheme();
+
+  return (
+    <>
+      <Stack screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="(tabs)" />
+        <Stack.Screen name="add-portfolio" options={{ presentation: 'modal' }} />
+        <Stack.Screen name="add-ticker" options={{ presentation: 'modal' }} />
+      </Stack>
+      <StatusBar style={themeName === 'daybreak' ? 'dark' : 'light'} />
+    </>
+  );
+}
+
 export default function RootLayout() {
   useEffect(() => {
     seedDevProviderFromEnv();
@@ -22,12 +37,7 @@ export default function RootLayout() {
   return (
     <ThemeProvider>
       <QueryClientProvider client={queryClient}>
-        <Stack screenOptions={{ headerShown: false }}>
-          <Stack.Screen name="(tabs)" />
-          <Stack.Screen name="add-portfolio" options={{ presentation: 'modal' }} />
-          <Stack.Screen name="add-ticker" options={{ presentation: 'modal' }} />
-        </Stack>
-        <StatusBar style="light" />
+        <AppShell />
       </QueryClientProvider>
     </ThemeProvider>
   );
