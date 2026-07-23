@@ -1,5 +1,5 @@
-import { useMemo, useState } from 'react';
-import type { GestureResponderEvent, LayoutChangeEvent } from 'react-native';
+import { useMemo, useRef, useState } from 'react';
+import type { GestureResponderEvent, LayoutChangeEvent, View as RNView } from 'react-native';
 import { StyleSheet, Text, View } from 'react-native';
 import { Circle, Defs, Line, LinearGradient, Path, Stop, Svg, Text as SvgText } from 'react-native-svg';
 
@@ -39,6 +39,8 @@ export function PerformanceChart({
 }: PerformanceChartProps) {
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
+  const touchAreaRef = useRef<RNView>(null);
+  const pageOffsetXRef = useRef(0);
   const [chartAreaWidth, setChartAreaWidth] = useState(width);
   const [scrubFraction, setScrubFraction] = useState<number | null>(null);
   const values = series.points.map((p) => p.value);
@@ -90,16 +92,27 @@ export function PerformanceChart({
 
   function handleTouch(evt: GestureResponderEvent) {
     if (values.length === 0 || chartAreaWidth <= 0) return;
-    updateScrub(Math.max(0, Math.min(1, evt.nativeEvent.locationX / chartAreaWidth)));
+    // `locationX` is relative to whichever native view is currently under the
+    // finger, which on the New Architecture can be any of the Svg's several
+    // nested child views (Path/Line/Circle) rather than this touch surface —
+    // so it jumps around mid-drag instead of tracking smoothly. `pageX` is
+    // always screen-relative and immune to that, so we subtract the touch
+    // surface's own measured page offset (captured in handleLayout) instead.
+    const x = evt.nativeEvent.pageX - pageOffsetXRef.current;
+    updateScrub(Math.max(0, Math.min(1, x / chartAreaWidth)));
   }
 
   function handleLayout(evt: LayoutChangeEvent) {
     setChartAreaWidth(evt.nativeEvent.layout.width);
+    touchAreaRef.current?.measure((_x, _y, _w, _h, pageX) => {
+      pageOffsetXRef.current = pageX;
+    });
   }
 
   return (
     <View style={styles.wrapper}>
       <View
+        ref={touchAreaRef}
         onLayout={handleLayout}
         onStartShouldSetResponder={() => true}
         onMoveShouldSetResponder={() => true}
@@ -107,6 +120,7 @@ export function PerformanceChart({
         onResponderMove={handleTouch}
         onResponderRelease={() => updateScrub(null)}
         onResponderTerminate={() => updateScrub(null)}
+        onResponderTerminationRequest={() => false}
       >
         <Svg width="100%" height={height} viewBox={`0 0 ${width} ${height}`} preserveAspectRatio="none">
           <Defs>

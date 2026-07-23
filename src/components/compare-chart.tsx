@@ -1,5 +1,5 @@
-import { useMemo, useState } from 'react';
-import type { GestureResponderEvent, LayoutChangeEvent } from 'react-native';
+import { useMemo, useRef, useState } from 'react';
+import type { GestureResponderEvent, LayoutChangeEvent, View as RNView } from 'react-native';
 import { StyleSheet, Text, View } from 'react-native';
 import { Circle, Line, Path, Svg } from 'react-native-svg';
 
@@ -64,6 +64,8 @@ function sharedScalePosition(
 export function CompareChart({ lines, width = 330, height = 160, onScrubChange }: CompareChartProps) {
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
+  const touchAreaRef = useRef<RNView>(null);
+  const pageOffsetXRef = useRef(0);
   const [chartAreaWidth, setChartAreaWidth] = useState(width);
   const [scrubX, setScrubX] = useState<number | null>(null);
   const allValues = lines.flatMap((l) => l.points.map((p) => p.value));
@@ -81,13 +83,22 @@ export function CompareChart({ lines, width = 330, height = 160, onScrubChange }
 
   function handleTouch(evt: GestureResponderEvent) {
     if (chartAreaWidth <= 0) return;
-    const x = Math.max(0, Math.min(chartAreaWidth, evt.nativeEvent.locationX));
+    // `locationX` is relative to whichever native view is currently under the
+    // finger, which on the New Architecture can be any of the Svg's several
+    // nested child views (Path/Line/Circle) rather than this touch surface —
+    // so it jumps around mid-drag instead of tracking smoothly. `pageX` is
+    // always screen-relative and immune to that, so we subtract the touch
+    // surface's own measured page offset (captured in handleLayout) instead.
+    const x = Math.max(0, Math.min(chartAreaWidth, evt.nativeEvent.pageX - pageOffsetXRef.current));
     setScrubX(x);
     onScrubChange?.(x / chartAreaWidth);
   }
 
   function handleLayout(evt: LayoutChangeEvent) {
     setChartAreaWidth(evt.nativeEvent.layout.width);
+    touchAreaRef.current?.measure((_x, _y, _w, _h, pageX) => {
+      pageOffsetXRef.current = pageX;
+    });
   }
 
   function endTouch() {
@@ -98,6 +109,7 @@ export function CompareChart({ lines, width = 330, height = 160, onScrubChange }
   return (
     <View style={styles.wrapper}>
       <View
+        ref={touchAreaRef}
         onLayout={handleLayout}
         onStartShouldSetResponder={() => true}
         onMoveShouldSetResponder={() => true}
@@ -105,6 +117,7 @@ export function CompareChart({ lines, width = 330, height = 160, onScrubChange }
         onResponderMove={handleTouch}
         onResponderRelease={endTouch}
         onResponderTerminate={endTouch}
+        onResponderTerminationRequest={() => false}
       >
         <Svg width="100%" height={height} viewBox={`0 0 ${width} ${height}`} preserveAspectRatio="none">
           <Line x1={0} y1={height * 0.14} x2={width} y2={height * 0.14} stroke="#2a2d3d" strokeWidth={1} />
