@@ -28,6 +28,14 @@ export async function saveAndActivateProviderKey(providerId: ProviderId, key: st
   await storage.setActiveProviderId(providerId);
 }
 
+// Switches the active provider using a key already saved from a prior
+// "Save & Activate" — no re-entry/re-validation needed.
+export async function activateStoredProviderKey(providerId: ProviderId): Promise<void> {
+  const key = await storage.getStoredApiKey(providerId);
+  if (!key) throw new Error('No saved key for this provider');
+  await storage.setActiveProviderId(providerId);
+}
+
 export async function clearProviderKey(providerId: ProviderId): Promise<void> {
   await storage.clearStoredApiKey(providerId);
   const active = await storage.getActiveProviderId();

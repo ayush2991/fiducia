@@ -11,8 +11,8 @@ function mockFetchOnce(status: number, body: unknown) {
 describe('financialModelingPrepProvider.fetchDailySeries', () => {
   it('maps and sorts the bare array into PricePoint[]', async () => {
     mockFetchOnce(200, [
-      { date: '2024-01-02', close: 101 },
-      { date: '2024-01-01', close: 100 },
+      { date: '2024-01-02', price: 101 },
+      { date: '2024-01-01', price: 100 },
     ]);
     const points = await financialModelingPrepProvider.fetchDailySeries('SPY', 'key');
     expect(points).toEqual([
@@ -39,6 +39,13 @@ describe('financialModelingPrepProvider.fetchDailySeries', () => {
     mockFetchOnce(401, {});
     await expect(financialModelingPrepProvider.fetchDailySeries('SPY', 'bad-key')).rejects.toThrow(
       'rejected the API key'
+    );
+  });
+
+  it('throws a plan-specific message on 402', async () => {
+    mockFetchOnce(402, {});
+    await expect(financialModelingPrepProvider.fetchDailySeries('QQQ', 'key')).rejects.toThrow(
+      'plan does not include this data'
     );
   });
 });

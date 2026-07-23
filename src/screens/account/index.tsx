@@ -5,6 +5,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { ChevronRightIcon } from '@/components/icons';
 import {
+  activateStoredProviderKey,
   clearProviderKey,
   getActiveProvider,
   hasStoredKey,
@@ -31,25 +32,38 @@ function ProviderRow({
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const [keyInput, setKeyInput] = useState('');
+  const [showKeyForm, setShowKeyForm] = useState(false);
   const queryClient = useQueryClient();
+
+  const invalidateProviderQueries = () => {
+    queryClient.invalidateQueries({ queryKey: ['settingsProviders'] });
+    queryClient.invalidateQueries({ queryKey: ['activeProvider'] });
+  };
 
   const saveMutation = useMutation({
     mutationFn: (key: string) => saveAndActivateProviderKey(provider.id, key),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['settingsProviders'] });
-      queryClient.invalidateQueries({ queryKey: ['activeProvider'] });
+      invalidateProviderQueries();
       setKeyInput('');
+      setShowKeyForm(false);
+      onToggle();
+    },
+  });
+
+  const activateMutation = useMutation({
+    mutationFn: () => activateStoredProviderKey(provider.id),
+    onSuccess: () => {
+      invalidateProviderQueries();
       onToggle();
     },
   });
 
   const clearMutation = useMutation({
     mutationFn: () => clearProviderKey(provider.id),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['settingsProviders'] });
-      queryClient.invalidateQueries({ queryKey: ['activeProvider'] });
-    },
+    onSuccess: invalidateProviderQueries,
   });
+
+  const offerQuickActivate = hasKey && !isActive && !showKeyForm;
 
   return (
     <View>
@@ -69,35 +83,59 @@ function ProviderRow({
       </Pressable>
       {isExpanded && (
         <View style={styles.expanded}>
-          <TextInput
-            style={styles.input}
-            placeholder="Paste API key"
-            placeholderTextColor={colors.textMuted}
-            autoCapitalize="none"
-            autoCorrect={false}
-            secureTextEntry
-            value={keyInput}
-            onChangeText={setKeyInput}
-          />
-          {saveMutation.isError ? (
-            <Text style={styles.error}>{(saveMutation.error as Error).message}</Text>
-          ) : null}
-          <Pressable
-            style={[styles.saveBtn, !keyInput.trim() && styles.saveBtnDisabled]}
-            disabled={!keyInput.trim() || saveMutation.isPending}
-            onPress={() => saveMutation.mutate(keyInput.trim())}
-          >
-            {saveMutation.isPending ? (
-              <ActivityIndicator color={colors.background} />
-            ) : (
-              <Text style={styles.saveBtnLabel}>Save & Activate</Text>
-            )}
-          </Pressable>
-          {hasKey && !isActive ? (
-            <Pressable style={styles.clearBtn} onPress={() => clearMutation.mutate()}>
-              <Text style={styles.clearBtnLabel}>Remove saved key</Text>
-            </Pressable>
-          ) : null}
+          {offerQuickActivate ? (
+            <>
+              {activateMutation.isError ? (
+                <Text style={styles.error}>{(activateMutation.error as Error).message}</Text>
+              ) : null}
+              <Pressable
+                style={styles.saveBtn}
+                disabled={activateMutation.isPending}
+                onPress={() => activateMutation.mutate()}
+              >
+                {activateMutation.isPending ? (
+                  <ActivityIndicator color={colors.background} />
+                ) : (
+                  <Text style={styles.saveBtnLabel}>Activate</Text>
+                )}
+              </Pressable>
+              <Pressable style={styles.clearBtn} onPress={() => setShowKeyForm(true)}>
+                <Text style={styles.clearBtnLabel}>Use a different key</Text>
+              </Pressable>
+            </>
+          ) : (
+            <>
+              <TextInput
+                style={styles.input}
+                placeholder="Paste API key"
+                placeholderTextColor={colors.textMuted}
+                autoCapitalize="none"
+                autoCorrect={false}
+                secureTextEntry
+                value={keyInput}
+                onChangeText={setKeyInput}
+              />
+              {saveMutation.isError ? (
+                <Text style={styles.error}>{(saveMutation.error as Error).message}</Text>
+              ) : null}
+              <Pressable
+                style={[styles.saveBtn, !keyInput.trim() && styles.saveBtnDisabled]}
+                disabled={!keyInput.trim() || saveMutation.isPending}
+                onPress={() => saveMutation.mutate(keyInput.trim())}
+              >
+                {saveMutation.isPending ? (
+                  <ActivityIndicator color={colors.background} />
+                ) : (
+                  <Text style={styles.saveBtnLabel}>Save & Activate</Text>
+                )}
+              </Pressable>
+              {hasKey && !isActive ? (
+                <Pressable style={styles.clearBtn} onPress={() => clearMutation.mutate()}>
+                  <Text style={styles.clearBtnLabel}>Remove saved key</Text>
+                </Pressable>
+              ) : null}
+            </>
+          )}
           <Pressable onPress={() => Linking.openURL(provider.signupUrl)}>
             <Text style={styles.signupLink}>Get a free API key →</Text>
           </Pressable>
