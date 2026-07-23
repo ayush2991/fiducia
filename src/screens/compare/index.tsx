@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { router } from 'expo-router';
-import { useQuery } from '@tanstack/react-query';
+import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import { ActivityIndicator, FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -85,6 +85,7 @@ export function Compare() {
   } = useQuery({
     queryKey: ['compare', period],
     queryFn: () => compareEntities(period),
+    placeholderData: keepPreviousData,
   });
   const { data: activeProvider, isPending: isProviderPending } = useQuery({
     queryKey: ['activeProvider'],
@@ -104,36 +105,6 @@ export function Compare() {
       else next.add(id);
       return next;
     });
-  }
-
-  if (isPending) {
-    return (
-      <View style={[styles.container, styles.centered]}>
-        <ActivityIndicator color={colors.accent} />
-      </View>
-    );
-  }
-
-  if (entities.length === 0) {
-    return (
-      <EmptyState
-        title="Nothing to compare yet"
-        message="Add at least one portfolio to overlay its performance against benchmarks or other portfolios."
-        ctaLabel="+ Add Portfolio"
-        onPressCta={() => router.push('/add-portfolio')}
-      />
-    );
-  }
-
-  if (!isProviderPending && !activeProvider) {
-    return (
-      <EmptyState
-        title="No market data provider"
-        message="Add an API key in Settings to see performance, returns, and chart data."
-        ctaLabel="Go to Settings"
-        onPressCta={() => router.push('/account')}
-      />
-    );
   }
 
   const visibleCount = entities.length - hiddenIds.size;
@@ -194,28 +165,48 @@ export function Compare() {
         </View>
       ) : null}
       <PeriodPills active={period} onSelect={setPeriod} />
-      <FlatList
-        data={entities}
-        keyExtractor={(item) => item.portfolio.id}
-        ListHeaderComponent={
-          <View style={styles.chartWrapper}>
-            <CompareChart lines={lines} onScrubChange={setScrubFraction} />
-            <Text style={styles.sectionLabel}>
-              {isScrubbing ? 'Value at crosshair' : 'Portfolios & Benchmarks'}
-            </Text>
-          </View>
-        }
-        renderItem={({ item }) => (
-          <EntityRow
-            entity={item}
-            color={colorById.get(item.portfolio.id) ?? colors.accent}
-            isVisible={!hiddenIds.has(item.portfolio.id)}
-            onToggle={() => toggle(item.portfolio.id)}
-            scrubPercent={scrubPercentFor(item)}
-          />
-        )}
-        contentContainerStyle={styles.list}
-      />
+      {isPending ? (
+        <View style={[styles.container, styles.centered]}>
+          <ActivityIndicator color={colors.accent} />
+        </View>
+      ) : entities.length === 0 ? (
+        <EmptyState
+          title="Nothing to compare yet"
+          message="Add at least one portfolio to overlay its performance against benchmarks or other portfolios."
+          ctaLabel="+ Add Portfolio"
+          onPressCta={() => router.push('/add-portfolio')}
+        />
+      ) : !isProviderPending && !activeProvider ? (
+        <EmptyState
+          title="No market data provider"
+          message="Add an API key in Settings to see performance, returns, and chart data."
+          ctaLabel="Go to Settings"
+          onPressCta={() => router.push('/account')}
+        />
+      ) : (
+        <FlatList
+          data={entities}
+          keyExtractor={(item) => item.portfolio.id}
+          ListHeaderComponent={
+            <View style={styles.chartWrapper}>
+              <CompareChart lines={lines} onScrubChange={setScrubFraction} />
+              <Text style={styles.sectionLabel}>
+                {isScrubbing ? 'Value at crosshair' : 'Portfolios & Benchmarks'}
+              </Text>
+            </View>
+          }
+          renderItem={({ item }) => (
+            <EntityRow
+              entity={item}
+              color={colorById.get(item.portfolio.id) ?? colors.accent}
+              isVisible={!hiddenIds.has(item.portfolio.id)}
+              onToggle={() => toggle(item.portfolio.id)}
+              scrubPercent={scrubPercentFor(item)}
+            />
+          )}
+          contentContainerStyle={styles.list}
+        />
+      )}
     </View>
   );
 }
