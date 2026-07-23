@@ -23,7 +23,7 @@ describe('annualizedReturn', () => {
     expect(annualizedReturn(5, 30, true)).toBeGreaterThan(5);
   });
 
-  it('is unaffected by truncation for an untruncated short period like 7D', () => {
+  it('is unaffected by truncation for an untruncated short period like 1W', () => {
     // isTruncated=false means the ticker itself has plenty of history —
     // the user just picked a short period, which should behave as before
     expect(annualizedReturn(2, 7, false)).toBeGreaterThan(2);
