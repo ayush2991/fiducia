@@ -9,13 +9,11 @@ function mockFetchOnce(status: number, body: unknown) {
 }
 
 describe('financialModelingPrepProvider.fetchDailySeries', () => {
-  it('maps and sorts the "historical" array into PricePoint[]', async () => {
-    mockFetchOnce(200, {
-      historical: [
-        { date: '2024-01-02', close: 101 },
-        { date: '2024-01-01', close: 100 },
-      ],
-    });
+  it('maps and sorts the bare array into PricePoint[]', async () => {
+    mockFetchOnce(200, [
+      { date: '2024-01-02', close: 101 },
+      { date: '2024-01-01', close: 100 },
+    ]);
     const points = await financialModelingPrepProvider.fetchDailySeries('SPY', 'key');
     expect(points).toEqual([
       { date: '2024-01-01', close: 100 },
@@ -30,8 +28,8 @@ describe('financialModelingPrepProvider.fetchDailySeries', () => {
     );
   });
 
-  it('throws on a missing/empty historical array', async () => {
-    mockFetchOnce(200, {});
+  it('throws on an empty array', async () => {
+    mockFetchOnce(200, []);
     await expect(financialModelingPrepProvider.fetchDailySeries('BOGUS', 'key')).rejects.toThrow(
       'Unknown ticker or no price data returned for BOGUS'
     );

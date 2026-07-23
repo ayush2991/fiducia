@@ -49,8 +49,11 @@ export async function ensureFreshHistory(ticker: string): Promise<boolean> {
       const tail = latest === null ? series : series.filter((p) => p.date > latest);
       await upsertPrices(ticker, tail);
       return true;
-    } catch {
+    } catch (error) {
       // Fetch failed (offline / rate limit) — serve whatever is already cached.
+      if (typeof __DEV__ !== 'undefined' && __DEV__) {
+        console.warn(`ensureFreshHistory: refresh failed for ${ticker}`, error);
+      }
       return false;
     }
   }).finally(() => {

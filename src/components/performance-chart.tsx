@@ -43,7 +43,11 @@ export function PerformanceChart({
   const [scrubFraction, setScrubFraction] = useState<number | null>(null);
   const values = series.points.map((p) => p.value);
   const benchmarkValues = benchmarkSeries?.points.map((p) => p.value) ?? [];
-  const { min, max } = seriesRange(values);
+  // Portfolio and benchmark share one value scale (like CompareChart) rather than
+  // each being normalized to its own min/max — otherwise a 50%-return line and a
+  // 16%-return line would both get stretched to fill the same chart height and
+  // look equally sized instead of visibly different.
+  const { min, max } = seriesRange([...values, ...benchmarkValues]);
   const benchmarkPoints = benchmarkSeries?.points ?? [];
   // A shared date domain across both series, so a series with less real
   // history (e.g. a brand-new ticker) is positioned by its actual dates
@@ -111,28 +115,22 @@ export function PerformanceChart({
           {showSeries ? (
             <Path d={areaPathByDate(series.points, domain, { min, max }, width, height)} fill={`url(#${gradientId})`} />
           ) : null}
-          {showBenchmark && benchmarkPoints.length > 0
-            ? (() => {
-                const benchmarkRange = seriesRange(benchmarkValues);
-                return (
-                  <Path
-                    d={linePathByDate(benchmarkPoints, domain, benchmarkRange, width, height)}
-                    fill="none"
-                    stroke="#595d6c"
-                    strokeWidth={1.3}
-                    strokeDasharray="3,3"
-                  />
-                );
-              })()
-            : null}
+          {showBenchmark && benchmarkPoints.length > 0 ? (
+            <Path
+              d={linePathByDate(benchmarkPoints, domain, { min, max }, width, height)}
+              fill="none"
+              stroke="#595d6c"
+              strokeWidth={1.3}
+              strokeDasharray="3,3"
+            />
+          ) : null}
           {showBenchmark && benchmarkPoints.length > 0 && benchmarkDisplayIndex !== null
             ? (() => {
-                const benchmarkRange = seriesRange(benchmarkValues);
                 const pos = pointPositionByDate(
                   benchmarkPoints,
                   benchmarkDisplayIndex,
                   domain,
-                  benchmarkRange,
+                  { min, max },
                   width,
                   height
                 );
