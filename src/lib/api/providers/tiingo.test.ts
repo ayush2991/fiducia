@@ -37,6 +37,24 @@ describe('tiingoProvider.fetchDailySeries', () => {
   });
 });
 
+describe('tiingoProvider.fetchDailySeries startDate window', () => {
+  beforeEach(() => {
+    jest.useFakeTimers().setSystemTime(new Date('2026-07-17T12:00:00Z'));
+  });
+
+  afterEach(() => {
+    jest.useRealTimers();
+  });
+
+  it('requests a startDate far enough back to cover the 5Y period', async () => {
+    mockFetchOnce(200, [{ date: '2024-01-01T00:00:00.000Z', close: 100 }]);
+    await tiingoProvider.fetchDailySeries('SPY', 'key');
+    const calledUrl = (global.fetch as jest.Mock).mock.calls[0][0] as string;
+    const startDate = new URL(calledUrl).searchParams.get('startDate');
+    expect(startDate).toBe('2021-05-04');
+  });
+});
+
 describe('tiingoProvider.lookupCompanyName', () => {
   it('returns the resolved name', async () => {
     mockFetchOnce(200, { name: 'SPDR S&P 500 ETF Trust' });

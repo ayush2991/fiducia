@@ -11,10 +11,14 @@ type TickerMetadataResponse = { name?: string };
 
 // Without a startDate, Tiingo's /prices endpoint returns only the single most
 // recent trading day, not a history — so every fetch must request an explicit
-// range. 130 calendar days comfortably covers the longest supported period
-// (3M ~= 90 calendar days) plus weekends/holidays and a lookback day for return
-// calculations.
-const HISTORY_LOOKBACK_DAYS = 130;
+// range. 1900 calendar days comfortably covers the longest supported period
+// (5Y = 5 calendar years, i.e. ~1826-1827 days depending on leap years) plus a
+// buffer for weekends/holidays and a lookback day for return calculations. This
+// window is fetched once per ticker per calendar day (see ensureFreshHistory in
+// src/lib/api/priceSync.ts) and cached in full, so every period from 1D to 5Y is
+// served by slicing that single cached window — switching periods never triggers
+// another fetch.
+const HISTORY_LOOKBACK_DAYS = 1900;
 
 function startDateParam(): string {
   const start = new Date();
