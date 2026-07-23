@@ -1,4 +1,5 @@
 import { fetchDailySeries, lookupCompanyName, NoProviderConfiguredError } from './marketData';
+import { ensureFreshHistory } from './priceSync';
 import type {
   DataFreshness,
   PeriodKey,
@@ -16,33 +17,10 @@ import {
   tradingDaySpan,
   type PricePoint,
 } from '@/lib/compute/returns';
-import { getAllPrices, getLatestDate, upsertPrices } from '@/lib/storage/prices';
+import { getAllPrices, upsertPrices } from '@/lib/storage/prices';
 import * as watchlistStorage from '@/lib/storage/watchlist';
 
 const BENCHMARK_TICKER = 'SPY';
-
-function todayISODate(): string {
-  return new Date().toISOString().slice(0, 10);
-}
-
-// PeriodKey is capped to what a single 'compact' fetch (~100 trading days) can back,
-// so a once-a-day refresh is always enough — no separate full-history fetch needed.
-// Returns whether the ticker's cache is fresh as of today (already-fresh or fetched-and-upserted
-// both count) so callers can tell a real refresh failure apart from "nothing to do".
-async function ensureFreshHistory(ticker: string): Promise<boolean> {
-  const today = todayISODate();
-  const latest = await getLatestDate(ticker);
-  if (latest === today) return true;
-  try {
-    const series = await fetchDailySeries(ticker);
-    const tail = latest === null ? series : series.filter((p) => p.date > latest);
-    await upsertPrices(ticker, tail);
-    return true;
-  } catch {
-    // Fetch failed (offline / rate limit) — serve whatever is already cached, per spec §2/§5.
-    return false;
-  }
-}
 
 // Derives freshness from the refresh outcome + cache state of a ticker's relevant
 // tickers (itself, plus the fixed SPY benchmark it's always compared against).

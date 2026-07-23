@@ -1,17 +1,14 @@
 import { fetchDailySeries, lookupCompanyName } from './marketData';
+import { ensureFreshHistory } from './priceSync';
 import type { Holding, Portfolio } from './types';
 import * as storage from '@/lib/storage/portfolios';
-import { getLatestClose, getLatestDate, upsertPrices } from '@/lib/storage/prices';
+import { getLatestClose, upsertPrices } from '@/lib/storage/prices';
 
 function generateId(): string {
   return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
     const r = (Math.random() * 16) | 0;
     return (c === 'x' ? r : (r & 0x3) | 0x8).toString(16);
   });
-}
-
-function todayISODate(): string {
-  return new Date().toISOString().slice(0, 10);
 }
 
 function normalizeWeights(holdings: { ticker: string; weight: number }[]): { ticker: string; weight: number }[] {
@@ -104,23 +101,27 @@ export async function deletePortfolio(portfolioId: string): Promise<void> {
   await storage.deletePortfolio(portfolioId);
 }
 
-// Returns the latest price, refreshing from Alpha Vantage once per calendar day per
-// ticker (same once-a-day cap as watchlist.ts's ensureFreshHistory) rather than serving
-// a cached price forever. Falls back to a stale cache on fetch failure; throws only when
-// there's no cache at all and the fetch also fails (e.g. a genuinely unknown ticker).
+// Returns the latest price, refreshing from the active provider once per calendar
+// day per ticker rather than serving a cached price forever. Falls back to a stale
+// cache on fetch failure; throws only when there's no cache at all and the fetch
+// also fails (e.g. a genuinely unknown ticker).
 export async function getLatestPrice(ticker: string): Promise<number> {
-  const today = todayISODate();
-  const latestDate = await getLatestDate(ticker);
-  if (latestDate !== today) {
-    try {
-      const series = await fetchDailySeries(ticker); // throws on unknown ticker
-      const tail = latestDate === null ? series : series.filter((p) => p.date > latestDate);
-      await upsertPrices(ticker, tail);
-    } catch (err) {
-      if (latestDate === null) throw err; // nothing cached — surface the real error
-      // stale cache exists — serve it, per the offline/rate-limit fallback in spec §2/§5
-    }
+  const cachedBefore = await getLatestClose(ticker);
+  if (cachedBefore === null) {
+    // Nothing cached yet (brand-new ticker being validated) — fetch directly so a
+    // real failure (unknown ticker, rate limit, bad key) surfaces with its actual
+    // message, rather than the swallow-and-report-stale behavior priceSync's
+    // ensureFreshHistory uses for the multi-ticker refresh case below.
+    const series = await fetchDailySeries(ticker); // throws on unknown ticker
+    await upsertPrices(ticker, series);
+    const close = series[series.length - 1]?.close;
+    if (close === undefined) throw new Error(`No price data for ${ticker}`);
+    return close;
   }
+  // Cache already exists — go through the shared once-a-day-refresh path so this
+  // shares its in-flight de-dup and rate-limit-aware throttling with the other
+  // screens that may be refreshing the same ticker concurrently.
+  await ensureFreshHistory(ticker);
   const close = await getLatestClose(ticker);
   if (close === null) throw new Error(`No price data for ${ticker}`);
   return close;
