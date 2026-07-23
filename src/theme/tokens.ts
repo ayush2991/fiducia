@@ -18,6 +18,8 @@ export type ColorTokens = {
   // Distinct per-entity line colors for the Compare tab's overlay chart —
   // cycled through in portfolio/benchmark list order.
   chartPalette: string[];
+  // Modal backdrop overlay (e.g. the PortfolioSwitcher bottom sheet's scrim).
+  scrim: string;
 };
 
 // Font weights only — per-component fontSize/letterSpacing values are tuned

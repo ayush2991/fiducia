@@ -14,7 +14,39 @@ import {
 } from '@/lib/api/settings';
 import type { ProviderId, ProviderMetadata } from '@/lib/api/providers/types';
 import type { ColorTokens } from '@/theme/tokens';
-import { useTheme } from '@/theme/ThemeProvider';
+import { useTheme, type ThemePreference } from '@/theme/ThemeProvider';
+
+const APPEARANCE_OPTIONS: { value: ThemePreference; label: string }[] = [
+  { value: 'light', label: 'Light' },
+  { value: 'dark', label: 'Dark' },
+  { value: 'system', label: 'System' },
+];
+
+function AppearanceRow({
+  label,
+  isActive,
+  onPress,
+}: {
+  label: string;
+  isActive: boolean;
+  onPress: () => void;
+}) {
+  const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
+
+  return (
+    <Pressable style={styles.row} onPress={onPress}>
+      <View style={styles.iconChip}>
+        <View style={[styles.radioDot, { borderColor: isActive ? colors.accent : colors.borderStrong }]}>
+          {isActive && <View style={styles.radioDotFill} />}
+        </View>
+      </View>
+      <View style={styles.rowMeta}>
+        <Text style={styles.rowLabel}>{label}</Text>
+      </View>
+    </Pressable>
+  );
+}
 
 function ProviderRow({
   provider,
@@ -147,7 +179,7 @@ function ProviderRow({
 
 export function Account() {
   const insets = useSafeAreaInsets();
-  const { colors } = useTheme();
+  const { colors, themePreference, setThemePreference } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const [expandedId, setExpandedId] = useState<ProviderId | null>(null);
 
@@ -170,10 +202,19 @@ export function Account() {
     <View style={styles.container}>
       <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
         <Text style={styles.eyebrow}>Account</Text>
-        <Text style={styles.title}>Market Data Provider</Text>
+        <Text style={styles.title}>Preferences</Text>
       </View>
       <View style={styles.body}>
-        <Text style={styles.sectionLabel}>Provider</Text>
+        <Text style={styles.sectionLabel}>Appearance</Text>
+        {APPEARANCE_OPTIONS.map((option) => (
+          <AppearanceRow
+            key={option.value}
+            label={option.label}
+            isActive={themePreference === option.value}
+            onPress={() => setThemePreference(option.value)}
+          />
+        ))}
+        <Text style={[styles.sectionLabel, styles.sectionLabelSpaced]}>Provider</Text>
         <Text style={styles.sectionHint}>
           Pick one provider and add your own free API key. Only one provider is active at a time.
         </Text>
@@ -225,6 +266,9 @@ const createStyles = (colors: ColorTokens) =>
       textTransform: 'uppercase',
       color: colors.textSecondary,
       marginBottom: 6,
+    },
+    sectionLabelSpaced: {
+      marginTop: 24,
     },
     sectionHint: {
       fontSize: 12,

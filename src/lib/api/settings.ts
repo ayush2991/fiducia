@@ -1,4 +1,5 @@
 import * as storage from '@/lib/storage/settings';
+import type { ThemePreference } from '@/lib/storage/settings';
 import { PROVIDER_METADATA, type ProviderId, type ProviderMetadata } from './providers/types';
 import { tiingoProvider } from './providers/tiingo';
 import { financialModelingPrepProvider } from './providers/financialModelingPrep';
@@ -18,6 +19,14 @@ export async function getActiveProvider(): Promise<ProviderId | null> {
 
 export async function hasStoredKey(providerId: ProviderId): Promise<boolean> {
   return (await storage.getStoredApiKey(providerId)) !== null;
+}
+
+export async function getThemePreference(): Promise<ThemePreference | null> {
+  return storage.getThemePreference();
+}
+
+export async function setThemePreference(preference: ThemePreference): Promise<void> {
+  await storage.setThemePreference(preference);
 }
 
 // Validates the key against the live provider before persisting it or

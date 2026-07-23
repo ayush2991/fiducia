@@ -488,7 +488,7 @@ const createStyles = (colors: ColorTokens) =>
       flexDirection: 'row',
       paddingVertical: 8,
       borderBottomWidth: 1,
-      borderBottomColor: '#21232f',
+      borderBottomColor: colors.borderSubtle,
     },
     statsHeaderCell: {
       fontSize: 10,
@@ -578,7 +578,7 @@ const createStyles = (colors: ColorTokens) =>
     // Switcher modal
     scrim: {
       flex: 1,
-      backgroundColor: 'rgba(10,11,18,0.55)',
+      backgroundColor: colors.scrim,
       justifyContent: 'flex-end',
     },
     sheet: {
