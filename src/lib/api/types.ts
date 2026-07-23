@@ -37,7 +37,7 @@ export interface PerformanceStats {
   return: number;
   volatility: number;
   maxDrawdown: number;
-  sharpe: number;
+  sharpe: number | null;
   alpha: number;
   beta: number;
   correlation: number;

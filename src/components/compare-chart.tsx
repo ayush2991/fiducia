@@ -3,7 +3,8 @@ import type { GestureResponderEvent, LayoutChangeEvent } from 'react-native';
 import { StyleSheet, Text, View } from 'react-native';
 import { Circle, Line, Path, Svg } from 'react-native-svg';
 
-import { nearestIndexForX, seriesRange } from '@/lib/compute/chartGeometry';
+import { dateDomain, nearestIndexForDate, seriesRange, xFractionForDate } from '@/lib/compute/chartGeometry';
+import type { DateDomain, DatedPoint } from '@/lib/compute/chartGeometry';
 import type { ColorTokens } from '@/theme/tokens';
 import { useTheme } from '@/theme/ThemeProvider';
 
@@ -11,12 +12,11 @@ export type CompareChartLine = {
   id: string;
   color: string;
   dashed: boolean;
-  values: number[];
+  points: DatedPoint[];
 };
 
 type CompareChartProps = {
   lines: CompareChartLine[];
-  dates: string[];
   width?: number;
   height?: number;
   onScrubChange?: (fraction: number | null) => void;
@@ -25,45 +25,59 @@ type CompareChartProps = {
 const PAD_Y = 8;
 
 // Unlike the single-entity PerformanceChart (which scales its one line to its own
-// min/max), every line here must share one scale so entities stay comparable.
-function sharedScalePath(values: number[], min: number, max: number, width: number, height: number): string {
-  if (values.length === 0) return '';
+// min/max), every line here must share one value scale so entities stay comparable.
+// The x-axis, however, is positioned by each point's actual date within a shared
+// domain — not by array index — so a line with less real history (e.g. a
+// brand-new ticker) occupies only the trailing portion of the chart instead of
+// being stretched across the same width as a much longer line.
+function sharedScalePath(points: DatedPoint[], domain: DateDomain, min: number, max: number, width: number, height: number): string {
+  if (points.length === 0) return '';
   const range = max - min || 1;
-  const stepX = values.length > 1 ? width / (values.length - 1) : 0;
-  return values
-    .map((v, i) => {
-      const x = i * stepX;
-      const y = PAD_Y + (height - PAD_Y * 2) * (1 - (v - min) / range);
+  return points
+    .map((p, i) => {
+      const x = xFractionForDate(p.date, domain) * width;
+      const y = PAD_Y + (height - PAD_Y * 2) * (1 - (p.value - min) / range);
       return `${i === 0 ? 'M' : 'L'}${x.toFixed(1)},${y.toFixed(1)}`;
     })
     .join(' ');
 }
 
 // Position of a single point on a line drawn with sharedScalePath — same shared
-// min/max, so a scrub gesture places the dot exactly on that line's own path.
+// domain/min/max, so a scrub gesture places the dot exactly on that line's own path.
 function sharedScalePosition(
-  values: number[],
+  points: DatedPoint[],
   index: number,
+  domain: DateDomain,
   min: number,
   max: number,
   width: number,
   height: number
 ): { x: number; y: number } {
   const range = max - min || 1;
-  const stepX = values.length > 1 ? width / (values.length - 1) : 0;
-  const v = values[index];
-  return { x: index * stepX, y: PAD_Y + (height - PAD_Y * 2) * (1 - (v - min) / range) };
+  const p = points[index];
+  return {
+    x: xFractionForDate(p.date, domain) * width,
+    y: PAD_Y + (height - PAD_Y * 2) * (1 - (p.value - min) / range),
+  };
 }
 
-export function CompareChart({ lines, dates, width = 330, height = 160, onScrubChange }: CompareChartProps) {
+export function CompareChart({ lines, width = 330, height = 160, onScrubChange }: CompareChartProps) {
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const [chartAreaWidth, setChartAreaWidth] = useState(width);
   const [scrubX, setScrubX] = useState<number | null>(null);
-  const allValues = lines.flatMap((l) => l.values);
+  const allValues = lines.flatMap((l) => l.points.map((p) => p.value));
   const { min, max } = seriesRange(allValues);
+  const domain = dateDomain(lines.map((l) => l.points));
   const activeScrubX = scrubX !== null && chartAreaWidth > 0 ? scrubX : null;
   const crosshairX = activeScrubX !== null ? (activeScrubX / chartAreaWidth) * width : null;
+  const scrubTargetDate =
+    activeScrubX !== null && domain.minDate && domain.maxDate
+      ? new Date(
+          Date.parse(domain.minDate) +
+            (activeScrubX / chartAreaWidth) * (Date.parse(domain.maxDate) - Date.parse(domain.minDate))
+        ).toISOString()
+      : null;
 
   function handleTouch(evt: GestureResponderEvent) {
     if (chartAreaWidth <= 0) return;
@@ -99,7 +113,7 @@ export function CompareChart({ lines, dates, width = 330, height = 160, onScrubC
           {lines.map((line) => (
             <Path
               key={line.id}
-              d={sharedScalePath(line.values, min, max, width, height)}
+              d={sharedScalePath(line.points, domain, min, max, width, height)}
               fill="none"
               stroke={line.color}
               strokeWidth={2}
@@ -109,11 +123,11 @@ export function CompareChart({ lines, dates, width = 330, height = 160, onScrubC
           {crosshairX !== null ? (
             <Line x1={crosshairX} y1={0} x2={crosshairX} y2={height} stroke={colors.accentSoft} strokeWidth={1.5} />
           ) : null}
-          {activeScrubX !== null
+          {scrubTargetDate !== null
             ? lines.map((line) => {
-                if (line.values.length === 0) return null;
-                const index = nearestIndexForX(activeScrubX, line.values.length, chartAreaWidth);
-                const pos = sharedScalePosition(line.values, index, min, max, width, height);
+                if (line.points.length === 0) return null;
+                const index = nearestIndexForDate(scrubTargetDate, line.points);
+                const pos = sharedScalePosition(line.points, index, domain, min, max, width, height);
                 return (
                   <Circle
                     key={line.id}
@@ -129,10 +143,10 @@ export function CompareChart({ lines, dates, width = 330, height = 160, onScrubC
             : null}
         </Svg>
       </View>
-      {dates.length > 0 ? (
+      {domain.minDate && domain.maxDate ? (
         <View style={styles.xAxisRow}>
-          <Text style={styles.xAxisLabel}>{dates[0]}</Text>
-          <Text style={styles.xAxisLabel}>{dates[dates.length - 1]}</Text>
+          <Text style={styles.xAxisLabel}>{domain.minDate}</Text>
+          <Text style={styles.xAxisLabel}>{domain.maxDate}</Text>
         </View>
       ) : null}
     </View>

@@ -1,11 +1,16 @@
 import {
   areaPath,
+  dateDomain,
   lastPointPosition,
   linePath,
+  linePathByDate,
+  nearestIndexForDate,
   nearestIndexForX,
   percentChangeAt,
   pointPosition,
+  pointPositionByDate,
   seriesRange,
+  xFractionForDate,
 } from './chartGeometry';
 
 describe('linePath', () => {
@@ -91,5 +96,69 @@ describe('percentChangeAt', () => {
 
   it('returns 0 when the first value is 0, instead of NaN/Infinity', () => {
     expect(percentChangeAt([0, 10], 1)).toBe(0);
+  });
+});
+
+describe('dateDomain', () => {
+  it('spans the min/max date across all provided series', () => {
+    const longSeries = [{ date: '2026-01-01', value: 1 }, { date: '2026-03-01', value: 2 }];
+    const shortSeries = [{ date: '2026-02-20', value: 1 }, { date: '2026-03-01', value: 1.1 }];
+    expect(dateDomain([longSeries, shortSeries])).toEqual({ minDate: '2026-01-01', maxDate: '2026-03-01' });
+  });
+
+  it('returns empty strings for no points', () => {
+    expect(dateDomain([[], []])).toEqual({ minDate: '', maxDate: '' });
+  });
+});
+
+describe('xFractionForDate', () => {
+  const domain = { minDate: '2026-01-01', maxDate: '2026-01-11' };
+
+  it('maps the domain start to 0 and end to 1', () => {
+    expect(xFractionForDate('2026-01-01', domain)).toBe(0);
+    expect(xFractionForDate('2026-01-11', domain)).toBe(1);
+  });
+
+  it('maps a midpoint date proportionally', () => {
+    expect(xFractionForDate('2026-01-06', domain)).toBeCloseTo(0.5, 5);
+  });
+
+  it('returns 0.5 for a degenerate single-date domain', () => {
+    expect(xFractionForDate('2026-01-01', { minDate: '2026-01-01', maxDate: '2026-01-01' })).toBe(0.5);
+  });
+});
+
+describe('linePathByDate', () => {
+  it('returns an empty string for no points', () => {
+    expect(linePathByDate([], { minDate: '', maxDate: '' }, { min: 0, max: 0 }, 56, 24)).toBe('');
+  });
+
+  it('positions a short series only in the trailing portion of a wider domain', () => {
+    const domain = { minDate: '2026-01-01', maxDate: '2026-01-11' };
+    const points = [{ date: '2026-01-09', value: 10 }, { date: '2026-01-11', value: 20 }];
+    const path = linePathByDate(points, domain, { min: 10, max: 20 }, 100, 24, 0);
+    // day 9 of 11 -> fraction 0.8 -> x=80, value=min -> y=24; day 11 -> fraction 1 -> x=100, value=max -> y=0
+    expect(path).toBe('M80.0,24.0 L100.0,0.0');
+  });
+});
+
+describe('pointPositionByDate', () => {
+  it('places a point at the x-fraction implied by its date within the domain', () => {
+    const domain = { minDate: '2026-01-01', maxDate: '2026-01-11' };
+    const points = [{ date: '2026-01-01', value: 10 }, { date: '2026-01-06', value: 20 }];
+    expect(pointPositionByDate(points, 1, domain, { min: 10, max: 20 }, 100, 24, 0)).toEqual({ x: 50, y: 0 });
+  });
+});
+
+describe('nearestIndexForDate', () => {
+  it('picks the closest point by date, including for a series starting partway through a domain', () => {
+    const points = [{ date: '2026-01-09', value: 10 }, { date: '2026-01-10', value: 15 }, { date: '2026-01-11', value: 20 }];
+    expect(nearestIndexForDate('2026-01-01', points)).toBe(0);
+    expect(nearestIndexForDate('2026-01-10', points)).toBe(1);
+    expect(nearestIndexForDate('2026-01-11', points)).toBe(2);
+  });
+
+  it('returns 0 for an empty series', () => {
+    expect(nearestIndexForDate('2026-01-01', [])).toBe(0);
   });
 });

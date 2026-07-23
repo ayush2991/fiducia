@@ -1,7 +1,13 @@
 const TRADING_DAYS_PER_YEAR = 252;
 const RISK_FREE_RATE_PCT = 4;
+const MIN_ANNUALIZE_DAYS = 14;
 
-export function annualizedReturn(periodReturnPct: number, days: number): number {
+export function annualizedReturn(
+  periodReturnPct: number,
+  days: number,
+  isTruncated: boolean
+): number | null {
+  if (isTruncated && days < MIN_ANNUALIZE_DAYS) return null;
   if (days <= 0) return 0;
   const growth = 1 + periodReturnPct / 100;
   if (growth <= 0) return -100;
@@ -28,7 +34,11 @@ export function maxDrawdown(closes: number[]): number {
   return worst * 100;
 }
 
-export function sharpeRatio(annualizedReturnPct: number, annualizedVolatilityPct: number): number {
+export function sharpeRatio(
+  annualizedReturnPct: number | null,
+  annualizedVolatilityPct: number
+): number | null {
+  if (annualizedReturnPct === null) return null;
   if (annualizedVolatilityPct === 0) return 0;
   return (annualizedReturnPct - RISK_FREE_RATE_PCT) / annualizedVolatilityPct;
 }

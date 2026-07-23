@@ -107,6 +107,10 @@ const STATS_ROWS: { key: keyof PerformanceStats; label: string; suffix: string; 
   { key: 'correlation', label: 'Correlation', suffix: '', portfolioOnly: true },
 ];
 
+function formatStat(value: number | null, suffix: string): string {
+  return value !== null ? `${value.toFixed(2)}${suffix}` : 'N/A';
+}
+
 function StatsTable({ portfolio, benchmark }: { portfolio: PerformanceStats; benchmark: PerformanceStats }) {
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
@@ -121,11 +125,10 @@ function StatsTable({ portfolio, benchmark }: { portfolio: PerformanceStats; ben
         <View key={row.key} style={styles.statsRow}>
           <Text style={[styles.statsLabel, styles.statsMetricCol]}>{row.label}</Text>
           <Text style={[styles.statsPortfolioValue, styles.statsValueCol]}>
-            {portfolio[row.key].toFixed(2)}
-            {row.suffix}
+            {formatStat(portfolio[row.key], row.suffix)}
           </Text>
           <Text style={[styles.statsBenchValue, styles.statsValueCol]}>
-            {row.portfolioOnly ? '—' : `${benchmark[row.key].toFixed(2)}${row.suffix}`}
+            {row.portfolioOnly ? '—' : formatStat(benchmark[row.key], row.suffix)}
           </Text>
         </View>
       ))}

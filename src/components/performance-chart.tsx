@@ -3,7 +3,15 @@ import type { GestureResponderEvent, LayoutChangeEvent } from 'react-native';
 import { StyleSheet, Text, View } from 'react-native';
 import { Circle, Defs, Line, LinearGradient, Path, Stop, Svg, Text as SvgText } from 'react-native-svg';
 
-import { areaPath, linePath, nearestIndexForX, percentChangeAt, pointPosition, seriesRange } from '@/lib/compute/chartGeometry';
+import {
+  areaPathByDate,
+  dateDomain,
+  linePathByDate,
+  nearestIndexForDate,
+  percentChangeAt,
+  pointPositionByDate,
+  seriesRange,
+} from '@/lib/compute/chartGeometry';
 import type { PerformanceSeries } from '@/lib/api/types';
 import type { ColorTokens } from '@/theme/tokens';
 import { useTheme } from '@/theme/ThemeProvider';
@@ -36,18 +44,32 @@ export function PerformanceChart({
   const values = series.points.map((p) => p.value);
   const benchmarkValues = benchmarkSeries?.points.map((p) => p.value) ?? [];
   const { min, max } = seriesRange(values);
+  const benchmarkPoints = benchmarkSeries?.points ?? [];
+  // A shared date domain across both series, so a series with less real
+  // history (e.g. a brand-new ticker) is positioned by its actual dates
+  // instead of being stretched index-by-index across the same width as a
+  // series with far more history.
+  const domain = dateDomain([series.points, benchmarkPoints]);
   // Each series can have a different length (truncated history — see
   // CLAUDE.md's market-data section), so the drag position is resolved to
-  // an index independently per series rather than sharing one `scrubIndex`.
-  const displayIndex =
-    scrubFraction !== null ? nearestIndexForX(scrubFraction, values.length, 1) : values.length - 1;
-  const benchmarkDisplayIndex =
-    benchmarkValues.length > 0
-      ? scrubFraction !== null
-        ? nearestIndexForX(scrubFraction, benchmarkValues.length, 1)
-        : benchmarkValues.length - 1
+  // an index independently per series — by converting the touch fraction to
+  // a target date within the shared domain, then finding each series' own
+  // nearest point to that date — rather than sharing one `scrubIndex`.
+  const targetDate =
+    scrubFraction !== null
+      ? new Date(
+          Date.parse(domain.minDate) + scrubFraction * (Date.parse(domain.maxDate) - Date.parse(domain.minDate))
+        ).toISOString()
       : null;
-  const current = pointPosition(values, displayIndex, width, height);
+  const displayIndex =
+    targetDate !== null ? nearestIndexForDate(targetDate, series.points) : values.length - 1;
+  const benchmarkDisplayIndex =
+    benchmarkPoints.length > 0
+      ? targetDate !== null
+        ? nearestIndexForDate(targetDate, benchmarkPoints)
+        : benchmarkPoints.length - 1
+      : null;
+  const current = pointPositionByDate(series.points, displayIndex, domain, { min, max }, width, height);
   const pillLeft = Math.max(24, Math.min(width - 24, current.x));
   const gradientId = 'watchlist-chart-gradient';
 
@@ -86,29 +108,54 @@ export function PerformanceChart({
           <Line x1={0} y1={height * 0.14} x2={width - 30} y2={height * 0.14} stroke="#2a2d3d" strokeWidth={1} />
           <Line x1={0} y1={height * 0.5} x2={width - 30} y2={height * 0.5} stroke="#2a2d3d" strokeWidth={1} />
           <Line x1={0} y1={height * 0.86} x2={width - 30} y2={height * 0.86} stroke="#2a2d3d" strokeWidth={1} />
-          {showSeries ? <Path d={areaPath(values, width, height)} fill={`url(#${gradientId})`} /> : null}
-          {showBenchmark && benchmarkValues.length > 0 ? (
-            <Path
-              d={linePath(benchmarkValues, width, height)}
-              fill="none"
-              stroke="#595d6c"
-              strokeWidth={1.3}
-              strokeDasharray="3,3"
-            />
+          {showSeries ? (
+            <Path d={areaPathByDate(series.points, domain, { min, max }, width, height)} fill={`url(#${gradientId})`} />
           ) : null}
-          {showBenchmark && benchmarkValues.length > 0 && benchmarkDisplayIndex !== null ? (
-            <Circle
-              cx={pointPosition(benchmarkValues, benchmarkDisplayIndex, width, height).x}
-              cy={pointPosition(benchmarkValues, benchmarkDisplayIndex, width, height).y}
-              r={3.5}
-              fill={colors.background}
-              stroke={colors.textSecondary}
-              strokeWidth={1.5}
-            />
-          ) : null}
+          {showBenchmark && benchmarkPoints.length > 0
+            ? (() => {
+                const benchmarkRange = seriesRange(benchmarkValues);
+                return (
+                  <Path
+                    d={linePathByDate(benchmarkPoints, domain, benchmarkRange, width, height)}
+                    fill="none"
+                    stroke="#595d6c"
+                    strokeWidth={1.3}
+                    strokeDasharray="3,3"
+                  />
+                );
+              })()
+            : null}
+          {showBenchmark && benchmarkPoints.length > 0 && benchmarkDisplayIndex !== null
+            ? (() => {
+                const benchmarkRange = seriesRange(benchmarkValues);
+                const pos = pointPositionByDate(
+                  benchmarkPoints,
+                  benchmarkDisplayIndex,
+                  domain,
+                  benchmarkRange,
+                  width,
+                  height
+                );
+                return (
+                  <Circle
+                    cx={pos.x}
+                    cy={pos.y}
+                    r={3.5}
+                    fill={colors.background}
+                    stroke={colors.textSecondary}
+                    strokeWidth={1.5}
+                  />
+                );
+              })()
+            : null}
           {showSeries ? (
             <>
-              <Path d={linePath(values, width, height)} fill="none" stroke={lineColor} strokeWidth={2} />
+              <Path
+                d={linePathByDate(series.points, domain, { min, max }, width, height)}
+                fill="none"
+                stroke={lineColor}
+                strokeWidth={2}
+              />
               <Line x1={current.x} y1={0} x2={current.x} y2={height} stroke={colors.accentSoft} strokeWidth={1.5} />
               <Circle cx={current.x} cy={current.y} r={4.5} fill={lineColor} stroke={colors.background} strokeWidth={2} />
             </>
