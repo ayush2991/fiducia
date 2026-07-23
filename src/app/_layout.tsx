@@ -1,7 +1,9 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Stack } from 'expo-router/stack';
 import { StatusBar } from 'expo-status-bar';
+import { useEffect } from 'react';
 
+import { seedDevProviderFromEnv } from '@/lib/api/settings';
 import { ThemeProvider } from '@/theme/ThemeProvider';
 
 const queryClient = new QueryClient({
@@ -13,6 +15,10 @@ const queryClient = new QueryClient({
 });
 
 export default function RootLayout() {
+  useEffect(() => {
+    seedDevProviderFromEnv();
+  }, []);
+
   return (
     <ThemeProvider>
       <QueryClientProvider client={queryClient}>

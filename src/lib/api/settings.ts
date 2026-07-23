@@ -43,3 +43,24 @@ export async function getActiveProviderAndKey(): Promise<{ providerId: ProviderI
   if (!apiKey) return null;
   return { providerId, apiKey };
 }
+
+// Dev-only convenience: fills a fresh/cleared install's provider from `.env`
+// so simulator testing doesn't depend on typing into the Account tab's
+// TextInput, which is unreliable to drive via AppleScript in this environment.
+export async function seedDevProviderFromEnv(): Promise<void> {
+  if (!__DEV__) return;
+  if (await storage.getActiveProviderId()) return;
+
+  const tiingoKey = process.env.EXPO_PUBLIC_TIINGO_API_KEY;
+  const fmpKey = process.env.EXPO_PUBLIC_FMP_API_KEY;
+
+  try {
+    if (tiingoKey) {
+      await saveAndActivateProviderKey('tiingo', tiingoKey);
+    } else if (fmpKey) {
+      await saveAndActivateProviderKey('financialModelingPrep', fmpKey);
+    }
+  } catch (error) {
+    console.warn('seedDevProviderFromEnv: failed to seed provider from .env', error);
+  }
+}
