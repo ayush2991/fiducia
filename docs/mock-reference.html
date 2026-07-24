@@ -2,7 +2,7 @@
 <html><head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<script src="10e6d78c-a2b0-4ea9-bbfa-e42b7f15bfe6"></script>
+<script src="353b955a-5565-4ab6-934e-1cf991582a2e"></script>
 </head>
 <body>
 <x-dc>
@@ -671,8 +671,289 @@
   </div>
 </div>
 
+<!-- ============ TURN 4: DETAIL HIGH CONTRAST ============ -->
+<section style="position:absolute;left:40px;top:1090px;width:1290px">
+  <div style="display:flex;align-items:baseline;gap:10px;margin-bottom:20px">
+    <a href="#4" style="font:600 10px ui-monospace,Menlo,monospace;padding:3px 7px;background:#9184d9;color:#161826;border-radius:4px;text-decoration:none">4</a>
+    <span style="font:600 13px -apple-system,sans-serif;color:#e9e9ed">Detail — higher contrast (dark &amp; light)</span>
+  </div>
+  <div style="display:flex;flex-wrap:wrap;gap:28px;align-items:flex-start">
+
+    <!-- HIGH-CONTRAST DETAIL (DARK) -->
+    <div>
+      <div style="display:flex;align-items:baseline;gap:6px;margin-bottom:10px">
+        <a id="4a" href="#4a" style="font:600 10.5px ui-monospace,Menlo,monospace;padding:3px 7px;background:rgba(145,132,217,.18);color:#d2cefd;border-radius:5px;text-decoration:none">4a</a>Detail — Nocturne (high contrast)
+      </div>
+      <div style="width:390px;background:#12131e;color:#f2f2f5;font-family:-apple-system,sans-serif;box-shadow:0 16px 40px rgba(0,0,0,.5);padding-bottom:24px;border-radius:20px;overflow:hidden;border:1px solid #363a52">
+        <div style="padding:20px 18px 0">
+          <span style="display:inline-block;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:#b3a8ec;font-weight:600;padding:3px 8px;background:rgba(145,132,217,.14);border-radius:5px;margin-bottom:10px">Portfolio</span>
+          <div style="display:flex;align-items:center;gap:8px">
+            <button style="flex:1;display:flex;align-items:center;justify-content:space-between;gap:10px;min-height:44px;padding:8px 12px;background:#1c1e2c;border:1px solid #3a3d54;border-radius:10px;cursor:pointer">
+              <span style="font:500 19px -apple-system,sans-serif;color:#f2f2f5">Core Growth</span>
+              <svg width="16" height="16" sc-camel-view-box="0 0 16 16" style="flex:none"><polyline points="4,6 8,10 12,6" fill="none" stroke="#f2f2f5" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"></polyline></svg>
+            </button>
+            <button style="width:44px;height:44px;flex:none;border-radius:10px;background:#232532;border:1px solid #3a3d54;display:flex;align-items:center;justify-content:center;cursor:pointer">
+              <svg width="14" height="3.5" sc-camel-view-box="0 0 14 3.5"><circle cx="1.75" cy="1.75" r="1.4" fill="#f2f2f5"></circle><circle cx="7" cy="1.75" r="1.4" fill="#f2f2f5"></circle><circle cx="12.25" cy="1.75" r="1.4" fill="#f2f2f5"></circle></svg>
+            </button>
+          </div>
+        </div>
+        <div style="padding:14px 18px 0">
+          <div style="font:500 42px -apple-system,sans-serif;line-height:1;color:#f2f2f5">{{ det.prStr }}</div>
+          <div style="font-size:12px;color:#c3c6da;margin-top:8px">vs Benchmark 90/10 <span style="color:#e3defc;font-weight:600">{{ det.brStr }}</span> · {{ det.period }}</div>
+        </div>
+        <div style="display:flex;gap:6px;overflow-x:auto;padding:14px 18px 0">
+          <sc-for list="{{ det.periodBtns }}" as="pb" hint-placeholder-count="8">
+            <button sc-camel-on-click="{{ pb.onClick }}" style="flex:none;padding:6px 12px;border-radius:8px;font:500 12px -apple-system,sans-serif;border:1px solid {{ pb.border }};background:{{ pb.bg }};color:{{ pb.color }};cursor:pointer">{{ pb.label }}</button>
+          </sc-for>
+        </div>
+        <div style="margin:16px 18px 0;background:#1c1e2c;border-radius:14px;padding:14px 10px 4px;position:relative;border:1px solid #2c2f45">
+          <svg width="100%" height="140" sc-camel-view-box="0 0 358 140" sc-camel-preserve-aspect-ratio="none">
+            <defs><linearGradient id="ngHC" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#9184d9" stop-opacity="0.45"></stop><stop offset="100%" stop-color="#9184d9" stop-opacity="0"></stop></linearGradient></defs>
+            <line x1="0" y1="20" x2="330" y2="20" stroke="#3a3d54" stroke-width="1"></line>
+            <line x1="0" y1="70" x2="330" y2="70" stroke="#3a3d54" stroke-width="1"></line>
+            <line x1="0" y1="120" x2="330" y2="120" stroke="#3a3d54" stroke-width="1"></line>
+            <sc-if value="{{ det.showP }}"><path d="{{ det.pArea }}" fill="url(#ngHC)"></path></sc-if>
+            <sc-if value="{{ det.showB }}"><path d="{{ det.bLine }}" fill="none" stroke="#9297b8" stroke-width="1.5" stroke-dasharray="3,3"></path></sc-if>
+            <sc-if value="{{ det.showP }}"><path d="{{ det.pLine }}" fill="none" stroke="#a89bec" stroke-width="2.25"></path></sc-if>
+            <sc-if value="{{ det.showP }}"><line x1="{{ det.endX }}" y1="0" x2="{{ det.endX }}" y2="140" stroke="#5c63a8" stroke-width="1" stroke-dasharray="2,2"></line></sc-if>
+            <sc-if value="{{ det.showP }}"><circle cx="{{ det.endX }}" cy="{{ det.endY }}" r="4" fill="#a89bec" style="animation:pulse 2s infinite"></circle></sc-if>
+            {{ det.gridLabelsEl }}
+          </svg>
+          <div style="display:flex;justify-content:space-between;padding:4px 2px 0;font-size:10px;color:#c3c6da">
+            <span>{{ det.xStart }}</span><span>{{ det.xEnd }}</span>
+          </div>
+          <sc-if value="{{ det.showP }}"><div style="position:absolute;top:14px;left:{{ det.pillLeft }}px;transform:translateX(-50%);background:#a89bec;color:#12131e;font:700 11px -apple-system,sans-serif;padding:3px 8px;border-radius:6px;white-space:nowrap">{{ det.prStr }}</div></sc-if>
+          <div style="display:flex;gap:8px;margin-top:6px;padding-bottom:10px">
+            <button sc-camel-on-click="{{ det.togP }}" style="display:flex;align-items:center;gap:6px;padding:4px 10px;border-radius:20px;border:1.5px solid #a89bec;background:transparent;cursor:pointer;opacity:{{ det.pOpacity }}">
+              <span style="width:8px;height:8px;border-radius:50%;background:#a89bec;display:inline-block"></span><span style="font-size:11px;font-weight:600;color:#f2f2f5">Core Growth</span>
+            </button>
+            <button sc-camel-on-click="{{ det.togB }}" style="display:flex;align-items:center;gap:6px;padding:4px 10px;border-radius:20px;border:1.5px solid #9297b8;background:transparent;cursor:pointer;opacity:{{ det.bOpacity }}">
+              <span style="width:8px;height:1.5px;background:#c3c6da;display:inline-block"></span><span style="font-size:11px;font-weight:600;color:#f2f2f5">Benchmark 90/10</span>
+            </button>
+          </div>
+        </div>
+        <div style="padding:22px 18px 0">
+          <div style="font:600 13px -apple-system,sans-serif;letter-spacing:.02em;margin-bottom:10px;color:#c3c6da">Statistics</div>
+          <sc-raw-table style="width:100%;border-collapse:collapse;font-size:13px">
+            <sc-raw-thead><sc-raw-tr>
+              <sc-raw-th style="text-align:left;font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:#9498b0;padding:6px 0;border-bottom:1px solid #3a3d54">Metric</sc-raw-th>
+              <sc-raw-th style="text-align:right;font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:#9498b0;padding:6px 0;border-bottom:1px solid #3a3d54">Portfolio</sc-raw-th>
+              <sc-raw-th style="text-align:right;font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:#9498b0;padding:6px 0;border-bottom:1px solid #3a3d54">Bench.</sc-raw-th>
+            </sc-raw-tr></sc-raw-thead>
+            <sc-raw-tbody>
+            <sc-for list="{{ det.statsRows }}" as="srow" hint-placeholder-count="6">
+              <sc-raw-tr>
+                <sc-raw-td style="padding:8px 0;border-bottom:1px solid #262a3d;color:#c3c6da">{{ srow.label }}</sc-raw-td>
+                <sc-raw-td style="padding:8px 0;border-bottom:1px solid #262a3d;text-align:right;font-weight:700;color:#f2f2f5">{{ srow.p }}</sc-raw-td>
+                <sc-raw-td style="padding:8px 0;border-bottom:1px solid #262a3d;text-align:right;color:#9498b0">{{ srow.b }}</sc-raw-td>
+              </sc-raw-tr>
+            </sc-for>
+            </sc-raw-tbody>
+          </sc-raw-table>
+        </div>
+        <div style="padding:22px 18px 0">
+          <div style="font:600 13px -apple-system,sans-serif;letter-spacing:.02em;margin-bottom:10px;color:#c3c6da">Holdings</div>
+          <div style="display:flex;flex-direction:column;gap:12px">
+            <sc-for list="{{ holdings }}" as="h" hint-placeholder-count="5">
+              <div style="display:flex;align-items:center;gap:12px">
+                <div style="width:42px;height:26px;flex:none;background:#232532;border:1px solid #3a3d54;border-radius:6px;display:flex;align-items:center;justify-content:center;font:600 10.5px -apple-system,sans-serif;color:#e3defc">{{ h.t }}</div>
+                <div style="flex:1;min-width:0">
+                  <div style="font-size:13px;font-weight:500;color:#f2f2f5;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ h.n }}</div>
+                  <div style="height:4px;background:#2c2f45;border-radius:2px;margin-top:6px;position:relative"><div style="position:absolute;left:0;top:0;bottom:0;border-radius:2px;width:{{ h.w }}%;background:#a89bec"></div></div>
+                </div>
+                <div style="font:600 13px -apple-system,sans-serif;flex:none;color:#f2f2f5">{{ h.w }}%</div>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- HIGH-CONTRAST DETAIL (COPY, HEADER FIX) -->
+    <div>
+      <div style="display:flex;align-items:baseline;gap:6px;margin-bottom:10px">
+        <a id="4c" href="#4c" style="font:600 10.5px ui-monospace,Menlo,monospace;padding:3px 7px;background:rgba(145,132,217,.18);color:#d2cefd;border-radius:5px;text-decoration:none">4c</a>Detail — Nocturne (copy, easier-to-tap dropdown)
+      </div>
+      <div style="width:390px;background:#12131e;color:#f2f2f5;font-family:-apple-system,sans-serif;box-shadow:0 16px 40px rgba(0,0,0,.5);padding-bottom:24px;border-radius:20px;overflow:hidden;border:1px solid #363a52">
+        <div style="padding:20px 18px 0">
+          <span style="display:inline-block;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:#b3a8ec;font-weight:600;padding:3px 8px;background:rgba(145,132,217,.14);border-radius:5px;margin-bottom:10px">Portfolio</span>
+          <div style="display:flex;align-items:center;gap:8px">
+            <button style="flex:1;display:flex;align-items:center;justify-content:space-between;gap:10px;min-height:44px;padding:8px 12px;background:#1c1e2c;border:1px solid #3a3d54;border-radius:10px;cursor:pointer">
+              <span style="font:500 19px -apple-system,sans-serif;color:#f2f2f5">Core Growth</span>
+              <svg width="16" height="16" sc-camel-view-box="0 0 16 16" style="flex:none"><polyline points="4,6 8,10 12,6" fill="none" stroke="#f2f2f5" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"></polyline></svg>
+            </button>
+            <button style="width:44px;height:44px;flex:none;border-radius:10px;background:#232532;border:1px solid #3a3d54;display:flex;align-items:center;justify-content:center;cursor:pointer">
+              <svg width="14" height="3.5" sc-camel-view-box="0 0 14 3.5"><circle cx="1.75" cy="1.75" r="1.4" fill="#f2f2f5"></circle><circle cx="7" cy="1.75" r="1.4" fill="#f2f2f5"></circle><circle cx="12.25" cy="1.75" r="1.4" fill="#f2f2f5"></circle></svg>
+            </button>
+          </div>
+        </div>
+        <div style="padding:14px 18px 0">
+          <div style="font:500 42px -apple-system,sans-serif;line-height:1;color:#f2f2f5">{{ det.prStr }}</div>
+          <div style="font-size:12px;color:#c3c6da;margin-top:8px">vs Benchmark 90/10 <span style="color:#e3defc;font-weight:600">{{ det.brStr }}</span> · {{ det.period }}</div>
+        </div>
+        <div style="display:flex;gap:6px;overflow-x:auto;padding:14px 18px 0">
+          <sc-for list="{{ det.periodBtns }}" as="pb" hint-placeholder-count="8">
+            <button sc-camel-on-click="{{ pb.onClick }}" style="flex:none;padding:6px 12px;border-radius:8px;font:500 12px -apple-system,sans-serif;border:1px solid {{ pb.border }};background:{{ pb.bg }};color:{{ pb.color }};cursor:pointer">{{ pb.label }}</button>
+          </sc-for>
+        </div>
+        <div style="margin:16px 18px 0;background:#1c1e2c;border-radius:14px;padding:14px 10px 4px;position:relative;border:1px solid #2c2f45">
+          <svg width="100%" height="140" sc-camel-view-box="0 0 358 140" sc-camel-preserve-aspect-ratio="none">
+            <defs><linearGradient id="ngHC2" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#9184d9" stop-opacity="0.45"></stop><stop offset="100%" stop-color="#9184d9" stop-opacity="0"></stop></linearGradient></defs>
+            <line x1="0" y1="20" x2="330" y2="20" stroke="#3a3d54" stroke-width="1"></line>
+            <line x1="0" y1="70" x2="330" y2="70" stroke="#3a3d54" stroke-width="1"></line>
+            <line x1="0" y1="120" x2="330" y2="120" stroke="#3a3d54" stroke-width="1"></line>
+            <sc-if value="{{ det.showP }}"><path d="{{ det.pArea }}" fill="url(#ngHC2)"></path></sc-if>
+            <sc-if value="{{ det.showB }}"><path d="{{ det.bLine }}" fill="none" stroke="#9297b8" stroke-width="1.5" stroke-dasharray="3,3"></path></sc-if>
+            <sc-if value="{{ det.showP }}"><path d="{{ det.pLine }}" fill="none" stroke="#a89bec" stroke-width="2.25"></path></sc-if>
+            <sc-if value="{{ det.showP }}"><line x1="{{ det.endX }}" y1="0" x2="{{ det.endX }}" y2="140" stroke="#5c63a8" stroke-width="1" stroke-dasharray="2,2"></line></sc-if>
+            <sc-if value="{{ det.showP }}"><circle cx="{{ det.endX }}" cy="{{ det.endY }}" r="4" fill="#a89bec" style="animation:pulse 2s infinite"></circle></sc-if>
+            <text x="332" y="24" fill="#c3c6da" font-size="9" font-family="-apple-system,sans-serif">{{ det.gridHigh }}</text>
+            <text x="332" y="124" fill="#c3c6da" font-size="9" font-family="-apple-system,sans-serif">{{ det.gridLow }}</text>
+          </svg>
+          <div style="display:flex;justify-content:space-between;padding:4px 2px 0;font-size:10px;color:#c3c6da">
+            <span>{{ det.xStart }}</span><span>{{ det.xEnd }}</span>
+          </div>
+          <sc-if value="{{ det.showP }}"><div style="position:absolute;top:14px;left:{{ det.pillLeft }}px;transform:translateX(-50%);background:#a89bec;color:#12131e;font:700 11px -apple-system,sans-serif;padding:3px 8px;border-radius:6px;white-space:nowrap">{{ det.prStr }}</div></sc-if>
+          <div style="display:flex;gap:8px;margin-top:6px;padding-bottom:10px">
+            <button sc-camel-on-click="{{ det.togP }}" style="display:flex;align-items:center;gap:6px;padding:4px 10px;border-radius:20px;border:1.5px solid #a89bec;background:transparent;cursor:pointer;opacity:{{ det.pOpacity }}">
+              <span style="width:8px;height:8px;border-radius:50%;background:#a89bec;display:inline-block"></span><span style="font-size:11px;font-weight:600;color:#f2f2f5">Core Growth</span>
+            </button>
+            <button sc-camel-on-click="{{ det.togB }}" style="display:flex;align-items:center;gap:6px;padding:4px 10px;border-radius:20px;border:1.5px solid #9297b8;background:transparent;cursor:pointer;opacity:{{ det.bOpacity }}">
+              <span style="width:8px;height:1.5px;background:#c3c6da;display:inline-block"></span><span style="font-size:11px;font-weight:600;color:#f2f2f5">Benchmark 90/10</span>
+            </button>
+          </div>
+        </div>
+        <div style="padding:22px 18px 0">
+          <div style="font:600 13px -apple-system,sans-serif;letter-spacing:.02em;margin-bottom:10px;color:#c3c6da">Statistics</div>
+          <sc-raw-table style="width:100%;border-collapse:collapse;font-size:13px">
+            <sc-raw-thead><sc-raw-tr>
+              <sc-raw-th style="text-align:left;font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:#9498b0;padding:6px 0;border-bottom:1px solid #3a3d54">Metric</sc-raw-th>
+              <sc-raw-th style="text-align:right;font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:#9498b0;padding:6px 0;border-bottom:1px solid #3a3d54">Portfolio</sc-raw-th>
+              <sc-raw-th style="text-align:right;font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:#9498b0;padding:6px 0;border-bottom:1px solid #3a3d54">Bench.</sc-raw-th>
+            </sc-raw-tr></sc-raw-thead>
+            <sc-raw-tbody>
+            <sc-for list="{{ det.statsRows }}" as="srow" hint-placeholder-count="6">
+              <sc-raw-tr>
+                <sc-raw-td style="padding:8px 0;border-bottom:1px solid #262a3d;color:#c3c6da">{{ srow.label }}</sc-raw-td>
+                <sc-raw-td style="padding:8px 0;border-bottom:1px solid #262a3d;text-align:right;font-weight:700;color:#f2f2f5">{{ srow.p }}</sc-raw-td>
+                <sc-raw-td style="padding:8px 0;border-bottom:1px solid #262a3d;text-align:right;color:#9498b0">{{ srow.b }}</sc-raw-td>
+              </sc-raw-tr>
+            </sc-for>
+            </sc-raw-tbody>
+          </sc-raw-table>
+        </div>
+        <div style="padding:22px 18px 0">
+          <div style="font:600 13px -apple-system,sans-serif;letter-spacing:.02em;margin-bottom:10px;color:#c3c6da">Holdings</div>
+          <div style="display:flex;flex-direction:column;gap:12px">
+            <sc-for list="{{ holdings }}" as="h" hint-placeholder-count="5">
+              <div style="display:flex;align-items:center;gap:12px">
+                <div style="width:42px;height:26px;flex:none;background:#232532;border:1px solid #3a3d54;border-radius:6px;display:flex;align-items:center;justify-content:center;font:600 10.5px -apple-system,sans-serif;color:#e3defc">{{ h.t }}</div>
+                <div style="flex:1;min-width:0">
+                  <div style="font-size:13px;font-weight:500;color:#f2f2f5;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ h.n }}</div>
+                  <div style="height:4px;background:#2c2f45;border-radius:2px;margin-top:6px;position:relative"><div style="position:absolute;left:0;top:0;bottom:0;border-radius:2px;width:{{ h.w }}%;background:#a89bec"></div></div>
+                </div>
+                <div style="font:600 13px -apple-system,sans-serif;flex:none;color:#f2f2f5">{{ h.w }}%</div>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- HIGH-CONTRAST DETAIL (LIGHT) -->
+    <div>
+      <div style="display:flex;align-items:baseline;gap:6px;margin-bottom:10px">
+        <a id="4b" href="#4b" style="font:600 10.5px ui-monospace,Menlo,monospace;padding:3px 7px;background:rgba(145,132,217,.18);color:#d2cefd;border-radius:5px;text-decoration:none">4b</a>Detail — Light (high contrast)
+      </div>
+      <div style="width:390px;background:#ffffff;color:#101120;font-family:-apple-system,sans-serif;box-shadow:0 16px 40px rgba(30,30,60,.16);padding-bottom:24px;border-radius:20px;overflow:hidden;border:1px solid #c7c9dc">
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:20px 18px 0">
+          <div>
+            <div style="font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#4f3fc4;font-weight:600">Portfolio</div>
+            <div style="display:flex;align-items:center;gap:6px;margin-top:3px">
+              <span style="font:500 19px -apple-system,sans-serif">Core Growth</span>
+              <svg width="12" height="12" sc-camel-view-box="0 0 12 12"><polyline points="2,4 6,8 10,4" fill="none" stroke="#101120" stroke-width="1.5"></polyline></svg>
+            </div>
+          </div>
+          <button style="width:32px;height:32px;border-radius:8px;background:#eceef5;border:1px solid #c7c9dc;display:flex;align-items:center;justify-content:center;cursor:pointer">
+            <svg width="14" height="3.5" sc-camel-view-box="0 0 14 3.5"><circle cx="1.75" cy="1.75" r="1.4" fill="#101120"></circle><circle cx="7" cy="1.75" r="1.4" fill="#101120"></circle><circle cx="12.25" cy="1.75" r="1.4" fill="#101120"></circle></svg>
+          </button>
+        </div>
+        <div style="padding:14px 18px 0">
+          <div style="font:500 42px -apple-system,sans-serif;line-height:1;color:#101120">{{ det.prStr }}</div>
+          <div style="font-size:12px;color:#52566b;margin-top:8px">vs Benchmark 90/10 <span style="color:#4f3fc4;font-weight:600">{{ det.brStr }}</span> · {{ det.period }}</div>
+        </div>
+        <div style="display:flex;gap:6px;overflow-x:auto;padding:14px 18px 0">
+          <sc-for list="{{ det.periodBtns }}" as="pb" hint-placeholder-count="8">
+            <button sc-camel-on-click="{{ pb.onClick }}" style="flex:none;padding:6px 12px;border-radius:8px;font:500 12px -apple-system,sans-serif;border:1px solid {{ pb.lborder }};background:{{ pb.lbg }};color:{{ pb.lcolor }};cursor:pointer">{{ pb.label }}</button>
+          </sc-for>
+        </div>
+        <div style="margin:16px 18px 0;background:#ffffff;border:1px solid #c7c9dc;border-radius:14px;padding:14px 10px 4px;position:relative">
+          <svg width="100%" height="140" sc-camel-view-box="0 0 358 140" sc-camel-preserve-aspect-ratio="none">
+            <defs><linearGradient id="ngLHC" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#6a5cc4" stop-opacity="0.28"></stop><stop offset="100%" stop-color="#6a5cc4" stop-opacity="0"></stop></linearGradient></defs>
+            <line x1="0" y1="20" x2="330" y2="20" stroke="#d5d7e6" stroke-width="1"></line>
+            <line x1="0" y1="70" x2="330" y2="70" stroke="#d5d7e6" stroke-width="1"></line>
+            <line x1="0" y1="120" x2="330" y2="120" stroke="#d5d7e6" stroke-width="1"></line>
+            <sc-if value="{{ det.showP }}"><path d="{{ det.pArea }}" fill="url(#ngLHC)"></path></sc-if>
+            <sc-if value="{{ det.showB }}"><path d="{{ det.bLine }}" fill="none" stroke="#8b8fa3" stroke-width="1.5" stroke-dasharray="3,3"></path></sc-if>
+            <sc-if value="{{ det.showP }}"><path d="{{ det.pLine }}" fill="none" stroke="#5847b8" stroke-width="2.25"></path></sc-if>
+            <sc-if value="{{ det.showP }}"><line x1="{{ det.endX }}" y1="0" x2="{{ det.endX }}" y2="140" stroke="#a79bdb" stroke-width="1" stroke-dasharray="2,2"></line></sc-if>
+            <sc-if value="{{ det.showP }}"><circle cx="{{ det.endX }}" cy="{{ det.endY }}" r="4" fill="#5847b8" style="animation:pulseL 2s infinite"></circle></sc-if>
+            <text x="332" y="24" fill="#6f7386" font-size="9" font-family="-apple-system,sans-serif">{{ det.gridHigh }}</text>
+            <text x="332" y="124" fill="#6f7386" font-size="9" font-family="-apple-system,sans-serif">{{ det.gridLow }}</text>
+          </svg>
+          <div style="display:flex;justify-content:space-between;padding:4px 2px 0;font-size:10px;color:#6f7386">
+            <span>{{ det.xStart }}</span><span>{{ det.xEnd }}</span>
+          </div>
+          <sc-if value="{{ det.showP }}"><div style="position:absolute;top:14px;left:{{ det.pillLeft }}px;transform:translateX(-50%);background:#5847b8;color:#ffffff;font:700 11px -apple-system,sans-serif;padding:3px 8px;border-radius:6px;white-space:nowrap">{{ det.prStr }}</div></sc-if>
+          <div style="display:flex;gap:8px;margin-top:6px;padding-bottom:10px">
+            <button sc-camel-on-click="{{ det.togP }}" style="display:flex;align-items:center;gap:6px;padding:4px 10px;border-radius:20px;border:1.5px solid #5847b8;background:transparent;cursor:pointer;opacity:{{ det.pOpacity }}">
+              <span style="width:8px;height:8px;border-radius:50%;background:#5847b8;display:inline-block"></span><span style="font-size:11px;font-weight:600;color:#101120">Core Growth</span>
+            </button>
+            <button sc-camel-on-click="{{ det.togB }}" style="display:flex;align-items:center;gap:6px;padding:4px 10px;border-radius:20px;border:1.5px solid #8b8fa3;background:transparent;cursor:pointer;opacity:{{ det.bOpacity }}">
+              <span style="width:8px;height:1.5px;background:#52566b;display:inline-block"></span><span style="font-size:11px;font-weight:600;color:#101120">Benchmark 90/10</span>
+            </button>
+          </div>
+        </div>
+        <div style="padding:22px 18px 0">
+          <div style="font:600 13px -apple-system,sans-serif;letter-spacing:.02em;margin-bottom:10px;color:#52566b">Statistics</div>
+          <sc-raw-table style="width:100%;border-collapse:collapse;font-size:13px">
+            <sc-raw-thead><sc-raw-tr>
+              <sc-raw-th style="text-align:left;font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:#6f7386;padding:6px 0;border-bottom:1px solid #d5d7e6">Metric</sc-raw-th>
+              <sc-raw-th style="text-align:right;font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:#6f7386;padding:6px 0;border-bottom:1px solid #d5d7e6">Portfolio</sc-raw-th>
+              <sc-raw-th style="text-align:right;font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:#6f7386;padding:6px 0;border-bottom:1px solid #d5d7e6">Bench.</sc-raw-th>
+            </sc-raw-tr></sc-raw-thead>
+            <sc-raw-tbody>
+            <sc-for list="{{ det.statsRows }}" as="srow" hint-placeholder-count="6">
+              <sc-raw-tr>
+                <sc-raw-td style="padding:8px 0;border-bottom:1px solid #e4e4ee;color:#52566b">{{ srow.label }}</sc-raw-td>
+                <sc-raw-td style="padding:8px 0;border-bottom:1px solid #e4e4ee;text-align:right;font-weight:700;color:#101120">{{ srow.p }}</sc-raw-td>
+                <sc-raw-td style="padding:8px 0;border-bottom:1px solid #e4e4ee;text-align:right;color:#6f7386">{{ srow.b }}</sc-raw-td>
+              </sc-raw-tr>
+            </sc-for>
+            </sc-raw-tbody>
+          </sc-raw-table>
+        </div>
+        <div style="padding:22px 18px 0">
+          <div style="font:600 13px -apple-system,sans-serif;letter-spacing:.02em;margin-bottom:10px;color:#52566b">Holdings</div>
+          <div style="display:flex;flex-direction:column;gap:12px">
+            <sc-for list="{{ holdings }}" as="h" hint-placeholder-count="5">
+              <div style="display:flex;align-items:center;gap:12px">
+                <div style="width:42px;height:26px;flex:none;background:#eceef5;border:1px solid #d5d7e6;border-radius:6px;display:flex;align-items:center;justify-content:center;font:600 10.5px -apple-system,sans-serif;color:#4f3fc4">{{ h.t }}</div>
+                <div style="flex:1;min-width:0">
+                  <div style="font-size:13px;font-weight:500;color:#101120;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ h.n }}</div>
+                  <div style="height:4px;background:#dcdeeb;border-radius:2px;margin-top:6px;position:relative"><div style="position:absolute;left:0;top:0;bottom:0;border-radius:2px;width:{{ h.w }}%;background:#5847b8"></div></div>
+                </div>
+                <div style="font:600 13px -apple-system,sans-serif;flex:none;color:#101120">{{ h.w }}%</div>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <p style="margin:22px 0 0;font:12px/1.5 -apple-system,sans-serif;color:#9498b0">4a deepens the dark ground and lightens muted text/lines vs the original Nocturne Detail. 4b applies the same in light mode. 4c fixes the header: the "Portfolio" kicker is now a spaced-out pill instead of crowding the title, and the dropdown is a full-width 44px-tall button (not just the tiny chevron) so it's easy to tap; the overflow button also grew to 44px.</p>
+</section>
+
 <!-- ============ TURN 3: LIGHT MODE ============ -->
-<section style="position:absolute;left:40px;top:1090px;width:820px">
+<section style="position:absolute;left:40px;top:2280px;width:820px">
   <div style="display:flex;align-items:baseline;gap:10px;margin-bottom:20px">
     <a href="#3" style="font:600 10px ui-monospace,Menlo,monospace;padding:3px 7px;background:#9184d9;color:#161826;border-radius:4px;text-decoration:none">3</a>
     <span style="font:600 13px -apple-system,sans-serif;color:#e9e9ed">Light mode — Detail &amp; Watchlist shell</span>
@@ -884,7 +1165,7 @@
 </section>
 
 <!-- ============ TURN 2: COMBINED GRAPH ============ -->
-<section style="position:absolute;left:40px;top:2250px;width:500px">
+<section style="position:absolute;left:40px;top:3440px;width:500px">
   <div style="display:flex;align-items:baseline;gap:10px;margin-bottom:20px">
     <a href="#2" style="font:600 10px ui-monospace,Menlo,monospace;padding:3px 7px;background:#9184d9;color:#161826;border-radius:4px;text-decoration:none">2</a>
     <span style="font:600 13px -apple-system,sans-serif;color:#e9e9ed">Combining <a href="#1c" style="color:#d2cefd;text-decoration:none;font-weight:600">1c</a>'s crosshair with <a href="#1a" style="color:#d2cefd;text-decoration:none;font-weight:600">1a</a>'s glow</span>
@@ -933,7 +1214,7 @@
 </section>
 
 <!-- ============ TURN 1: GRAPH STYLE OPTIONS ============ -->
-<section style="position:absolute;left:40px;top:2900px;width:1350px">
+<section style="position:absolute;left:40px;top:4090px;width:1350px">
   <div style="display:flex;align-items:baseline;gap:10px;margin-bottom:20px">
     <a href="#1" style="font:600 10px ui-monospace,Menlo,monospace;padding:3px 7px;background:#9184d9;color:#161826;border-radius:4px;text-decoration:none">1</a>
     <span style="font:600 13px -apple-system,sans-serif;color:#e9e9ed">Graph style options</span>
@@ -1056,6 +1337,247 @@
 
   </div>
   <p style="margin:22px 0 0;font:12px/1.5 -apple-system,sans-serif;color:#75798c">Try next: "make <a href="#opt-1a" style="color:#d2cefd">1a</a> the default" · "combine <a href="#opt-1c" style="color:#d2cefd">1c</a>'s crosshair with <a href="#opt-1a" style="color:#d2cefd">1a</a>'s glow" · "more graph directions"</p>
+</section>
+
+<!-- ============ TURN 5: REMOVE / EDIT PORTFOLIO (4a HIGH CONTRAST) ============ -->
+<section style="position:absolute;left:40px;top:5020px;width:1400px">
+  <div style="display:flex;align-items:baseline;gap:10px;margin-bottom:20px">
+    <a href="#5" style="font:600 10px ui-monospace,Menlo,monospace;padding:3px 7px;background:#9184d9;color:#161826;border-radius:4px;text-decoration:none">5</a>
+    <span style="font:600 13px -apple-system,sans-serif;color:#e9e9ed">Remove &amp; edit a portfolio — two approaches each, on the 4a high-contrast ground</span>
+  </div>
+  <div style="display:flex;flex-wrap:wrap;gap:28px;align-items:flex-start">
+
+    <!-- 5a: REMOVE via switcher sheet + confirm dialog -->
+    <div style="display:flex;flex-direction:column;gap:9px">
+      <div style="display:flex;align-items:baseline;gap:8px;font:400 11px -apple-system,sans-serif;color:#9aa0c9">
+        <a id="5a" href="#5a" style="font:600 10.5px ui-monospace,Menlo,monospace;padding:3px 7px;background:rgba(145,132,217,.18);color:#d2cefd;border-radius:5px;text-decoration:none">5a</a>Remove — switcher row reveals actions, then confirms
+      </div>
+      <div style="width:390px;position:relative">
+        <div style="background:#12131e;border-radius:20px;overflow:hidden;border:1px solid #363a52;box-shadow:0 16px 40px rgba(0,0,0,.5)">
+          <div style="padding:16px 18px 4px;font:500 13px -apple-system,sans-serif;color:#9498b0">Your Portfolios</div>
+          <div style="display:flex;flex-direction:column">
+            <div style="display:flex;align-items:center;gap:12px;padding:12px 18px;border-bottom:1px solid #232532">
+              <span style="width:16px;height:16px;border-radius:50%;flex:none;border:1.5px solid #a89bec;display:flex;align-items:center;justify-content:center"><span style="width:8px;height:8px;border-radius:50%;background:#a89bec;display:block"></span></span>
+              <span style="flex:1;min-width:0">
+                <span style="display:block;font-size:14px;font-weight:600;color:#f2f2f5">Core Growth</span>
+                <span style="display:block;font-size:11px;color:#9498b0;margin-top:2px">40 VOO · 20 VEA · 20 VWO · 10 BND · 10 GLD</span>
+              </span>
+              <button style="flex:none;width:34px;height:34px;border-radius:8px;border:1px solid #3a3d54;background:#1c1e2c;display:flex;align-items:center;justify-content:center;cursor:pointer">
+                <svg width="14" height="3.5" sc-camel-view-box="0 0 14 3.5"><circle cx="1.75" cy="1.75" r="1.4" fill="#c3c6da"></circle><circle cx="7" cy="1.75" r="1.4" fill="#c3c6da"></circle><circle cx="12.25" cy="1.75" r="1.4" fill="#c3c6da"></circle></svg>
+              </button>
+            </div>
+            <!-- revealed row: inline Edit/Remove replace the trailing menu button -->
+            <div style="padding:12px 18px;border-bottom:1px solid #232532;background:#181a28">
+              <div style="display:flex;align-items:center;gap:12px">
+                <span style="width:16px;height:16px;border-radius:50%;flex:none;border:1.5px solid #4c5068;display:block"></span>
+                <span style="flex:1;min-width:0">
+                  <span style="display:block;font-size:14px;font-weight:600;color:#f2f2f5">Income &amp; Stability</span>
+                  <span style="display:block;font-size:11px;color:#9498b0;margin-top:2px">50 BND · 30 VOO · 20 GLD</span>
+                </span>
+              </div>
+              <div style="display:flex;gap:8px;margin-top:10px">
+                <button style="flex:1;display:flex;align-items:center;justify-content:center;gap:6px;padding:8px 0;border-radius:8px;border:1px solid #3a3d54;background:#1c1e2c;color:#f2f2f5;font:500 12.5px -apple-system,sans-serif;cursor:pointer">
+                  <svg width="12" height="12" sc-camel-view-box="0 0 14 14"><path d="M9.5 1.5l3 3-8 8-3.5.5.5-3.5z" fill="none" stroke="#f2f2f5" stroke-width="1.3" stroke-linejoin="round"></path></svg>Edit
+                </button>
+                <button style="flex:1;display:flex;align-items:center;justify-content:center;gap:6px;padding:8px 0;border-radius:8px;border:1px solid #6b3a3a;background:rgba(224,135,135,.1);color:#e08787;font:500 12.5px -apple-system,sans-serif;cursor:pointer">
+                  <svg width="12" height="12" sc-camel-view-box="0 0 13 13"><path d="M2 3.5h9M5 3.5V2h3v1.5M3 3.5l.6 8h5.8l.6-8" fill="none" stroke="#e08787" stroke-width="1.3" stroke-linejoin="round" stroke-linecap="round"></path></svg>Remove
+                </button>
+              </div>
+            </div>
+          </div>
+          <div style="padding:12px 18px 18px">
+            <button style="width:100%;padding:11px 0;border-radius:10px;border:1px dashed #3a3d54;background:transparent;color:#9498b0;font:500 13px -apple-system,sans-serif;cursor:pointer">+ Add Portfolio</button>
+          </div>
+        </div>
+        <!-- confirm dialog, overlaid -->
+        <div style="position:absolute;inset:0;background:rgba(8,9,15,.6);border-radius:20px;display:flex;align-items:center;justify-content:center;padding:24px">
+          <div style="width:100%;background:#1c1e2c;border:1px solid #3a3d54;border-radius:16px;padding:20px;box-shadow:0 16px 40px rgba(0,0,0,.5)">
+            <div style="font:600 16px -apple-system,sans-serif;color:#f2f2f5;margin-bottom:8px">Remove "Income &amp; Stability"?</div>
+            <div style="font-size:13px;line-height:1.5;color:#c3c6da;margin-bottom:18px">This portfolio and its holdings will be permanently deleted. This can't be undone.</div>
+            <div style="display:flex;gap:10px">
+              <button style="flex:1;padding:11px 0;border-radius:9px;border:1px solid #3a3d54;background:transparent;color:#f2f2f5;font:500 13.5px -apple-system,sans-serif;cursor:pointer">Cancel</button>
+              <button style="flex:1;padding:11px 0;border-radius:9px;border:1px solid #e08787;background:#e08787;color:#12131e;font:700 13.5px -apple-system,sans-serif;cursor:pointer">Remove</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 5b: REMOVE via swipe + undo toast -->
+    <div style="display:flex;flex-direction:column;gap:9px">
+      <div style="display:flex;align-items:baseline;gap:8px;font:400 11px -apple-system,sans-serif;color:#9aa0c9">
+        <a id="5b" href="#5b" style="font:600 10.5px ui-monospace,Menlo,monospace;padding:3px 7px;background:rgba(145,132,217,.18);color:#d2cefd;border-radius:5px;text-decoration:none">5b</a>Remove — swipe-to-delete, no dialog, undo toast
+      </div>
+      <div style="width:390px;position:relative">
+        <div style="background:#12131e;border-radius:20px;overflow:hidden;border:1px solid #363a52;box-shadow:0 16px 40px rgba(0,0,0,.5)">
+          <div style="padding:16px 18px 4px;font:500 13px -apple-system,sans-serif;color:#9498b0">Your Portfolios</div>
+          <div style="display:flex;flex-direction:column">
+            <div style="display:flex;align-items:center;gap:12px;padding:14px 18px;border-bottom:1px solid #232532">
+              <span style="width:16px;height:16px;border-radius:50%;flex:none;border:1.5px solid #a89bec;display:flex;align-items:center;justify-content:center"><span style="width:8px;height:8px;border-radius:50%;background:#a89bec;display:block"></span></span>
+              <span style="flex:1;min-width:0">
+                <span style="display:block;font-size:14px;font-weight:600;color:#f2f2f5">Core Growth</span>
+                <span style="display:block;font-size:11px;color:#9498b0;margin-top:2px">40 VOO · 20 VEA · 20 VWO · 10 BND · 10 GLD</span>
+              </span>
+              <svg width="7" height="12" sc-camel-view-box="0 0 7 12"><polyline points="1,1 6,6 1,11" fill="none" stroke="#595d6c" stroke-width="1.5"></polyline></svg>
+            </div>
+            <!-- swiped-open row: content shifted left, red delete panel revealed underneath -->
+            <div style="position:relative;overflow:hidden;border-bottom:1px solid #232532">
+              <div style="position:absolute;inset:0;background:#b5504f;display:flex;align-items:center;justify-content:flex-end;padding-right:20px">
+                <div style="display:flex;flex-direction:column;align-items:center;gap:3px">
+                  <svg width="15" height="15" sc-camel-view-box="0 0 13 13"><path d="M2 3.5h9M5 3.5V2h3v1.5M3 3.5l.6 8h5.8l.6-8" fill="none" stroke="#12131e" stroke-width="1.3" stroke-linejoin="round" stroke-linecap="round"></path></svg>
+                  <span style="font:700 10px -apple-system,sans-serif;color:#12131e">Delete</span>
+                </div>
+              </div>
+              <div style="position:relative;display:flex;align-items:center;gap:12px;padding:14px 18px;background:#12131e;transform:translateX(-76px)">
+                <span style="width:16px;height:16px;border-radius:50%;flex:none;border:1.5px solid #4c5068;display:block"></span>
+                <span style="flex:1;min-width:0">
+                  <span style="display:block;font-size:14px;font-weight:600;color:#f2f2f5">90/10 Benchmark</span>
+                  <span style="display:block;font-size:11px;color:#9498b0;margin-top:2px">90 SPY · 10 BND</span>
+                </span>
+              </div>
+            </div>
+          </div>
+          <div style="padding:12px 18px 18px">
+            <button style="width:100%;padding:11px 0;border-radius:10px;border:1px dashed #3a3d54;background:transparent;color:#9498b0;font:500 13px -apple-system,sans-serif;cursor:pointer">+ Add Portfolio</button>
+          </div>
+        </div>
+        <!-- undo toast -->
+        <div style="position:absolute;left:18px;right:18px;bottom:70px;display:flex;align-items:center;justify-content:space-between;gap:12px;background:#2a2c3c;border:1px solid #3a3d54;border-radius:12px;padding:12px 14px;box-shadow:0 10px 28px rgba(0,0,0,.5)">
+          <span style="font-size:12.5px;color:#f2f2f5">Removed "90/10 Benchmark"</span>
+          <span style="font:600 12.5px -apple-system,sans-serif;color:#d2cefd;cursor:pointer">Undo</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 6a: EDIT via dedicated screen -->
+    <div style="display:flex;flex-direction:column;gap:9px">
+      <div style="display:flex;align-items:baseline;gap:8px;font:400 11px -apple-system,sans-serif;color:#9aa0c9">
+        <a id="6a" href="#6a" style="font:600 10.5px ui-monospace,Menlo,monospace;padding:3px 7px;background:rgba(145,132,217,.18);color:#d2cefd;border-radius:5px;text-decoration:none">6a</a>Edit — dedicated screen, same shell as Add Portfolio
+      </div>
+      <div style="width:390px;background:#12131e;color:#f2f2f5;font-family:-apple-system,sans-serif;box-shadow:0 16px 40px rgba(0,0,0,.5);padding-bottom:24px;border-radius:20px;overflow:hidden;border:1px solid #363a52">
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:20px 18px 0">
+          <svg width="9" height="16" sc-camel-view-box="0 0 9 16"><polyline points="8,1 1,8 8,15" fill="none" stroke="#c3c6da" stroke-width="1.5"></polyline></svg>
+          <span style="font:600 15px -apple-system,sans-serif;color:#f2f2f5">Edit Portfolio</span>
+          <svg width="14" height="14" sc-camel-view-box="0 0 14 14"><line x1="1" y1="1" x2="13" y2="13" stroke="#c3c6da" stroke-width="1.5"></line><line x1="13" y1="1" x2="1" y2="13" stroke="#c3c6da" stroke-width="1.5"></line></svg>
+        </div>
+        <div style="padding:14px 18px 0">
+          <div style="font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:#9498b0;margin-bottom:8px">Portfolio Name</div>
+          <input value="Core Growth" style="width:100%;box-sizing:border-box;background:#1c1e2c;border:1px solid #3a3d54;border-radius:8px;padding:12px 14px;color:#f2f2f5;font:500 15px -apple-system,sans-serif">
+        </div>
+        <div style="padding:16px 18px 0">
+          <div style="display:flex;align-items:center;gap:10px;padding:0 0 8px;font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:#9498b0">
+            <span style="width:72px">Ticker</span><span style="flex:1;text-align:right">Alloc %</span><span style="width:32px"></span>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid #262a3d">
+            <input value="VOO" style="width:72px;box-sizing:border-box;background:#1c1e2c;border:1px solid #3a3d54;border-radius:8px;padding:12px 10px;color:#f2f2f5;font:600 14px -apple-system,sans-serif">
+            <input value="40" style="flex:1;min-width:0;box-sizing:border-box;background:#1c1e2c;border:1px solid #3a3d54;border-radius:8px;padding:12px 10px;color:#f2f2f5;font:600 14px -apple-system,sans-serif;text-align:right">
+            <button style="width:32px;height:32px;flex:none;border:none;background:transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;border-radius:6px">
+              <svg width="12" height="12" sc-camel-view-box="0 0 12 12"><line x1="1" y1="1" x2="11" y2="11" stroke="#9498b0" stroke-width="1.5"></line><line x1="11" y1="1" x2="1" y2="11" stroke="#9498b0" stroke-width="1.5"></line></svg>
+            </button>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid #262a3d">
+            <input value="VEA" style="width:72px;box-sizing:border-box;background:#1c1e2c;border:1px solid #3a3d54;border-radius:8px;padding:12px 10px;color:#f2f2f5;font:600 14px -apple-system,sans-serif">
+            <input value="20" style="flex:1;min-width:0;box-sizing:border-box;background:#1c1e2c;border:1px solid #3a3d54;border-radius:8px;padding:12px 10px;color:#f2f2f5;font:600 14px -apple-system,sans-serif;text-align:right">
+            <button style="width:32px;height:32px;flex:none;border:none;background:transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;border-radius:6px">
+              <svg width="12" height="12" sc-camel-view-box="0 0 12 12"><line x1="1" y1="1" x2="11" y2="11" stroke="#9498b0" stroke-width="1.5"></line><line x1="11" y1="1" x2="1" y2="11" stroke="#9498b0" stroke-width="1.5"></line></svg>
+            </button>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid #262a3d;background:rgba(145,132,217,.06);margin:0 -8px;padding-left:8px;padding-right:8px;border-radius:8px">
+            <input value="VWO" style="width:72px;box-sizing:border-box;background:#1c1e2c;border:1px solid #a89bec;border-radius:8px;padding:12px 10px;color:#f2f2f5;font:600 14px -apple-system,sans-serif">
+            <input value="20" style="flex:1;min-width:0;box-sizing:border-box;background:#1c1e2c;border:1px solid #a89bec;border-radius:8px;padding:12px 10px;color:#f2f2f5;font:600 14px -apple-system,sans-serif;text-align:right">
+            <button style="width:32px;height:32px;flex:none;border:none;background:transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;border-radius:6px">
+              <svg width="12" height="12" sc-camel-view-box="0 0 12 12"><line x1="1" y1="1" x2="11" y2="11" stroke="#9498b0" stroke-width="1.5"></line><line x1="11" y1="1" x2="1" y2="11" stroke="#9498b0" stroke-width="1.5"></line></svg>
+            </button>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid #262a3d">
+            <input value="BND" style="width:72px;box-sizing:border-box;background:#1c1e2c;border:1px solid #3a3d54;border-radius:8px;padding:12px 10px;color:#f2f2f5;font:600 14px -apple-system,sans-serif">
+            <input value="10" style="flex:1;min-width:0;box-sizing:border-box;background:#1c1e2c;border:1px solid #3a3d54;border-radius:8px;padding:12px 10px;color:#f2f2f5;font:600 14px -apple-system,sans-serif;text-align:right">
+            <button style="width:32px;height:32px;flex:none;border:none;background:transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;border-radius:6px">
+              <svg width="12" height="12" sc-camel-view-box="0 0 12 12"><line x1="1" y1="1" x2="11" y2="11" stroke="#9498b0" stroke-width="1.5"></line><line x1="11" y1="1" x2="1" y2="11" stroke="#9498b0" stroke-width="1.5"></line></svg>
+            </button>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid #262a3d">
+            <input value="GLD" style="width:72px;box-sizing:border-box;background:#1c1e2c;border:1px solid #3a3d54;border-radius:8px;padding:12px 10px;color:#f2f2f5;font:600 14px -apple-system,sans-serif">
+            <input value="10" style="flex:1;min-width:0;box-sizing:border-box;background:#1c1e2c;border:1px solid #3a3d54;border-radius:8px;padding:12px 10px;color:#f2f2f5;font:600 14px -apple-system,sans-serif;text-align:right">
+            <button style="width:32px;height:32px;flex:none;border:none;background:transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;border-radius:6px">
+              <svg width="12" height="12" sc-camel-view-box="0 0 12 12"><line x1="1" y1="1" x2="11" y2="11" stroke="#9498b0" stroke-width="1.5"></line><line x1="11" y1="1" x2="1" y2="11" stroke="#9498b0" stroke-width="1.5"></line></svg>
+            </button>
+          </div>
+          <button style="width:100%;margin-top:10px;padding:10px 0;border:1px dashed #3a3d54;border-radius:8px;background:transparent;color:#c3c6da;font:500 12.5px -apple-system,sans-serif;cursor:pointer">+ Add Holding</button>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 18px 0">
+          <span style="font-size:13px;color:#9498b0">Total</span>
+          <span style="font:600 15px -apple-system,sans-serif;color:#f2f2f5">100%</span>
+        </div>
+        <div style="padding:16px 18px 0">
+          <button style="width:100%;padding:13px 0;border-radius:10px;border:1px solid #a89bec;background:transparent;color:#d2cefd;font:700 13.5px -apple-system,sans-serif;cursor:pointer">Save Changes</button>
+        </div>
+        <div style="padding:14px 18px 0;text-align:center">
+          <span style="font-size:13px;color:#e08787;cursor:pointer">Delete Portfolio</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 6b: EDIT inline on the detail card -->
+    <div style="display:flex;flex-direction:column;gap:9px">
+      <div style="display:flex;align-items:baseline;gap:8px;font:400 11px -apple-system,sans-serif;color:#9aa0c9">
+        <a id="6b" href="#6b" style="font:600 10.5px ui-monospace,Menlo,monospace;padding:3px 7px;background:rgba(145,132,217,.18);color:#d2cefd;border-radius:5px;text-decoration:none">6b</a>Edit — inline on the Detail card, via the ⋮ menu
+      </div>
+      <div style="width:390px;position:relative">
+        <div style="background:#12131e;color:#f2f2f5;font-family:-apple-system,sans-serif;box-shadow:0 16px 40px rgba(0,0,0,.5);padding-bottom:24px;border-radius:20px;overflow:hidden;border:1px solid #363a52">
+          <div style="padding:20px 18px 0">
+            <span style="display:inline-block;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:#b3a8ec;font-weight:600;padding:3px 8px;background:rgba(145,132,217,.14);border-radius:5px;margin-bottom:10px">Portfolio</span>
+            <div style="display:flex;align-items:center;gap:8px">
+              <button style="flex:1;display:flex;align-items:center;justify-content:space-between;gap:10px;min-height:44px;padding:8px 12px;background:#1c1e2c;border:1px solid #3a3d54;border-radius:10px;cursor:pointer">
+                <span style="font:500 19px -apple-system,sans-serif;color:#f2f2f5">Core Growth</span>
+                <svg width="16" height="16" sc-camel-view-box="0 0 16 16" style="flex:none"><polyline points="4,6 8,10 12,6" fill="none" stroke="#f2f2f5" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"></polyline></svg>
+              </button>
+              <button style="width:44px;height:44px;flex:none;border-radius:10px;background:#2a2c40;border:1px solid #a89bec;display:flex;align-items:center;justify-content:center;cursor:pointer">
+                <svg width="14" height="3.5" sc-camel-view-box="0 0 14 3.5"><circle cx="1.75" cy="1.75" r="1.4" fill="#f2f2f5"></circle><circle cx="7" cy="1.75" r="1.4" fill="#f2f2f5"></circle><circle cx="12.25" cy="1.75" r="1.4" fill="#f2f2f5"></circle></svg>
+              </button>
+            </div>
+          </div>
+          <div style="padding:22px 18px 0">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+              <span style="font:600 13px -apple-system,sans-serif;letter-spacing:.02em;color:#c3c6da">Editing Holdings</span>
+              <span style="font-size:12px;color:#f2f2f5;font-weight:700">100%</span>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:8px">
+              <div style="display:flex;align-items:center;gap:10px">
+                <div style="width:42px;height:26px;flex:none;background:#232532;border:1px solid #3a3d54;border-radius:6px;display:flex;align-items:center;justify-content:center;font:600 10.5px -apple-system,sans-serif;color:#e3defc">VTI</div>
+                <input value="80" style="flex:1;min-width:0;box-sizing:border-box;background:#1c1e2c;border:1px solid #3a3d54;border-radius:8px;padding:9px 10px;color:#f2f2f5;font:600 13px -apple-system,sans-serif;text-align:right">
+                <span style="font-size:12px;color:#9498b0">%</span>
+                <button style="width:28px;height:28px;flex:none;border:none;background:transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;border-radius:6px">
+                  <svg width="11" height="11" sc-camel-view-box="0 0 12 12"><line x1="1" y1="1" x2="11" y2="11" stroke="#9498b0" stroke-width="1.5"></line><line x1="11" y1="1" x2="1" y2="11" stroke="#9498b0" stroke-width="1.5"></line></svg>
+                </button>
+              </div>
+              <div style="display:flex;align-items:center;gap:10px">
+                <div style="width:42px;height:26px;flex:none;background:#232532;border:1px solid #3a3d54;border-radius:6px;display:flex;align-items:center;justify-content:center;font:600 10.5px -apple-system,sans-serif;color:#e3defc">VXUS</div>
+                <input value="20" style="flex:1;min-width:0;box-sizing:border-box;background:#1c1e2c;border:1px solid #3a3d54;border-radius:8px;padding:9px 10px;color:#f2f2f5;font:600 13px -apple-system,sans-serif;text-align:right">
+                <span style="font-size:12px;color:#9498b0">%</span>
+                <button style="width:28px;height:28px;flex:none;border:none;background:transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;border-radius:6px">
+                  <svg width="11" height="11" sc-camel-view-box="0 0 12 12"><line x1="1" y1="1" x2="11" y2="11" stroke="#9498b0" stroke-width="1.5"></line><line x1="11" y1="1" x2="1" y2="11" stroke="#9498b0" stroke-width="1.5"></line></svg>
+                </button>
+              </div>
+              <button style="width:100%;padding:9px 0;border:1px dashed #3a3d54;border-radius:8px;background:transparent;color:#c3c6da;font:500 12px -apple-system,sans-serif;cursor:pointer">+ Add Holding</button>
+            </div>
+          </div>
+          <div style="display:flex;gap:10px;padding:22px 18px 0">
+            <button style="flex:1;padding:12px 0;border-radius:9px;border:1px solid #3a3d54;background:transparent;color:#f2f2f5;font:500 13px -apple-system,sans-serif;cursor:pointer">Cancel</button>
+            <button style="flex:1;padding:12px 0;border-radius:9px;border:1px solid #a89bec;background:#a89bec;color:#12131e;font:700 13px -apple-system,sans-serif;cursor:pointer">Save</button>
+          </div>
+        </div>
+        <!-- ⋮ dropdown menu, shown open above the editing state to illustrate the entry point -->
+        <div style="position:absolute;top:64px;right:18px;width:170px;background:#232532;border:1px solid #3a3d54;border-radius:10px;box-shadow:0 12px 28px rgba(0,0,0,.5);overflow:hidden">
+          <div style="padding:11px 14px;font-size:13px;color:#f2f2f5;cursor:pointer;border-bottom:1px solid #2c2f45">Edit Portfolio</div>
+          <div style="padding:11px 14px;font-size:13px;color:#f2f2f5;cursor:pointer;border-bottom:1px solid #2c2f45">Duplicate</div>
+          <div style="padding:11px 14px;font-size:13px;color:#e08787;cursor:pointer">Remove Portfolio</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+  <p style="margin:22px 0 0;font:12px/1.5 -apple-system,sans-serif;color:#9498b0">5a/5b tackle removal from the portfolio switcher sheet: 5a reveals inline Edit/Remove buttons then confirms with a dialog (safest, most explicit); 5b is swipe-to-delete with an Undo toast (faster, fewer taps, relies on the undo window instead of a confirm step). 6a/6b tackle editing: 6a is a dedicated full screen reusing the Add Portfolio shell (clear, matches an existing pattern, room for a destructive "Delete Portfolio" action at the bottom); 6b edits holdings inline on the Detail card itself via the existing ⋮ menu, so the user never leaves the chart context.</p>
 </section>
 
 </x-dc>
@@ -1414,7 +1936,14 @@ class Component extends DCLogic {
       { label:'Beta', p:d.beta.toFixed(2), b:'—' },
       { label:'Correlation', p:d.corr.toFixed(2), b:'—' },
     ];
-    return Object.assign({}, base, { statsRows });
+    const hi = parseFloat(base.gridHigh), lo = parseFloat(base.gridLow), mid = (hi + lo) / 2;
+    const lbl = (x, y, text, bold) => React.createElement('text', { key: x + '-' + y, x, y, fill: bold ? '#e3defc' : '#c3c6da', fontSize: 9, fontWeight: bold ? 600 : 400, fontFamily: '-apple-system,sans-serif' }, text);
+    const gridLabelsEl = React.createElement(React.Fragment, null,
+      lbl(6, 16, '$' + hi.toFixed(0), true),
+      lbl(6, 66, '$' + mid.toFixed(0), false),
+      lbl(6, 116, '$' + lo.toFixed(0), true),
+    );
+    return Object.assign({}, base, { statsRows, gridLabelsEl });
   }
 
   entityStats(period, ent) {

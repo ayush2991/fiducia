@@ -282,23 +282,11 @@ export function Overview() {
               showSeries={showPortfolio}
               showBenchmark={showBenchmark}
               onScrubChange={setScrubFraction}
+              seriesLabel={active?.name}
+              benchmarkLabel={detail.benchmark.portfolio.name}
+              onToggleSeries={() => setShowPortfolio((v) => !v)}
+              onToggleBenchmark={() => setShowBenchmark((v) => !v)}
             />
-            <View style={styles.toggleRow}>
-              <Pressable
-                style={[styles.toggleChip, { borderColor: colors.accent, opacity: showPortfolio ? 1 : 0.4 }]}
-                onPress={() => setShowPortfolio((v) => !v)}
-              >
-                <View style={[styles.toggleDot, { backgroundColor: colors.accent }]} />
-                <Text style={styles.toggleLabel}>{active?.name}</Text>
-              </Pressable>
-              <Pressable
-                style={[styles.toggleChip, { borderColor: colors.textMuted, opacity: showBenchmark ? 1 : 0.4 }]}
-                onPress={() => setShowBenchmark((v) => !v)}
-              >
-                <View style={[styles.toggleDash, { backgroundColor: colors.textSecondary }]} />
-                <Text style={styles.toggleLabel}>{detail.benchmark.portfolio.name}</Text>
-              </Pressable>
-            </View>
             {detail.portfolio.series.truncatedFrom ? (
               <Text style={styles.truncationNote}>Data from {detail.portfolio.series.truncatedFrom}</Text>
             ) : null}
@@ -415,34 +403,6 @@ const createStyles = (colors: ColorTokens) =>
     chartSection: {
       paddingHorizontal: 18,
       marginTop: 16,
-    },
-    toggleRow: {
-      flexDirection: 'row',
-      gap: 8,
-      marginTop: 8,
-    },
-    toggleChip: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: 6,
-      paddingVertical: 4,
-      paddingHorizontal: 10,
-      borderRadius: 20,
-      borderWidth: 1,
-    },
-    toggleDot: {
-      width: 8,
-      height: 8,
-      borderRadius: 4,
-    },
-    toggleDash: {
-      width: 8,
-      height: 1.5,
-    },
-    toggleLabel: {
-      fontSize: 11,
-      fontWeight: '500',
-      color: colors.textPrimary,
     },
     truncationNote: {
       fontSize: 11,

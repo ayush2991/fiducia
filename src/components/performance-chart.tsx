@@ -1,6 +1,6 @@
 import { useMemo, useRef, useState } from 'react';
 import type { GestureResponderEvent, LayoutChangeEvent, View as RNView } from 'react-native';
-import { StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { Circle, Defs, Line, LinearGradient, Path, Stop, Svg, Text as SvgText } from 'react-native-svg';
 
 import {
@@ -25,6 +25,10 @@ type PerformanceChartProps = {
   showSeries?: boolean;
   showBenchmark?: boolean;
   onScrubChange?: (fraction: number | null) => void;
+  seriesLabel?: string;
+  benchmarkLabel?: string;
+  onToggleSeries?: () => void;
+  onToggleBenchmark?: () => void;
 };
 
 export function PerformanceChart({
@@ -36,6 +40,10 @@ export function PerformanceChart({
   showSeries = true,
   showBenchmark = true,
   onScrubChange,
+  seriesLabel,
+  benchmarkLabel,
+  onToggleSeries,
+  onToggleBenchmark,
 }: PerformanceChartProps) {
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
@@ -209,6 +217,24 @@ export function PerformanceChart({
           <Text style={styles.xAxisLabel}>{series.points[series.points.length - 1].date}</Text>
         </View>
       ) : null}
+      {seriesLabel && benchmarkLabel ? (
+        <View style={styles.legendRow}>
+          <Pressable
+            style={[styles.legendChip, { borderColor: lineColor, opacity: showSeries ? 1 : 0.4 }]}
+            onPress={onToggleSeries}
+          >
+            <View style={[styles.legendDot, { backgroundColor: lineColor }]} />
+            <Text style={styles.legendLabel}>{seriesLabel}</Text>
+          </Pressable>
+          <Pressable
+            style={[styles.legendChip, { borderColor: colors.textMuted, opacity: showBenchmark ? 1 : 0.4 }]}
+            onPress={onToggleBenchmark}
+          >
+            <View style={[styles.legendDash, { backgroundColor: colors.textSecondary }]} />
+            <Text style={styles.legendLabel}>{benchmarkLabel}</Text>
+          </Pressable>
+        </View>
+      ) : null}
       {showSeries ? (
         <View style={[styles.pillGroup, { left: pillLeft - 20 }]}>
           <View style={[styles.pill, { backgroundColor: lineColor }]}>
@@ -281,6 +307,35 @@ const createStyles = (colors: ColorTokens) =>
     xAxisLabel: {
       fontSize: 10,
       color: colors.textSecondary,
+    },
+    legendRow: {
+      flexDirection: 'row',
+      gap: 8,
+      marginTop: 6,
+      paddingBottom: 10,
+    },
+    legendChip: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 6,
+      paddingVertical: 4,
+      paddingHorizontal: 10,
+      borderRadius: 20,
+      borderWidth: 1,
+    },
+    legendDot: {
+      width: 8,
+      height: 8,
+      borderRadius: 4,
+    },
+    legendDash: {
+      width: 8,
+      height: 1.5,
+    },
+    legendLabel: {
+      fontSize: 11,
+      fontWeight: '500',
+      color: colors.textPrimary,
     },
     scrubDate: {
       position: 'absolute',
