@@ -1,6 +1,6 @@
-import { useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { router } from 'expo-router';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   ActivityIndicator,
   KeyboardAvoidingView,
@@ -15,7 +15,8 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { CloseIcon } from '@/components/icons';
-import { createPortfolio, getLatestPrice } from '@/lib/api/portfolios';
+import { ConfirmDialog } from '@/components/confirm-dialog';
+import { createPortfolio, deletePortfolio, getLatestPrice, listPortfolios, updatePortfolio } from '@/lib/api/portfolios';
 import type { ColorTokens } from '@/theme/tokens';
 import { useTheme } from '@/theme/ThemeProvider';
 
@@ -101,7 +102,8 @@ function computeTotalStr(rows: HoldingRow[], mode: EntryMode, pcts: number[]): s
   }
 }
 
-export function AddPortfolio() {
+export function AddPortfolio({ portfolioId }: { portfolioId?: string } = {}) {
+  const isEditMode = Boolean(portfolioId);
   const insets = useSafeAreaInsets();
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
@@ -109,8 +111,16 @@ export function AddPortfolio() {
   const [name, setName] = useState('');
   const [mode, setMode] = useState<EntryMode>('alloc');
   const [rows, setRows] = useState<HoldingRow[]>([makeRow()]);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   // Track the latest validation calls so stale async results from fast edits are ignored.
   const validationSeq = useRef<Record<string, number>>({});
+  const seededRef = useRef(false);
+
+  const { data: existingPortfolios } = useQuery({
+    queryKey: ['portfolios', 'user'],
+    queryFn: () => listPortfolios('user'),
+    enabled: isEditMode,
+  });
 
   function updateRow(id: string, patch: Partial<HoldingRow>) {
     setRows((prev) => prev.map((r) => (r.id === id ? { ...r, ...patch } : r)));
@@ -145,6 +155,27 @@ export function AddPortfolio() {
     }
   }
 
+  // Prefill name/rows from the existing portfolio exactly once, the moment the
+  // cached/fetched portfolio list contains it — re-validating each holding's
+  // ticker on mount (rather than trusting the stored weight/name blindly) so
+  // price data is available if the user switches to Share Count/Dollar mode.
+  useEffect(() => {
+    if (!isEditMode || seededRef.current || !existingPortfolios) return;
+    const target = existingPortfolios.find((p) => p.id === portfolioId);
+    if (!target) return;
+    seededRef.current = true;
+    setName(target.name);
+    const seededRows: HoldingRow[] = target.holdings.map((h) => ({
+      id: String(nextId++),
+      ticker: h.ticker,
+      value: h.weight.toFixed(1),
+      validationState: 'idle',
+    }));
+    setRows(seededRows.length > 0 ? seededRows : [makeRow()]);
+    seededRows.forEach((r) => validateTicker(r.id, r.ticker));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isEditMode, existingPortfolios, portfolioId]);
+
   const saveMutation = useMutation({
     mutationFn: async () => {
       const rawHoldings = rows
@@ -154,7 +185,24 @@ export function AddPortfolio() {
           const weight = mode === 'shares' ? val * (r.price ?? 0) : val;
           return { ticker: r.ticker, weight };
         });
-      return createPortfolio(name.trim(), 'user', rawHoldings);
+      if (isEditMode && portfolioId) {
+        await updatePortfolio(portfolioId, name.trim(), rawHoldings);
+        return;
+      }
+      await createPortfolio(name.trim(), 'user', rawHoldings);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['portfolios'] });
+      queryClient.invalidateQueries({ queryKey: ['compare'] });
+      queryClient.invalidateQueries({ queryKey: ['portfolioPerformance'] });
+      router.back();
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: async () => {
+      if (!portfolioId) return;
+      await deletePortfolio(portfolioId);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['portfolios'] });
@@ -188,7 +236,7 @@ export function AddPortfolio() {
         <Pressable onPress={() => router.back()} hitSlop={8} style={styles.backBtn}>
           <Text style={styles.backChevron}>‹</Text>
         </Pressable>
-        <Text style={styles.headerTitle}>New Portfolio</Text>
+        <Text style={styles.headerTitle}>{isEditMode ? 'Edit Portfolio' : 'New Portfolio'}</Text>
         <View style={styles.headerSpacer} />
       </View>
 
@@ -304,7 +352,7 @@ export function AddPortfolio() {
               <ActivityIndicator color={colors.accent} size="small" />
             ) : (
               <Text style={[styles.saveBtnText, isSaveDisabled && styles.saveBtnTextDisabled]}>
-                Save Portfolio
+                {isEditMode ? 'Save Changes' : 'Save Portfolio'}
               </Text>
             )}
           </Pressable>
@@ -313,8 +361,27 @@ export function AddPortfolio() {
           ) : null}
         </View>
 
+        {isEditMode ? (
+          <View style={styles.deleteSection}>
+            <Pressable onPress={() => setShowDeleteConfirm(true)} hitSlop={8}>
+              <Text style={styles.deleteLink}>Delete Portfolio</Text>
+            </Pressable>
+          </View>
+        ) : null}
+
         <View style={{ height: insets.bottom + 24 }} />
       </ScrollView>
+
+      {showDeleteConfirm ? (
+        <ConfirmDialog
+          title={`Remove "${name || 'this portfolio'}"?`}
+          message="This portfolio and its holdings will be permanently deleted. This can't be undone."
+          confirmLabel="Remove"
+          isConfirming={deleteMutation.isPending}
+          onCancel={() => setShowDeleteConfirm(false)}
+          onConfirm={() => deleteMutation.mutate()}
+        />
+      ) : null}
     </KeyboardAvoidingView>
   );
 }
@@ -535,5 +602,13 @@ const createStyles = (colors: ColorTokens) =>
       color: colors.negative,
       textAlign: 'center',
       marginTop: 8,
+    },
+    deleteSection: {
+      alignItems: 'center',
+      paddingTop: 18,
+    },
+    deleteLink: {
+      fontSize: 13,
+      color: colors.negative,
     },
   });

@@ -3,6 +3,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { Path, Svg } from 'react-native-svg';
 
 import { PerformanceChart } from '@/components/performance-chart';
+import { TrashIcon } from '@/components/icons';
 import { linePath } from '@/lib/compute/chartGeometry';
 import type { WatchlistTickerPerformance } from '@/lib/api/types';
 import type { ColorTokens } from '@/theme/tokens';
@@ -14,6 +15,7 @@ type WatchlistRowProps = {
   isOpen: boolean;
   onToggle: () => void;
   onLongPress?: () => void;
+  onRemove?: () => void;
   onRetry?: () => void;
 };
 
@@ -30,7 +32,15 @@ const STATS_ROWS: { key: keyof WatchlistTickerPerformance['stats']; label: strin
   { key: 'correlation', label: 'Correlation (vs S&P 500)', suffix: '' },
 ];
 
-export function WatchlistRow({ item, benchmarkSeries, isOpen, onToggle, onLongPress, onRetry }: WatchlistRowProps) {
+export function WatchlistRow({
+  item,
+  benchmarkSeries,
+  isOpen,
+  onToggle,
+  onLongPress,
+  onRemove,
+  onRetry,
+}: WatchlistRowProps) {
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const changeColor = item.stats.return >= 0 ? colors.positive : colors.negative;
@@ -95,6 +105,12 @@ export function WatchlistRow({ item, benchmarkSeries, isOpen, onToggle, onLongPr
               ) : null}
             </View>
           )}
+          {onRemove ? (
+            <Pressable style={styles.removeRow} onPress={onRemove} hitSlop={8}>
+              <TrashIcon color={colors.negative} />
+              <Text style={styles.removeLabel}>Remove from Watchlist</Text>
+            </Pressable>
+          ) : null}
         </View>
       ) : null}
     </View>
@@ -197,5 +213,17 @@ const createStyles = (colors: ColorTokens) =>
       fontSize: 13,
       fontWeight: '600',
       color: colors.textPrimary,
+    },
+    removeRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8,
+      marginTop: 16,
+      alignSelf: 'flex-start',
+    },
+    removeLabel: {
+      fontSize: 13,
+      fontWeight: '500',
+      color: colors.negative,
     },
   });

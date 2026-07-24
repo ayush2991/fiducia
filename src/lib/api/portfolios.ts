@@ -89,12 +89,13 @@ export async function createPortfolio(
   return { id, name, type, holdings: normalized };
 }
 
-export async function updatePortfolioHoldings(
+export async function updatePortfolio(
   portfolioId: string,
+  name: string,
   rawHoldings: { ticker: string; weight: number }[]
 ): Promise<void> {
   const normalized = await attachNames(mergeDedupeNormalize(rawHoldings));
-  await storage.replaceHoldings(portfolioId, normalized);
+  await storage.updatePortfolio(portfolioId, name.trim(), normalized);
 }
 
 export async function deletePortfolio(portfolioId: string): Promise<void> {

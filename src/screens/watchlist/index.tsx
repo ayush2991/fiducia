@@ -1,10 +1,11 @@
 import { useMemo, useState } from 'react';
 import { router } from 'expo-router';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Alert, FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
+import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { PlusIcon } from '@/components/icons';
+import { ConfirmDialog } from '@/components/confirm-dialog';
 import { EmptyState } from '@/components/empty-state';
 import { PeriodPills } from '@/components/period-pills';
 import { WatchlistRow } from '@/components/watchlist-row';
@@ -19,6 +20,7 @@ export function Watchlist() {
   const styles = useMemo(() => createStyles(colors), [colors]);
   const [period, setPeriod] = useState<PeriodKey>(DEFAULT_PERIOD);
   const [expandedTicker, setExpandedTicker] = useState<string | null>(null);
+  const [pendingRemoveTicker, setPendingRemoveTicker] = useState<string | null>(null);
   const queryClient = useQueryClient();
   const { data, isPending, refetch } = useQuery({
     queryKey: ['watchlist', period],
@@ -30,17 +32,13 @@ export function Watchlist() {
   });
   const removeMutation = useMutation({
     mutationFn: (ticker: string) => removeWatchlistTicker(ticker),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['watchlist'] }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['watchlist'] });
+      setPendingRemoveTicker(null);
+    },
   });
   const items = data?.items ?? [];
   const insets = useSafeAreaInsets();
-
-  function confirmRemove(ticker: string) {
-    Alert.alert(`Remove ${ticker}?`, undefined, [
-      { text: 'Cancel', style: 'cancel' },
-      { text: 'Remove', style: 'destructive', onPress: () => removeMutation.mutate(ticker) },
-    ]);
-  }
 
   return (
     <View style={styles.container}>
@@ -77,7 +75,8 @@ export function Watchlist() {
                 benchmarkSeries={data?.benchmarkSeries}
                 isOpen={expandedTicker === item.ticker}
                 onToggle={() => setExpandedTicker((cur) => (cur === item.ticker ? null : item.ticker))}
-                onLongPress={() => confirmRemove(item.ticker)}
+                onLongPress={() => setPendingRemoveTicker(item.ticker)}
+                onRemove={() => setPendingRemoveTicker(item.ticker)}
                 onRetry={() => refetch()}
               />
             )}
@@ -85,6 +84,16 @@ export function Watchlist() {
           />
         </>
       )}
+      {pendingRemoveTicker ? (
+        <ConfirmDialog
+          title={`Remove ${pendingRemoveTicker}?`}
+          message="This removes it from your watchlist. This can't be undone."
+          confirmLabel="Remove"
+          isConfirming={removeMutation.isPending}
+          onCancel={() => setPendingRemoveTicker(null)}
+          onConfirm={() => removeMutation.mutate(pendingRemoveTicker)}
+        />
+      ) : null}
     </View>
   );
 }

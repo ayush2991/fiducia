@@ -59,6 +59,7 @@ export function PerformanceChart({
   // 16%-return line would both get stretched to fill the same chart height and
   // look equally sized instead of visibly different.
   const { min, max } = seriesRange([...values, ...benchmarkValues]);
+  const mid = (min + max) / 2;
   const benchmarkPoints = benchmarkSeries?.points ?? [];
   // A shared date domain across both series, so a series with less real
   // history (e.g. a brand-new ticker) is positioned by its actual dates
@@ -154,9 +155,9 @@ export function PerformanceChart({
               <Stop offset="100%" stopColor={lineColor} stopOpacity={0} />
             </LinearGradient>
           </Defs>
-          <Line x1={0} y1={height * 0.14} x2={width - 30} y2={height * 0.14} stroke={colors.border} strokeWidth={1} />
-          <Line x1={0} y1={height * 0.5} x2={width - 30} y2={height * 0.5} stroke={colors.border} strokeWidth={1} />
-          <Line x1={0} y1={height * 0.86} x2={width - 30} y2={height * 0.86} stroke={colors.border} strokeWidth={1} />
+          <Line x1={0} y1={height * 0.14} x2={width} y2={height * 0.14} stroke={colors.border} strokeWidth={1} />
+          <Line x1={0} y1={height * 0.5} x2={width} y2={height * 0.5} stroke={colors.border} strokeWidth={1} />
+          <Line x1={0} y1={height * 0.86} x2={width} y2={height * 0.86} stroke={colors.border} strokeWidth={1} />
           {showSeries ? (
             <Path d={areaPathByDate(series.points, domain, { min, max }, width, height)} fill={`url(#${gradientId})`} />
           ) : null}
@@ -203,11 +204,14 @@ export function PerformanceChart({
               <Circle cx={current.x} cy={current.y} r={4.5} fill={lineColor} stroke={colors.background} strokeWidth={2} />
             </>
           ) : null}
-          <SvgText x={width - 28} y={height * 0.14 + 4} fill={colors.textSecondary} fontSize={9}>
-            {max.toFixed(0)}
+          <SvgText x={4} y={height * 0.14 + 4} fill={colors.accentSoft} fontSize={9} fontWeight="600">
+            ${max.toFixed(0)}
           </SvgText>
-          <SvgText x={width - 28} y={height * 0.86 + 4} fill={colors.textSecondary} fontSize={9}>
-            {min.toFixed(0)}
+          <SvgText x={4} y={height * 0.5 + 4} fill={colors.textSecondary} fontSize={9}>
+            ${mid.toFixed(0)}
+          </SvgText>
+          <SvgText x={4} y={height * 0.86 + 4} fill={colors.accentSoft} fontSize={9} fontWeight="600">
+            ${min.toFixed(0)}
           </SvgText>
         </Svg>
       </View>

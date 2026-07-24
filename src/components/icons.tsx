@@ -83,6 +83,39 @@ export function ChevronRightIcon({ color }: IconProps) {
   );
 }
 
+export function KebabIcon({ color }: IconProps) {
+  return (
+    <Svg width={14} height={3.5} viewBox="0 0 14 3.5">
+      <Circle cx={1.75} cy={1.75} r={1.4} fill={color} />
+      <Circle cx={7} cy={1.75} r={1.4} fill={color} />
+      <Circle cx={12.25} cy={1.75} r={1.4} fill={color} />
+    </Svg>
+  );
+}
+
+export function EditIcon({ color }: IconProps) {
+  return (
+    <Svg width={12} height={12} viewBox="0 0 14 14">
+      <Path d="M9.5 1.5l3 3-8 8-3.5.5.5-3.5z" fill="none" stroke={color} strokeWidth={1.3} strokeLinejoin="round" />
+    </Svg>
+  );
+}
+
+export function TrashIcon({ color }: IconProps) {
+  return (
+    <Svg width={12} height={12} viewBox="0 0 13 13">
+      <Path
+        d="M2 3.5h9M5 3.5V2h3v1.5M3 3.5l.6 8h5.8l.6-8"
+        fill="none"
+        stroke={color}
+        strokeWidth={1.3}
+        strokeLinejoin="round"
+        strokeLinecap="round"
+      />
+    </Svg>
+  );
+}
+
 export function EmptyPortfoliosIcon({ color, glyphColor }: { color: string; glyphColor: string }) {
   return (
     <Svg width={40} height={40} viewBox="0 0 40 40">

@@ -30,13 +30,19 @@ CREATE TABLE IF NOT EXISTS holdings (
 `;
 
 const SEED_BENCHMARKS = `
-INSERT OR IGNORE INTO portfolios (id, name, type) VALUES ('benchmark-9010', '90/10 Benchmark', 'benchmark');
-INSERT OR IGNORE INTO portfolios (id, name, type) VALUES ('benchmark-6040', '60/40 Classic', 'benchmark');
-INSERT OR IGNORE INTO holdings (portfolio_id, ticker, weight, name) VALUES ('benchmark-9010', 'SPY', 90, 'SPDR S&P 500 ETF Trust');
-INSERT OR IGNORE INTO holdings (portfolio_id, ticker, weight, name) VALUES ('benchmark-9010', 'BND', 10, 'Vanguard Total Bond Market ETF');
-INSERT OR IGNORE INTO holdings (portfolio_id, ticker, weight, name) VALUES ('benchmark-6040', 'SPY', 60, 'SPDR S&P 500 ETF Trust');
-INSERT OR IGNORE INTO holdings (portfolio_id, ticker, weight, name) VALUES ('benchmark-6040', 'BND', 40, 'Vanguard Total Bond Market ETF');
+INSERT OR IGNORE INTO portfolios (id, name, type) VALUES ('benchmark-spy', 'S&P 500', 'benchmark');
+INSERT OR IGNORE INTO holdings (portfolio_id, ticker, weight, name) VALUES ('benchmark-spy', 'SPY', 100, 'SPDR S&P 500 ETF Trust');
 `;
+
+// Older installs seeded two benchmarks (90/10, 60/40) — drop them so only the
+// single S&P 500 benchmark remains. ON DELETE CASCADE on holdings handles the
+// holding rows.
+const REMOVED_BENCHMARK_IDS = ['benchmark-9010', 'benchmark-6040'];
+async function migrateRemoveOldBenchmarks(db: SQLite.SQLiteDatabase): Promise<void> {
+  for (const id of REMOVED_BENCHMARK_IDS) {
+    await db.runAsync('DELETE FROM portfolios WHERE id = ?;', id);
+  }
+}
 
 // holdings.name was added after the initial schema shipped — CREATE TABLE IF
 // NOT EXISTS won't retrofit it onto a dev DB created before this change, so
@@ -58,6 +64,7 @@ export function getDb(): Promise<SQLite.SQLiteDatabase> {
       await db.execAsync('PRAGMA foreign_keys = ON;');
       await db.execAsync(SCHEMA);
       await migrateHoldingsNameColumn(db);
+      await migrateRemoveOldBenchmarks(db);
       await db.execAsync(SEED_BENCHMARKS);
       return db;
     });

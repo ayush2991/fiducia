@@ -75,17 +75,21 @@ export async function getAllPortfolios(type?: 'user' | 'benchmark'): Promise<Por
   return groupJoinRows(rows);
 }
 
-export async function replaceHoldings(
-  portfolioId: string,
+// Renames the portfolio and replaces its holdings atomically — same
+// all-or-nothing guarantee as createPortfolioWithHoldings.
+export async function updatePortfolio(
+  id: string,
+  name: string,
   holdings: { ticker: string; weight: number; name: string }[]
 ): Promise<void> {
   const db = await getDb();
   await db.withTransactionAsync(async () => {
-    await db.runAsync('DELETE FROM holdings WHERE portfolio_id = ?', portfolioId);
+    await db.runAsync('UPDATE portfolios SET name = ? WHERE id = ?', name, id);
+    await db.runAsync('DELETE FROM holdings WHERE portfolio_id = ?', id);
     for (const h of holdings) {
       await db.runAsync(
         'INSERT INTO holdings (portfolio_id, ticker, weight, name) VALUES (?, ?, ?, ?)',
-        portfolioId,
+        id,
         h.ticker,
         h.weight,
         h.name

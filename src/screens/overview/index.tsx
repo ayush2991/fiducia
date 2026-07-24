@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { router } from 'expo-router';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   ActivityIndicator,
   Modal,
@@ -14,11 +14,12 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { PerformanceChart } from '@/components/performance-chart';
 import { EmptyState } from '@/components/empty-state';
-import { ChevronDownIcon } from '@/components/icons';
+import { ConfirmDialog } from '@/components/confirm-dialog';
+import { ChevronDownIcon, EditIcon, KebabIcon, TrashIcon } from '@/components/icons';
 import { PeriodPills } from '@/components/period-pills';
 import { getPortfolioPerformance } from '@/lib/api/compare';
 import { nearestIndexForX, percentChangeAt } from '@/lib/compute/chartGeometry';
-import { listPortfolios } from '@/lib/api/portfolios';
+import { deletePortfolio, listPortfolios } from '@/lib/api/portfolios';
 import { getActiveProvider } from '@/lib/api/settings';
 import { DEFAULT_PERIOD, type Holding, type PerformanceStats, type PeriodKey, type Portfolio } from '@/lib/api/types';
 import type { ColorTokens } from '@/theme/tokens';
@@ -51,16 +52,37 @@ function PortfolioSwitcher({
   onSelect,
   onClose,
   onAddNew,
+  onEdit,
+  onDeleted,
 }: {
   portfolios: Portfolio[];
   activeId: string | null;
   onSelect: (id: string) => void;
   onClose: () => void;
   onAddNew: () => void;
+  onEdit: (id: string) => void;
+  onDeleted: (id: string) => void;
 }) {
   const insets = useSafeAreaInsets();
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
+  const queryClient = useQueryClient();
+  const [revealedId, setRevealedId] = useState<string | null>(null);
+  const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
+
+  const deleteMutation = useMutation({
+    mutationFn: (id: string) => deletePortfolio(id),
+    onSuccess: (_data, id) => {
+      queryClient.invalidateQueries({ queryKey: ['portfolios'] });
+      queryClient.invalidateQueries({ queryKey: ['compare'] });
+      queryClient.invalidateQueries({ queryKey: ['portfolioPerformance'] });
+      setPendingDeleteId(null);
+      onDeleted(id);
+    },
+  });
+
+  const pendingDeleteName = portfolios.find((p) => p.id === pendingDeleteId)?.name ?? '';
+
   return (
     <Modal visible transparent animationType="fade" onRequestClose={onClose}>
       <Pressable style={styles.scrim} onPress={onClose}>
@@ -69,24 +91,53 @@ function PortfolioSwitcher({
           <Text style={styles.switcherTitle}>Your Portfolios</Text>
           {portfolios.map((p) => {
             const isActive = p.id === activeId;
+            const isRevealed = p.id === revealedId;
             const sub = p.holdings
               .slice(0, 3)
               .map((h) => `${Math.round(h.weight)}% ${h.ticker}`)
               .join(' · ');
             return (
-              <Pressable
-                key={p.id}
-                style={styles.switcherRow}
-                onPress={() => { onSelect(p.id); onClose(); }}
-              >
-                <View style={[styles.radioDot, { borderColor: isActive ? colors.accent : colors.borderStrong }]}>
-                  {isActive && <View style={styles.radioDotFill} />}
+              <View key={p.id}>
+                <View style={styles.switcherRow}>
+                  <Pressable
+                    style={styles.switcherRowMain}
+                    onPress={() => { onSelect(p.id); onClose(); }}
+                  >
+                    <View style={[styles.radioDot, { borderColor: isActive ? colors.accent : colors.borderStrong }]}>
+                      {isActive && <View style={styles.radioDotFill} />}
+                    </View>
+                    <View style={styles.switcherRowMeta}>
+                      <Text style={styles.switcherRowName}>{p.name}</Text>
+                      <Text style={styles.switcherRowSub} numberOfLines={1}>{sub}</Text>
+                    </View>
+                  </Pressable>
+                  <Pressable
+                    style={styles.kebabBtn}
+                    onPress={() => setRevealedId(isRevealed ? null : p.id)}
+                    hitSlop={8}
+                  >
+                    <KebabIcon color={colors.textMuted} />
+                  </Pressable>
                 </View>
-                <View style={styles.switcherRowMeta}>
-                  <Text style={styles.switcherRowName}>{p.name}</Text>
-                  <Text style={styles.switcherRowSub} numberOfLines={1}>{sub}</Text>
-                </View>
-              </Pressable>
+                {isRevealed ? (
+                  <View style={styles.revealActions}>
+                    <Pressable
+                      style={styles.revealBtn}
+                      onPress={() => { setRevealedId(null); onEdit(p.id); }}
+                    >
+                      <EditIcon color={colors.textPrimary} />
+                      <Text style={styles.revealBtnLabel}>Edit</Text>
+                    </Pressable>
+                    <Pressable
+                      style={[styles.revealBtn, styles.revealBtnDanger]}
+                      onPress={() => setPendingDeleteId(p.id)}
+                    >
+                      <TrashIcon color={colors.negative} />
+                      <Text style={[styles.revealBtnLabel, styles.revealBtnLabelDanger]}>Remove</Text>
+                    </Pressable>
+                  </View>
+                ) : null}
+              </View>
             );
           })}
           <Pressable style={styles.switcherAddBtn} onPress={onAddNew}>
@@ -94,6 +145,16 @@ function PortfolioSwitcher({
           </Pressable>
         </Pressable>
       </Pressable>
+      {pendingDeleteId ? (
+        <ConfirmDialog
+          title={`Remove "${pendingDeleteName}"?`}
+          message="This portfolio and its holdings will be permanently deleted. This can't be undone."
+          confirmLabel="Remove"
+          isConfirming={deleteMutation.isPending}
+          onCancel={() => setPendingDeleteId(null)}
+          onConfirm={() => deleteMutation.mutate(pendingDeleteId)}
+        />
+      ) : null}
     </Modal>
   );
 }
@@ -146,7 +207,20 @@ export function Overview() {
   const [showPortfolio, setShowPortfolio] = useState(true);
   const [showBenchmark, setShowBenchmark] = useState(true);
   const [scrubFraction, setScrubFraction] = useState<number | null>(null);
+  const [showHeaderMenu, setShowHeaderMenu] = useState(false);
+  const [showHeaderDeleteConfirm, setShowHeaderDeleteConfirm] = useState(false);
   const queryClient = useQueryClient();
+
+  const headerDeleteMutation = useMutation({
+    mutationFn: (id: string) => deletePortfolio(id),
+    onSuccess: (_data, id) => {
+      queryClient.invalidateQueries({ queryKey: ['portfolios'] });
+      queryClient.invalidateQueries({ queryKey: ['compare'] });
+      queryClient.invalidateQueries({ queryKey: ['portfolioPerformance'] });
+      setShowHeaderDeleteConfirm(false);
+      if (id === activeId) setActiveId(null);
+    },
+  });
 
   const { data: portfolios = [], isPending } = useQuery({
     queryKey: ['portfolios', 'user'],
@@ -238,12 +312,55 @@ export function Overview() {
   return (
     <View style={styles.container}>
       <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
-        <Text style={styles.eyebrow}>Portfolio</Text>
-        <Pressable style={styles.namePressable} onPress={() => setShowSwitcher(true)}>
-          <Text style={styles.portfolioName}>{active?.name ?? ''}</Text>
-          <ChevronDownIcon color={colors.textPrimary} />
-        </Pressable>
+        <View style={styles.eyebrowBadge}>
+          <Text style={styles.eyebrowBadgeText}>Portfolio</Text>
+        </View>
+        <View style={styles.headerRow}>
+          <Pressable style={styles.namePressable} onPress={() => setShowSwitcher(true)}>
+            <Text style={styles.portfolioName}>{active?.name ?? ''}</Text>
+            <ChevronDownIcon color={colors.textPrimary} />
+          </Pressable>
+          <Pressable
+            style={styles.headerKebabBtn}
+            onPress={() => setShowHeaderMenu((v) => !v)}
+            hitSlop={8}
+          >
+            <KebabIcon color={colors.textPrimary} />
+          </Pressable>
+        </View>
+        {showHeaderMenu ? (
+          <View style={styles.headerMenu}>
+            <Pressable
+              style={styles.headerMenuItem}
+              onPress={() => {
+                setShowHeaderMenu(false);
+                if (active) router.push(`/edit-portfolio?portfolioId=${active.id}`);
+              }}
+            >
+              <Text style={styles.headerMenuItemText}>Edit Portfolio</Text>
+            </Pressable>
+            <Pressable
+              style={[styles.headerMenuItem, styles.headerMenuItemLast]}
+              onPress={() => {
+                setShowHeaderMenu(false);
+                setShowHeaderDeleteConfirm(true);
+              }}
+            >
+              <Text style={[styles.headerMenuItemText, styles.headerMenuItemDanger]}>Remove Portfolio</Text>
+            </Pressable>
+          </View>
+        ) : null}
       </View>
+      {showHeaderDeleteConfirm && active ? (
+        <ConfirmDialog
+          title={`Remove "${active.name}"?`}
+          message="This portfolio and its holdings will be permanently deleted. This can't be undone."
+          confirmLabel="Remove"
+          isConfirming={headerDeleteMutation.isPending}
+          onCancel={() => setShowHeaderDeleteConfirm(false)}
+          onConfirm={() => headerDeleteMutation.mutate(active.id)}
+        />
+      ) : null}
 
       {/* Disable vertical scroll while scrubbing the chart: otherwise a slightly
           diagonal drag lets the ScrollView claim the gesture and terminate the
@@ -333,6 +450,13 @@ export function Overview() {
             setShowSwitcher(false);
             router.push('/add-portfolio');
           }}
+          onEdit={(id) => {
+            setShowSwitcher(false);
+            router.push(`/edit-portfolio?portfolioId=${id}`);
+          }}
+          onDeleted={(id) => {
+            if (id === activeId) setActiveId(null);
+          }}
         />
       )}
     </View>
@@ -353,24 +477,88 @@ const createStyles = (colors: ColorTokens) =>
       paddingHorizontal: 18,
       paddingBottom: 8,
     },
-    eyebrow: {
+    eyebrowBadge: {
+      alignSelf: 'flex-start',
+      backgroundColor: colors.surfaceMuted,
+      borderRadius: 5,
+      paddingVertical: 3,
+      paddingHorizontal: 8,
+      marginBottom: 10,
+    },
+    eyebrowBadgeText: {
       fontSize: 10,
-      letterSpacing: 1.0,
+      letterSpacing: 0.8,
       textTransform: 'uppercase',
       color: colors.accent,
-      fontWeight: '500',
+      fontWeight: '600',
     },
-    namePressable: {
+    headerRow: {
       flexDirection: 'row',
       alignItems: 'center',
-      gap: 6,
-      marginTop: 3,
-      alignSelf: 'flex-start',
+      gap: 8,
+    },
+    namePressable: {
+      flex: 1,
+      minHeight: 44,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      gap: 10,
+      paddingHorizontal: 12,
+      paddingVertical: 8,
+      backgroundColor: colors.surface,
+      borderWidth: 1,
+      borderColor: colors.border,
+      borderRadius: 10,
     },
     portfolioName: {
       fontSize: 19,
       fontWeight: '500',
       color: colors.textPrimary,
+    },
+    headerKebabBtn: {
+      width: 44,
+      height: 44,
+      flexShrink: 0,
+      borderRadius: 10,
+      backgroundColor: colors.surfaceMuted,
+      borderWidth: 1,
+      borderColor: colors.border,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    headerMenu: {
+      position: 'absolute',
+      top: 78,
+      right: 18,
+      width: 190,
+      backgroundColor: colors.surfaceMuted,
+      borderWidth: 1,
+      borderColor: colors.borderStrong,
+      borderRadius: 10,
+      overflow: 'hidden',
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 8 },
+      shadowOpacity: 0.3,
+      shadowRadius: 20,
+      elevation: 12,
+      zIndex: 10,
+    },
+    headerMenuItem: {
+      paddingVertical: 11,
+      paddingHorizontal: 14,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border,
+    },
+    headerMenuItemLast: {
+      borderBottomWidth: 0,
+    },
+    headerMenuItemText: {
+      fontSize: 13,
+      color: colors.textPrimary,
+    },
+    headerMenuItemDanger: {
+      color: colors.negative,
     },
     scrollContent: {
       paddingBottom: 32,
@@ -571,10 +759,52 @@ const createStyles = (colors: ColorTokens) =>
     switcherRow: {
       flexDirection: 'row',
       alignItems: 'center',
-      gap: 12,
       paddingVertical: 11,
       borderBottomWidth: 1,
       borderBottomColor: colors.border,
+    },
+    switcherRowMain: {
+      flex: 1,
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 12,
+      minWidth: 0,
+    },
+    kebabBtn: {
+      width: 34,
+      height: 34,
+      marginLeft: 8,
+      borderRadius: 8,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    revealActions: {
+      flexDirection: 'row',
+      gap: 8,
+      paddingBottom: 12,
+    },
+    revealBtn: {
+      flex: 1,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 6,
+      paddingVertical: 9,
+      borderRadius: 8,
+      borderWidth: 1,
+      borderColor: colors.borderStrong,
+      backgroundColor: colors.surface,
+    },
+    revealBtnDanger: {
+      borderColor: colors.negative,
+    },
+    revealBtnLabel: {
+      fontSize: 12.5,
+      fontWeight: '500',
+      color: colors.textPrimary,
+    },
+    revealBtnLabelDanger: {
+      color: colors.negative,
     },
     radioDot: {
       width: 16,

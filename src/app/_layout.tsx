@@ -22,6 +22,7 @@ function AppShell() {
       <Stack screenOptions={{ headerShown: false }}>
         <Stack.Screen name="(tabs)" />
         <Stack.Screen name="add-portfolio" options={{ presentation: 'modal' }} />
+        <Stack.Screen name="edit-portfolio" options={{ presentation: 'modal' }} />
         <Stack.Screen name="add-ticker" options={{ presentation: 'modal' }} />
       </Stack>
       <StatusBar style={themeName === 'daybreak' ? 'dark' : 'light'} />
