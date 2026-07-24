@@ -29,7 +29,25 @@ type PerformanceChartProps = {
   benchmarkLabel?: string;
   onToggleSeries?: () => void;
   onToggleBenchmark?: () => void;
+  // What the scrub pill reports at the crosshair: 'percent' (return since the
+  // start of the window, the default) or 'value' (the series' indexed value at
+  // that point — see backtest.ts, indexed to 100 at the first shared date).
+  valueDisplay?: 'percent' | 'value';
+  // Draw the $max/$mid/$min labels on the horizontal grid lines. Off when the
+  // scrub pill already surfaces the value (see Overview).
+  showScaleLabels?: boolean;
 };
+
+// The scrub pill either reports return-since-start ('+2.14%') or the indexed
+// value at the crosshair ('$102.14' — a "growth of $100" figure, since the
+// backtest indexes each series to 100 at its first shared date).
+function formatPill(values: number[], index: number, mode: 'percent' | 'value'): string {
+  if (mode === 'value') {
+    return `$${(values[index] ?? 0).toFixed(2)}`;
+  }
+  const pct = percentChangeAt(values, index);
+  return `${pct >= 0 ? '+' : ''}${pct.toFixed(2)}%`;
+}
 
 export function PerformanceChart({
   series,
@@ -44,6 +62,8 @@ export function PerformanceChart({
   benchmarkLabel,
   onToggleSeries,
   onToggleBenchmark,
+  valueDisplay = 'percent',
+  showScaleLabels = true,
 }: PerformanceChartProps) {
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
@@ -204,15 +224,19 @@ export function PerformanceChart({
               <Circle cx={current.x} cy={current.y} r={4.5} fill={lineColor} stroke={colors.background} strokeWidth={2} />
             </>
           ) : null}
-          <SvgText x={4} y={height * 0.14 + 4} fill={colors.accentSoft} fontSize={9} fontWeight="600">
-            ${max.toFixed(0)}
-          </SvgText>
-          <SvgText x={4} y={height * 0.5 + 4} fill={colors.textSecondary} fontSize={9}>
-            ${mid.toFixed(0)}
-          </SvgText>
-          <SvgText x={4} y={height * 0.86 + 4} fill={colors.accentSoft} fontSize={9} fontWeight="600">
-            ${min.toFixed(0)}
-          </SvgText>
+          {showScaleLabels ? (
+            <>
+              <SvgText x={4} y={height * 0.14 + 4} fill={colors.accentSoft} fontSize={9} fontWeight="600">
+                ${max.toFixed(0)}
+              </SvgText>
+              <SvgText x={4} y={height * 0.5 + 4} fill={colors.textSecondary} fontSize={9}>
+                ${mid.toFixed(0)}
+              </SvgText>
+              <SvgText x={4} y={height * 0.86 + 4} fill={colors.accentSoft} fontSize={9} fontWeight="600">
+                ${min.toFixed(0)}
+              </SvgText>
+            </>
+          ) : null}
         </Svg>
       </View>
       {series.points.length > 0 ? (
@@ -243,16 +267,13 @@ export function PerformanceChart({
         <View style={[styles.pillGroup, { left: pillLeft - 20 }]}>
           <View style={[styles.pill, { backgroundColor: lineColor }]}>
             <Text style={styles.pillLabel}>
-              {series.points.length > 0
-                ? `${percentChangeAt(values, displayIndex) >= 0 ? '+' : ''}${percentChangeAt(values, displayIndex).toFixed(2)}%`
-                : ''}
+              {series.points.length > 0 ? formatPill(values, displayIndex, valueDisplay) : ''}
             </Text>
           </View>
           {showBenchmark && benchmarkValues.length > 0 && benchmarkDisplayIndex !== null ? (
             <View style={styles.benchPill}>
               <Text style={styles.benchPillLabel}>
-                Bench {percentChangeAt(benchmarkValues, benchmarkDisplayIndex) >= 0 ? '+' : ''}
-                {percentChangeAt(benchmarkValues, benchmarkDisplayIndex).toFixed(2)}%
+                Bench {formatPill(benchmarkValues, benchmarkDisplayIndex, valueDisplay)}
               </Text>
             </View>
           ) : null}

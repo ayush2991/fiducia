@@ -2,7 +2,7 @@ import { fetchDailySeries, lookupCompanyName } from './marketData';
 import { ensureFreshHistory } from './priceSync';
 import type { Holding, Portfolio } from './types';
 import * as storage from '@/lib/storage/portfolios';
-import { getLatestClose, upsertPrices } from '@/lib/storage/prices';
+import { getLatestClose, setLastSyncedDate, upsertPrices } from '@/lib/storage/prices';
 
 function generateId(): string {
   return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
@@ -115,6 +115,9 @@ export async function getLatestPrice(ticker: string): Promise<number> {
     // ensureFreshHistory uses for the multi-ticker refresh case below.
     const series = await fetchDailySeries(ticker); // throws on unknown ticker
     await upsertPrices(ticker, series);
+    // Record this as today's sync so a later ensureFreshHistory call for the same
+    // ticker elsewhere (e.g. Watchlist) doesn't immediately re-fetch it.
+    await setLastSyncedDate(ticker, new Date().toISOString().slice(0, 10));
     const close = series[series.length - 1]?.close;
     if (close === undefined) throw new Error(`No price data for ${ticker}`);
     return close;

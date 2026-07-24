@@ -191,10 +191,15 @@ export function AddPortfolio({ portfolioId }: { portfolioId?: string } = {}) {
       }
       await createPortfolio(name.trim(), 'user', rawHoldings);
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['portfolios'] });
-      queryClient.invalidateQueries({ queryKey: ['compare'] });
-      queryClient.invalidateQueries({ queryKey: ['portfolioPerformance'] });
+    onSuccess: async () => {
+      // Await the refetches (not just the invalidation) before navigating back —
+      // otherwise the screen underneath re-renders with stale cached data for a
+      // beat (e.g. Overview still holding an activeId that no longer exists).
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ['portfolios'] }),
+        queryClient.invalidateQueries({ queryKey: ['compare'] }),
+        queryClient.invalidateQueries({ queryKey: ['portfolioPerformance'] }),
+      ]);
       router.back();
     },
   });
@@ -204,10 +209,12 @@ export function AddPortfolio({ portfolioId }: { portfolioId?: string } = {}) {
       if (!portfolioId) return;
       await deletePortfolio(portfolioId);
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['portfolios'] });
-      queryClient.invalidateQueries({ queryKey: ['compare'] });
-      queryClient.invalidateQueries({ queryKey: ['portfolioPerformance'] });
+    onSuccess: async () => {
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ['portfolios'] }),
+        queryClient.invalidateQueries({ queryKey: ['compare'] }),
+        queryClient.invalidateQueries({ queryKey: ['portfolioPerformance'] }),
+      ]);
       router.back();
     },
   });

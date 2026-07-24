@@ -30,7 +30,6 @@ function EntityRow({
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const holdingsSummary = entity.portfolio.holdings
-    .slice(0, 3)
     .map((h) => `${Math.round(h.weight)}% ${h.ticker}`)
     .join(' · ');
   const isUnavailable = entity.dataFreshness.unavailableTickers.length > 0;
@@ -48,7 +47,7 @@ function EntityRow({
             </Text>
           ) : (
             <>
-              <Text style={styles.rowSub} numberOfLines={1}>
+              <Text style={styles.rowSub}>
                 {holdingsSummary || '—'}
               </Text>
               <Text style={styles.rowSub}>
@@ -191,7 +190,11 @@ export function Compare() {
             <View style={styles.chartWrapper}>
               <CompareChart lines={lines} onScrubChange={setScrubFraction} />
               <Text style={styles.sectionLabel}>
-                {isScrubbing ? 'Value at crosshair' : 'Portfolios & Benchmarks'}
+                {isScrubbing
+                  ? scrubDateLabel
+                    ? `% return as of ${scrubDateLabel}`
+                    : '% return at crosshair'
+                  : 'Portfolios & Benchmarks'}
               </Text>
             </View>
           }

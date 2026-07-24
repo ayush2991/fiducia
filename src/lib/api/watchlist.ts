@@ -13,7 +13,6 @@ import {
   dailyReturns,
   periodReturn,
   sliceToPeriod,
-  toIndexedSeries,
   tradingDaySpan,
   type PricePoint,
 } from '@/lib/compute/returns';
@@ -60,7 +59,14 @@ function buildPerformance(
   period: PeriodKey
 ): Omit<WatchlistTickerPerformance, 'dataFreshness'> {
   const { points: sliced, truncatedFrom } = sliceToPeriod(prices, period);
-  const series: PerformanceSeries = { period, points: toIndexedSeries(sliced), truncatedFrom };
+  // Carry the real closing price at each point (not indexed to 100) so the chart
+  // crosshair reports the actual stock price. A single ticker has a genuine price,
+  // unlike a multi-holding portfolio — see Overview, which stays indexed.
+  const series: PerformanceSeries = {
+    period,
+    points: sliced.map((p) => ({ date: p.date, value: p.close })),
+    truncatedFrom,
+  };
 
   const days = tradingDaySpan(sliced);
   const returnPct = periodReturn(sliced);
@@ -81,22 +87,15 @@ function buildPerformance(
 
 export interface WatchlistResult {
   items: WatchlistTickerPerformance[];
-  benchmarkSeries: PerformanceSeries;
 }
 
 export async function listWatchlist(period: PeriodKey): Promise<WatchlistResult> {
   const refreshOk: Record<string, boolean> = {};
+  // SPY is still fetched/refreshed here because per-ticker alpha/beta/correlation
+  // stats are computed against it in buildPerformance — the watchlist just no
+  // longer overlays the benchmark line on the chart.
   refreshOk[BENCHMARK_TICKER] = await ensureFreshHistory(BENCHMARK_TICKER);
   const benchmarkPrices = await getAllPrices(BENCHMARK_TICKER);
-  const { points: benchmarkSliced, truncatedFrom: benchmarkTruncatedFrom } = sliceToPeriod(
-    benchmarkPrices,
-    period
-  );
-  const benchmarkSeries: PerformanceSeries = {
-    period,
-    points: toIndexedSeries(benchmarkSliced),
-    truncatedFrom: benchmarkTruncatedFrom,
-  };
 
   const tickers = await watchlistStorage.listTickers();
   const items = await Promise.all(
@@ -113,7 +112,7 @@ export async function listWatchlist(period: PeriodKey): Promise<WatchlistResult>
       };
     })
   );
-  return { items, benchmarkSeries };
+  return { items };
 }
 
 export async function addWatchlistTicker(rawTicker: string): Promise<void> {
@@ -121,14 +120,19 @@ export async function addWatchlistTicker(rawTicker: string): Promise<void> {
   if (!ticker) {
     throw new Error('Enter a ticker symbol');
   }
-  let series: PricePoint[];
+  // Try to fetch fresh data with rate-limit and cache fallback; if that fails,
+  // check if we have any cached data at all. Only error if there's no data from
+  // either source (a genuinely unknown ticker), not on transient API failures.
   try {
-    series = await fetchDailySeries(ticker);
+    await ensureFreshHistory(ticker);
   } catch (err) {
     if (err instanceof NoProviderConfiguredError) throw err;
+    throw err;
+  }
+  const cachedPrices = await getAllPrices(ticker);
+  if (cachedPrices.length === 0) {
     throw new Error(`Unknown ticker: ${ticker}`);
   }
-  await upsertPrices(ticker, series);
   const name = await lookupCompanyName(ticker);
   await watchlistStorage.insertTicker(ticker, name);
 }

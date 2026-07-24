@@ -11,7 +11,6 @@ import { useTheme } from '@/theme/ThemeProvider';
 
 type WatchlistRowProps = {
   item: WatchlistTickerPerformance;
-  benchmarkSeries?: WatchlistTickerPerformance['series'];
   isOpen: boolean;
   onToggle: () => void;
   onLongPress?: () => void;
@@ -34,7 +33,6 @@ const STATS_ROWS: { key: keyof WatchlistTickerPerformance['stats']; label: strin
 
 export function WatchlistRow({
   item,
-  benchmarkSeries,
   isOpen,
   onToggle,
   onLongPress,
@@ -76,8 +74,12 @@ export function WatchlistRow({
         <View style={styles.detail}>
           {item.series.points.length > 0 ? (
             <>
-              <PerformanceChart series={item.series} benchmarkSeries={benchmarkSeries} lineColor={changeColor} />
-              <Text style={styles.caption}>Dashed line: S&P 500 · same period</Text>
+              <PerformanceChart
+                series={item.series}
+                lineColor={changeColor}
+                valueDisplay="value"
+                showScaleLabels={false}
+              />
               {item.series.truncatedFrom ? (
                 <Text style={styles.caption}>Data from {item.series.truncatedFrom}</Text>
               ) : null}

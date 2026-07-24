@@ -27,6 +27,11 @@ CREATE TABLE IF NOT EXISTS holdings (
   name TEXT NOT NULL DEFAULT '',
   PRIMARY KEY (portfolio_id, ticker)
 );
+
+CREATE TABLE IF NOT EXISTS price_sync (
+  ticker TEXT PRIMARY KEY,
+  last_synced_date TEXT NOT NULL
+);
 `;
 
 const SEED_BENCHMARKS = `

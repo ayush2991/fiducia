@@ -1,5 +1,5 @@
 import { fetchDailySeries } from './marketData';
-import { getLatestDate, upsertPrices } from '@/lib/storage/prices';
+import { getLastSyncedDate, getLatestDate, setLastSyncedDate, upsertPrices } from '@/lib/storage/prices';
 
 const MAX_CONCURRENT_FETCHES = 3;
 
@@ -36,21 +36,33 @@ const inFlight = new Map<string, Promise<boolean>>();
 // Returns whether the ticker is fresh as of today.
 export async function ensureFreshHistory(ticker: string): Promise<boolean> {
   const today = todayISODate();
-  const latest = await getLatestDate(ticker);
-  if (latest === today) return true;
+  // Daily price data lags the calendar (a ticker's newest cached close is
+  // always the prior trading day's, not today's, until well after market
+  // close) — so `MAX(date)` in `prices` practically never equals today and
+  // can't serve as the once-a-day cap on its own. Track sync attempts
+  // separately in `price_sync` so a ticker already refreshed today (e.g. from
+  // Watchlist) is genuinely skipped when another screen (e.g. Add/Edit
+  // Portfolio) asks for it again, rather than re-fetching every single call.
+  const lastSynced = await getLastSyncedDate(ticker);
+  if (lastSynced === today) return true;
 
   const key = `${ticker}:${today}`;
   const existing = inFlight.get(key);
   if (existing) return existing;
 
   const promise = withConcurrencyLimit(async () => {
+    const latest = await getLatestDate(ticker);
     try {
       const series = await fetchDailySeries(ticker);
       const tail = latest === null ? series : series.filter((p) => p.date > latest);
       await upsertPrices(ticker, tail);
+      await setLastSyncedDate(ticker, today);
       return true;
     } catch (error) {
       // Fetch failed (offline / rate limit) — serve whatever is already cached.
+      // Still record the attempt so a failure (e.g. a rate limit) doesn't get
+      // retried by every subsequent caller for the rest of the day.
+      await setLastSyncedDate(ticker, today);
       if (typeof __DEV__ !== 'undefined' && __DEV__) {
         console.warn(`ensureFreshHistory: refresh failed for ${ticker}`, error);
       }

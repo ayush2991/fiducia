@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { router } from 'expo-router';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { ActivityIndicator, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { BackIcon } from '@/components/icons';
 import { addWatchlistTicker } from '@/lib/api/watchlist';
@@ -11,6 +12,7 @@ import { useTheme } from '@/theme/ThemeProvider';
 export function AddTicker() {
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
+  const insets = useSafeAreaInsets();
   const [ticker, setTicker] = useState('');
   const queryClient = useQueryClient();
   const mutation = useMutation({
@@ -23,7 +25,7 @@ export function AddTicker() {
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
+      <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
         <Pressable onPress={() => router.back()} hitSlop={8}>
           <BackIcon color={colors.textSecondary} />
         </Pressable>
@@ -65,7 +67,6 @@ const createStyles = (colors: ColorTokens) =>
       alignItems: 'center',
       justifyContent: 'space-between',
       paddingHorizontal: 18,
-      paddingTop: 20,
     },
     title: { fontSize: 15, fontWeight: '500', color: colors.textPrimary },
     spacer: { width: 14 },

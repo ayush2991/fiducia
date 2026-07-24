@@ -4,12 +4,23 @@ import * as prices from '@/lib/storage/prices';
 import type { PricePoint } from './providers/types';
 
 jest.mock('./marketData', () => ({ fetchDailySeries: jest.fn() }));
-jest.mock('@/lib/storage/prices', () => ({ getLatestDate: jest.fn(), upsertPrices: jest.fn() }));
+jest.mock('@/lib/storage/prices', () => ({
+  getLatestDate: jest.fn(),
+  getLastSyncedDate: jest.fn(),
+  setLastSyncedDate: jest.fn(),
+  upsertPrices: jest.fn(),
+}));
 
 const mockFetchDailySeries = marketData.fetchDailySeries as jest.MockedFunction<
   typeof marketData.fetchDailySeries
 >;
 const mockGetLatestDate = prices.getLatestDate as jest.MockedFunction<typeof prices.getLatestDate>;
+const mockGetLastSyncedDate = prices.getLastSyncedDate as jest.MockedFunction<
+  typeof prices.getLastSyncedDate
+>;
+const mockSetLastSyncedDate = prices.setLastSyncedDate as jest.MockedFunction<
+  typeof prices.setLastSyncedDate
+>;
 const mockUpsertPrices = prices.upsertPrices as jest.MockedFunction<typeof prices.upsertPrices>;
 
 function todayISODate(): string {
@@ -30,31 +41,39 @@ beforeEach(() => {
   jest.clearAllMocks();
   __resetPriceSyncStateForTests();
   mockUpsertPrices.mockResolvedValue(undefined);
+  mockSetLastSyncedDate.mockResolvedValue(undefined);
+  mockGetLastSyncedDate.mockResolvedValue(null);
 });
 
 describe('ensureFreshHistory', () => {
-  it('skips the fetch entirely when already fresh for today', async () => {
-    mockGetLatestDate.mockResolvedValue(todayISODate());
+  it('skips the fetch entirely when already synced today, even though the latest cached price date is stale', async () => {
+    // Daily price data lags the calendar — the newest cached close is always the
+    // prior trading day's, never "today's" — so freshness must be judged by a
+    // separate sync-attempt record, not by comparing MAX(date) to today.
+    mockGetLastSyncedDate.mockResolvedValue(todayISODate());
+    mockGetLatestDate.mockResolvedValue('2020-01-01');
     const ok = await ensureFreshHistory('SPY');
     expect(ok).toBe(true);
     expect(mockFetchDailySeries).not.toHaveBeenCalled();
   });
 
-  it('fetches and upserts when stale, returning true on success', async () => {
+  it('fetches and upserts when not yet synced today, returning true on success', async () => {
     mockGetLatestDate.mockResolvedValue('2020-01-01');
     mockFetchDailySeries.mockResolvedValue([{ date: '2020-01-02', close: 1 }]);
     const ok = await ensureFreshHistory('SPY');
     expect(ok).toBe(true);
     expect(mockFetchDailySeries).toHaveBeenCalledTimes(1);
     expect(mockUpsertPrices).toHaveBeenCalledWith('SPY', [{ date: '2020-01-02', close: 1 }]);
+    expect(mockSetLastSyncedDate).toHaveBeenCalledWith('SPY', todayISODate());
   });
 
-  it('returns false and leaves the cache untouched when the fetch fails but a cache exists', async () => {
+  it('returns false, leaves the cache untouched, but still records the sync attempt when the fetch fails', async () => {
     mockGetLatestDate.mockResolvedValue('2020-01-01');
     mockFetchDailySeries.mockRejectedValue(new Error('rate limited'));
     const ok = await ensureFreshHistory('SPY');
     expect(ok).toBe(false);
     expect(mockUpsertPrices).not.toHaveBeenCalled();
+    expect(mockSetLastSyncedDate).toHaveBeenCalledWith('SPY', todayISODate());
   });
 
   it('coalesces concurrent calls for the same ticker into a single underlying fetch', async () => {

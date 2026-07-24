@@ -42,3 +42,26 @@ export async function getLatestClose(ticker: string): Promise<number | null> {
   );
   return row?.close ?? null;
 }
+
+// Tracks the calendar date a ticker's history was last synced against the
+// provider, independent of the newest close date in `prices` — daily price
+// data lags the calendar (today's close isn't published until after market
+// close), so `MAX(date)` in `prices` practically never equals today and can't
+// be used as the once-a-day-per-ticker refresh cap on its own.
+export async function getLastSyncedDate(ticker: string): Promise<string | null> {
+  const db = await getDb();
+  const row = await db.getFirstAsync<{ last_synced_date: string }>(
+    'SELECT last_synced_date FROM price_sync WHERE ticker = ?',
+    ticker
+  );
+  return row?.last_synced_date ?? null;
+}
+
+export async function setLastSyncedDate(ticker: string, date: string): Promise<void> {
+  const db = await getDb();
+  await db.runAsync(
+    'INSERT OR REPLACE INTO price_sync (ticker, last_synced_date) VALUES (?, ?)',
+    ticker,
+    date
+  );
+}

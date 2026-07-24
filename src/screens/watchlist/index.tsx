@@ -72,7 +72,6 @@ export function Watchlist() {
             renderItem={({ item }) => (
               <WatchlistRow
                 item={item}
-                benchmarkSeries={data?.benchmarkSeries}
                 isOpen={expandedTicker === item.ticker}
                 onToggle={() => setExpandedTicker((cur) => (cur === item.ticker ? null : item.ticker))}
                 onLongPress={() => setPendingRemoveTicker(item.ticker)}

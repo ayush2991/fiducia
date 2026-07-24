@@ -228,7 +228,11 @@ export function Overview() {
   });
 
   useEffect(() => {
-    if (portfolios.length > 0 && !activeId) {
+    if (portfolios.length === 0) return;
+    // Covers both "nothing selected yet" and "the selected portfolio was deleted
+    // elsewhere" (e.g. via the Edit Portfolio screen) — either way, fall back to
+    // the first portfolio rather than holding a stale id pointing at nothing.
+    if (!activeId || !portfolios.some((p) => p.id === activeId)) {
       setActiveId(portfolios[0].id);
     }
   }, [portfolios, activeId]);
@@ -328,39 +332,7 @@ export function Overview() {
             <KebabIcon color={colors.textPrimary} />
           </Pressable>
         </View>
-        {showHeaderMenu ? (
-          <View style={styles.headerMenu}>
-            <Pressable
-              style={styles.headerMenuItem}
-              onPress={() => {
-                setShowHeaderMenu(false);
-                if (active) router.push(`/edit-portfolio?portfolioId=${active.id}`);
-              }}
-            >
-              <Text style={styles.headerMenuItemText}>Edit Portfolio</Text>
-            </Pressable>
-            <Pressable
-              style={[styles.headerMenuItem, styles.headerMenuItemLast]}
-              onPress={() => {
-                setShowHeaderMenu(false);
-                setShowHeaderDeleteConfirm(true);
-              }}
-            >
-              <Text style={[styles.headerMenuItemText, styles.headerMenuItemDanger]}>Remove Portfolio</Text>
-            </Pressable>
-          </View>
-        ) : null}
       </View>
-      {showHeaderDeleteConfirm && active ? (
-        <ConfirmDialog
-          title={`Remove "${active.name}"?`}
-          message="This portfolio and its holdings will be permanently deleted. This can't be undone."
-          confirmLabel="Remove"
-          isConfirming={headerDeleteMutation.isPending}
-          onCancel={() => setShowHeaderDeleteConfirm(false)}
-          onConfirm={() => headerDeleteMutation.mutate(active.id)}
-        />
-      ) : null}
 
       {/* Disable vertical scroll while scrubbing the chart: otherwise a slightly
           diagonal drag lets the ScrollView claim the gesture and terminate the
@@ -403,6 +375,7 @@ export function Overview() {
               benchmarkLabel={detail.benchmark.portfolio.name}
               onToggleSeries={() => setShowPortfolio((v) => !v)}
               onToggleBenchmark={() => setShowBenchmark((v) => !v)}
+              showScaleLabels={false}
             />
             {detail.portfolio.series.truncatedFrom ? (
               <Text style={styles.truncationNote}>Data from {detail.portfolio.series.truncatedFrom}</Text>
@@ -459,6 +432,43 @@ export function Overview() {
           }}
         />
       )}
+
+      {showHeaderMenu ? (
+        <>
+          <Pressable style={styles.headerMenuBackdrop} onPress={() => setShowHeaderMenu(false)} />
+          <View style={styles.headerMenu}>
+            <Pressable
+              style={styles.headerMenuItem}
+              onPress={() => {
+                setShowHeaderMenu(false);
+                if (active) router.push(`/edit-portfolio?portfolioId=${active.id}`);
+              }}
+            >
+              <Text style={styles.headerMenuItemText}>Edit Portfolio</Text>
+            </Pressable>
+            <Pressable
+              style={[styles.headerMenuItem, styles.headerMenuItemLast]}
+              onPress={() => {
+                setShowHeaderMenu(false);
+                setShowHeaderDeleteConfirm(true);
+              }}
+            >
+              <Text style={[styles.headerMenuItemText, styles.headerMenuItemDanger]}>Remove Portfolio</Text>
+            </Pressable>
+          </View>
+        </>
+      ) : null}
+
+      {showHeaderDeleteConfirm && active ? (
+        <ConfirmDialog
+          title={`Remove "${active.name}"?`}
+          message="This portfolio and its holdings will be permanently deleted. This can't be undone."
+          confirmLabel="Remove"
+          isConfirming={headerDeleteMutation.isPending}
+          onCancel={() => setShowHeaderDeleteConfirm(false)}
+          onConfirm={() => headerDeleteMutation.mutate(active.id)}
+        />
+      ) : null}
     </View>
   );
 }
@@ -526,6 +536,13 @@ const createStyles = (colors: ColorTokens) =>
       borderColor: colors.border,
       alignItems: 'center',
       justifyContent: 'center',
+    },
+    headerMenuBackdrop: {
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
     },
     headerMenu: {
       position: 'absolute',
