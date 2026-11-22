@@ -1,5 +1,5 @@
-import { useMemo, useRef, useState } from 'react';
-import type { GestureResponderEvent, LayoutChangeEvent, View as RNView } from 'react-native';
+import { useMemo, useRef, useState, type ComponentRef } from 'react';
+import type { GestureResponderEvent, LayoutChangeEvent } from 'react-native';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { Circle, Defs, Line, LinearGradient, Path, Stop, Svg, Text as SvgText } from 'react-native-svg';
 
@@ -67,7 +67,7 @@ export function PerformanceChart({
 }: PerformanceChartProps) {
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
-  const touchAreaRef = useRef<RNView>(null);
+  const touchAreaRef = useRef<ComponentRef<typeof View>>(null);
   const pageOffsetXRef = useRef(0);
   const isTouchingRef = useRef(false);
   const [chartAreaWidth, setChartAreaWidth] = useState(width);

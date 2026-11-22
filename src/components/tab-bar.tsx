@@ -1,4 +1,4 @@
-import { forwardRef, useMemo, type ReactNode } from 'react';
+import { forwardRef, useMemo, type ComponentRef, type ReactNode } from 'react';
 import { Pressable, StyleSheet, Text, View, type PressableProps, type ViewProps } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -11,7 +11,7 @@ type TabBarButtonProps = PressableProps & {
   renderIcon: (color: string) => ReactNode;
 };
 
-export const TabBarButton = forwardRef<View, TabBarButtonProps>(
+export const TabBarButton = forwardRef<ComponentRef<typeof Pressable>, TabBarButtonProps>(
   ({ isFocused, label, renderIcon, style: _style, ...props }, ref) => {
     const { colors } = useTheme();
     const styles = useMemo(() => createStyles(colors), [colors]);
@@ -25,7 +25,7 @@ export const TabBarButton = forwardRef<View, TabBarButtonProps>(
   }
 );
 
-export const TabBarContainer = forwardRef<View, ViewProps>(({ style, children, ...props }, ref) => {
+export const TabBarContainer = forwardRef<ComponentRef<typeof View>, ViewProps>(({ style, children, ...props }, ref) => {
   const insets = useSafeAreaInsets();
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
