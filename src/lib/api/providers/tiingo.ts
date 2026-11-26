@@ -6,7 +6,7 @@ function authHeaders(apiKey: string): HeadersInit {
   return { Authorization: `Token ${apiKey}`, 'Content-Type': 'application/json' };
 }
 
-type DailyPriceResponse = { date: string; close: number }[];
+type DailyPriceResponse = { date: string; close: number; adjClose?: number }[];
 type TickerMetadataResponse = { name?: string };
 
 // Without a startDate, Tiingo's /prices endpoint returns only the single most
@@ -43,7 +43,7 @@ async function fetchDailySeries(ticker: string, apiKey: string): Promise<PricePo
     throw new Error(`No price data returned for ${ticker}`);
   }
   return data
-    .map((p) => ({ date: p.date.slice(0, 10), close: p.close }))
+    .map((p) => ({ date: p.date.slice(0, 10), close: p.adjClose ?? p.close }))
     .sort((a, b) => (a.date < b.date ? -1 : 1));
 }
 

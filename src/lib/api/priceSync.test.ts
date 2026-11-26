@@ -57,14 +57,18 @@ describe('ensureFreshHistory', () => {
     expect(mockFetchDailySeries).not.toHaveBeenCalled();
   });
 
-  it('fetches and upserts when not yet synced today, returning true on success', async () => {
-    mockGetLatestDate.mockResolvedValue('2020-01-01');
-    mockFetchDailySeries.mockResolvedValue([{ date: '2020-01-02', close: 1 }]);
-    const ok = await ensureFreshHistory('SPY');
+  it('fetches and upserts the full series when not yet synced today so historical split adjustments overwrite stale rows', async () => {
+    mockGetLatestDate.mockResolvedValue('2026-11-04');
+    const series: PricePoint[] = [
+      { date: '2026-11-04', close: 164 },
+      { date: '2026-11-05', close: 165 },
+    ];
+    mockFetchDailySeries.mockResolvedValue(series);
+    const ok = await ensureFreshHistory('SOXX');
     expect(ok).toBe(true);
     expect(mockFetchDailySeries).toHaveBeenCalledTimes(1);
-    expect(mockUpsertPrices).toHaveBeenCalledWith('SPY', [{ date: '2020-01-02', close: 1 }]);
-    expect(mockSetLastSyncedDate).toHaveBeenCalledWith('SPY', todayISODate());
+    expect(mockUpsertPrices).toHaveBeenCalledWith('SOXX', series);
+    expect(mockSetLastSyncedDate).toHaveBeenCalledWith('SOXX', todayISODate());
   });
 
   it('returns false, leaves the cache untouched, but still records the sync attempt when the fetch fails', async () => {
