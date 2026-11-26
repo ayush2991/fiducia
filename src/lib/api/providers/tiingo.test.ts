@@ -9,16 +9,22 @@ function mockFetchOnce(status: number, body: unknown) {
 }
 
 describe('tiingoProvider.fetchDailySeries', () => {
-  it('maps and sorts the response into PricePoint[]', async () => {
+  it('maps and sorts the response into PricePoint[], preferring adjClose over close', async () => {
     mockFetchOnce(200, [
-      { date: '2024-01-02T00:00:00.000Z', close: 101 },
-      { date: '2024-01-01T00:00:00.000Z', close: 100 },
+      { date: '2024-01-02T00:00:00.000Z', close: 101, adjClose: 101 },
+      { date: '2024-01-01T00:00:00.000Z', close: 300, adjClose: 100 },
     ]);
-    const points = await tiingoProvider.fetchDailySeries('SPY', 'key');
+    const points = await tiingoProvider.fetchDailySeries('SOXX', 'key');
     expect(points).toEqual([
       { date: '2024-01-01', close: 100 },
       { date: '2024-01-02', close: 101 },
     ]);
+  });
+
+  it('falls back to close when adjClose is absent', async () => {
+    mockFetchOnce(200, [{ date: '2024-01-01T00:00:00.000Z', close: 100 }]);
+    const points = await tiingoProvider.fetchDailySeries('SPY', 'key');
+    expect(points).toEqual([{ date: '2024-01-01', close: 100 }]);
   });
 
   it('throws "Unknown ticker" on a 404', async () => {

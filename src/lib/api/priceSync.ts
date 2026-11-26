@@ -1,5 +1,5 @@
 import { fetchDailySeries } from './marketData';
-import { getLastSyncedDate, getLatestDate, setLastSyncedDate, upsertPrices } from '@/lib/storage/prices';
+import { getLastSyncedDate, setLastSyncedDate, upsertPrices } from '@/lib/storage/prices';
 
 const MAX_CONCURRENT_FETCHES = 3;
 
@@ -51,11 +51,9 @@ export async function ensureFreshHistory(ticker: string): Promise<boolean> {
   if (existing) return existing;
 
   const promise = withConcurrencyLimit(async () => {
-    const latest = await getLatestDate(ticker);
     try {
       const series = await fetchDailySeries(ticker);
-      const tail = latest === null ? series : series.filter((p) => p.date > latest);
-      await upsertPrices(ticker, tail);
+      await upsertPrices(ticker, series);
       await setLastSyncedDate(ticker, today);
       return true;
     } catch (error) {
